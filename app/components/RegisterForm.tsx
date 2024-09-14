@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import Link from 'next/link';
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -55,7 +56,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         <label className="flex items-center">
           <input type="checkbox" className="form-checkbox" required />
           <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-            I agree to the <a href="#" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">Terms of Service</a> and <a href="#" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">Privacy Policy</a>
+            I agree to the <Link href="/terms-of-service" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">Terms of Service</Link> and <Link href="/privacy-policy" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">Privacy Policy</Link>
           </span>
         </label>
       </div>

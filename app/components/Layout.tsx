@@ -1,5 +1,6 @@
 import React from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 
 interface LayoutProps {
@@ -26,18 +27,17 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard' }) => {
         <meta name="description" content="Digital NFC Business Card App" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <header className="p-4">
-        <div className="container mx-auto flex justify-end items-center">
+      <header className="p-4 bg-indigo-600 text-white">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link href="/" className="text-2xl font-bold">helixCard</Link>
           {user && (
-            <>
-              <span className="mr-4 text-sm">{user.email}</span>
-              <button
-                onClick={handleSignOut}
-                className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-600"
-              >
-                Sign Out
-              </button>
-            </>
+            <nav>
+              <ul className="flex space-x-4">
+                <li><Link href="/dashboard">Dashboard</Link></li>
+                <li><Link href="/create-card">Create Card</Link></li>
+                <li><button onClick={handleSignOut}>Sign Out</button></li>
+              </ul>
+            </nav>
           )}
         </div>
       </header>
