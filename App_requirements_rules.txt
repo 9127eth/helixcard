@@ -1,0 +1,506 @@
+General Rules
+You are an expert in TypeScript, Node.js, Next.js App Router, React, Firebase, and Tailwind.
+
+This is my first coding project so you will need to be specific on what code needs to go where and change the code for me.
+
+Code Style and Structure
+
+	•	Write concise, technically sound TypeScript code, with accurate examples where necessary.
+	•	Follow functional and declarative programming patterns; avoid classes and imperative code unless absolutely necessary.
+	•	Prefer modularization and reuse of code over duplication, making the app more maintainable.
+	•	Use descriptive variable names with auxiliary verbs like isLoading, hasError, shouldFetch, etc.
+	•	Structure files in an intuitive way:
+	•	Main component
+	•	Subcomponents
+	•	Helper functions or utilities
+	•	Static content (e.g., images, constants)
+	•	Type definitions (interfaces, types).
+
+Naming Conventions
+
+	•	Use lowercase with dashes for directory names (e.g., components/auth-wizard).
+	•	Prefer named exports over default exports for easier refactoring and tree shaking, making components easier to track across the project.
+
+TypeScript Usage
+
+	•	Write TypeScript for all code, leveraging type safety to catch potential errors early.
+	•	Prefer interfaces over types unless union types or more complex compositions are needed (interfaces are better for object shapes and extending).
+	•	Avoid using enums, instead opt for maps or string literal types for better flexibility and performance.
+	•	Always use functional components, strongly typed with TypeScript interfaces for props.
+
+Syntax and Formatting
+
+	•	Use the function keyword for pure functions, particularly for utilities or helper functions.
+	•	Simplify conditionals: Avoid unnecessary curly braces where concise syntax (like inline ternaries or logical operators) can improve readability. However, ensure readability is never sacrificed for brevity.
+	•	Keep JSX declarative and expressive, favoring simplicity and clarity over cleverness.
+
+Performance Optimization
+
+	•	Optimize image handling:
+	•	Use WebP format for improved performance.
+	•	Always include size data (width and height) in image elements to prevent layout shifts (especially important for mobile performance).
+	•	Implement lazy loading for images and other heavy content, using either native lazy loading (loading="lazy") or React libraries such as react-lazyload or IntersectionObserver.
+Performance OptimizationImplement caching strategies for frequently accessed data
+Optimize database queries for faster retrieval
+Consider using a CDN for static assets
+
+Logging rules:
+Here is my rule of thumb: "Log what you'd need to debug the issue if you were woken up at 3 AM, but not more."
+Use best practices when making logs, high signal low noise, should provide value without being overly verbose.
+
+This guideline encourages thoughtful logging practices. 
+Log critical errors: Always log errors that could crash the application or severely impact functionality.
+Log unexpected behaviors: If something happens that shouldn't, it's worth logging.
+Avoid logging normal operations: Don't log routine, or expected behaviors.
+Use log levels: Implement DEBUG, INFO, WARN, ERROR levels to categorize logs.
+Be selective: Log the most relevant information that would help diagnose issues quickly.
+Consider the context: Include enough contextual data to understand the error's circumstances.
+Think about actionability: If you can't act on the information, it might not need to be logged.
+Review and refine: Periodically review logs to see if they're providing value or just noise.
+
+## Core Technologies
+- Frontend: next.js React and React Native for web, swift for ios, and Kotlin/Java for android.
+- Backend: firebase
+- Authentication: firebase
+- Storage: Firebase backend/storage
+- Key Management: env variables for app keys and sercrets, Firebase for user ai keys if applicable
+- Payment Processing: Stripe
+- Deployment: GitHub and Vercel
+
+
+UI
+Must have a dark mode option. 
+
+
+There must be a way for users to delete their accounts
+There must be a forgot password function implemented. 
+Pop ups and confirmations should occur cleanly in the UI. 
+
+Comprehensive Development Plan for Digital NFC Business Card App
+App Overview
+Develop a cross-platform application that allows users to create, customize, share, and manage digital business cards. The app will leverage NFC technology on iOS and Android for contactless sharing and provide a web-based platform for users to create and manage their profiles from desktop or mobile devices.
+1. Platforms and Technology Stack
+Platforms
+iOS App: Developed using Swift, leveraging iOS’s NFC capabilities.
+Android App: Built using Kotlin/Java, enabling NFC functionality.
+Web App: Developed using Next.js (React.js) with Tailwind CSS for styling.
+Core Technologies
+Frontend:
+iOS: Swift
+Android: React Native
+Web: Next.js (React.js), Tailwind CSS
+Backend:
+Firebase: Authentication, Firestore Database, Storage, Analytics
+Authentication:
+Firebase Authentication (Email, Google, Twitter, Apple Sign-In)
+Storage:
+Firebase Firestore and Firebase Storage for assets
+Payment Processing:
+Stripe
+Deployment:
+GitHub for version control
+Vercel for web app hosting
+Important note
+Thoroughly test Firebase security rules to prevent unauthorized data access.
+Lazy Loading: Implement lazy loading for images and components to improve initial load times.
+Asset Optimization: Compress images and use appropriate image formats (e.g., WebP for web).
+Data Protection: Ensure compliance with GDPR, CCPA, and other regional data protection laws.
+UI/UX Design: Design with accessibility in mind, using proper contrast ratios and readable fonts.
+Screen Reader Support: Ensure that all interactive elements are accessible via screen readers.
+Keyboard Navigation: For web apps, ensure that the interface is fully navigable using the keyboard.
+
+2. Key Features and Business Logic
+A. User Registration & Authentication
+User Registration:
+Users can register using email/password, Google Sign-In, or Apple Sign-In.
+Authentication Flow:
+Implement secure authentication flows on all platforms using Firebase Authentication.
+Business Logic:
+Profile updates sync across all platforms. Changes made on one platform reflect on others after a refresh or automatically if feasible.
+Implement a password reset functionality via email for users who registered with email/password.
+Account Recovery options for users who signed up with social logins (e.g., Google, Apple).
+Security measures to verify user identity during the recovery process.
+
+B. Profile Management (Business Card Creation)
+Profile Fields:
+Name
+Job Title
+Company
+Phone Number
+Email Address
+There should be an "about me " section
+Specialty
+Social Media Links (LinkedIn, Twitter, etc.)
+Custom Messages or URLs
+Business Logo (Image Upload)
+Favorite Social Profile (Highlighted on Business Card)
+we should allow customer links, where the user can describe what user should see as a url/button, then the custom link can be used
+Should be a way for them to upload a profile picture, pull from google, or twitter or apple if they use one of those to sign in 
+There should be a way for them, to upload CV (this will be a paid version)
+Users should be able to have multiple business cards stored. 
+Users would be able to have more than one business card they can select from
+Each card would be a "card'' in the app the user can pick from to allow them to generate a unique qr code with a url specific to each card
+For example, if a user had 3 business cards, one called ''Personal", the other ''Work'' and the third ''hobby", each of these would have their own unique URL to represent the different business cards
+Each card would be able to have a different color and title that can be custom-set by the user. 
+Users should be able to create their own custom URLs if they are a premium customer for each business card they have. However, free users should have a random URL assigned to them. 
+For example, since our domain is helixcard.app, users should be able to secure helixcard.app/Richard if it is available. 
+Business Card Design and Customization (future roadmap):
+Users can choose from a selection of colors to style some elements of their UI
+Business Logic:
+Validate all input fields (e.g., email format, phone number format).
+Provide real-time previews of the business card during editing.
+Allow users to create multiple business cards under one account.
+Free Users:
+Can create one business card.
+Assigned a random URL for their business card.
+Access to a limited set of basic templates.
+Basic analytics (e.g., total views).
+Premium Users:
+Can create multiple business cards.
+Ability to set custom URLs for each business card (e.g., helixcard.app/Richard).
+Access to premium templates and advanced customization options (e.g., custom colors, fonts).
+Advanced analytics, including detailed metrics and trends over time.
+Option to upload additional assets like a CV/resume.
+Provide a template editor for premium users to customize templates:
+Change layout positions, fonts, and colors.
+Add or remove fields as per their requirements.
+Allow users to preview changes in real-time before saving.
+
+C. NFC Business Card Sharing (iOS & Android)
+Functionality:
+Users can share their business card via NFC tap.
+Technical Implementation:
+iOS:
+Use Core NFC to read/write NFC tags.
+Note: iOS has limitations on writing to NFC tags. Focus on reading or use alternate methods if necessary.
+Android:
+Use React Native NFC Manager for NFC interactions.
+Business Logic:
+Upon NFC interaction, the recipient receives a link to the sender’s digital business card (e.g., mybusinesscard.com/username).
+Offer services or guidance on how users can purchase physical NFC cards or devices pre-loaded with their digital business card.
+Provide instructions or tools to write business card URLs onto NFC tags for physical distribution.
+
+D. QR Code Sharing (Web & Mobile)
+Functionality:
+Generate QR codes that link to the user's digital business card.
+Business Logic:
+QR codes should be easily accessible within the app and web platform.
+Ensure QR codes are high-resolution for scanning.
+Explore making phone brightness go up when a qr code is pulled up like how it does with coinbase
+Upon receiving a business card via NFC or QR code, recipients should have the option to:
+Save contact information directly to their device's contacts (e.g., via vCard download).
+Interact with actionable links (e.g., click to call, email, or visit social media profiles).
+Maybe get a text message to save these details
+Get an email with these details
+Ensure compatibility with both iOS and Android contact-saving functionalities.
+
+E. The Business Card Experience
+This should be visually appealing handling the above requirements
+F. Data Syncing
+Functionality:
+Sync profile data across all platforms using Firebase Firestore.
+Business Logic:
+On mobile apps, implement a refresh button and pull-to-refresh gestures to update data.
+On the web, data updates upon saving changes.
+Ensure users remain signed in across multiple devices unless they choose to log out.
+G. Analytics
+Functionality:
+Track views and interactions with business cards.
+Business Logic:
+Use Firebase Analytics to track:
+Number of times the business card link is accessed.
+Number of times QR codes are scanned.
+NFC interactions.
+User Access:
+Provide users with an analytics dashboard to view their business card performance.
+H. Notifications
+Implement notifications to inform users about:
+When someone views or interacts with their business card.
+Subscription renewals or expirations.
+Important security alerts.
+Allow users to customize notification preferences:
+Choose which events trigger a notification.
+Select preferred notification channels (e.g., email, push notifications).
+I. Feedback and Support
+Implement an in-app feedback system for users to report issues or suggest features.
+Include a FAQ section and user guides within the app and on the website.
+
+
+3. Detailed Requirements
+A. User Interface & Experience
+1. Mobile Apps (iOS & Android)
+Login/Registration Screens:
+Options for Email, Google, Twitter, and Apple Sign-In.
+Profile Creation/Edit Screens:
+Form fields for all profile data.
+Template selection screen with previews.
+Business card preview screen.
+Sharing Options:
+NFC sharing screen with instructions.
+QR code display screen with sharing options.
+Settings Screen:
+Account settings, privacy options, logout, and delete account.
+2. Web App
+Login/Registration Pages:
+Similar options as mobile apps.
+Dashboard:
+Overview of profiles/business cards.
+Profile Creation/Edit Pages:
+Form fields with validation.
+Template selection with live preview.
+Sharing Options:
+Display QR code with download and print options.
+Instructions for NFC sharing.
+Analytics Dashboard:
+Detailed metrics and downloadable reports.
+Account Settings:
+Profile management, subscription details, and account deletion.
+B. Backend Functionality
+1. Firebase Firestore
+Data Structure:
+json
+Copy code
+users: {
+  userId: {
+    name: string,
+    email: string,
+    phoneNumber: string,
+    socialLinks: {
+      linkedin: string,
+      twitter: string,// other social links},
+    businessCards: {
+      cardId: {
+        templateId: string,
+        favoriteSocialProfile: string,
+        customMessage: string,
+        logoUrl: string,
+        isActive: boolean,// other card-specific data},// other cards},
+    analytics: {
+      cardId: {
+        views: number,
+        qrScans: number,
+        nfcShares: number,// timestamps and other analytics data},// analytics for other cards}},// other users}
+2. Firebase Authentication
+Providers:
+Email/Password
+Google Sign-In
+Apple Sign-In
+Security Rules:
+Only authenticated users can read/write their own data.
+Implement proper access control lists (ACLs).
+3. Firebase Storage
+Usage:
+Store uploaded business logos and any media assets.
+Security Rules:
+Users can only access their own files.
+Validate file types (e.g., images only) and size limits
+4. Stripe Integration
+Functionality:
+Handle payments for premium features.
+Premium Features May Include:
+Access to premium templates.
+Advanced analytics.
+Ability to create multiple business cards.
+Implementation Details:
+Use Stripe API for payment processing.
+Securely handle payment data (comply with PCI DSS standards).
+Update user subscription status in Firestore upon successful payment.
+C. NFC Implementation Details
+iOS (Swift)
+Core NFC Limitations:
+iOS devices can read NFC Data Exchange Format (NDEF) tags.
+Writing to NFC tags is limited and requires specific tag types.
+Alternative Approach:
+Use App Clips or AirDrop as alternative methods for sharing on iOS.
+Implementation Steps:
+Check for NFC availability on the device.
+Implement NFC reading session.
+Provide fallback options if NFC is unavailable.
+Android (React Native)
+React Native NFC Manager:
+Supports reading and writing to NFC tags.
+Implementation Steps:
+Set up NFC permission requirements.
+Implement NFC writing functionality to encode the business card URL.
+Handle NFC read events to open the URL in a browser.
+D. QR Code Generation
+Libraries:
+Use a reliable QR code generation library compatible with React Native and React.js.
+Customization:
+Allow users to download QR codes.
+Provide options for different sizes and formats (PNG, SVG).
+E. Business Card Templates
+Design Requirements:
+Create a set of professionally designed templates.
+Templates should be responsive and look good on mobile and desktop browsers.
+Technical Implementation:
+Store template metadata in Firestore (e.g., templateId, name, previewUrl).
+Use dynamic rendering to apply user data to templates.
+Customization Options:
+Allow users to select color schemes where applicable.
+Enable users to upload background images if the template supports it.
+F. Analytics Dashboard
+Metrics to Track:
+Total Views
+Unique Visitors
+QR Code Scans
+NFC Shares
+Clicks on Specific Links (e.g., social media profiles)
+Technical Implementation:
+Use Firebase Analytics to log events.
+Aggregate data and store in Firestore for quick retrieval.
+User Interface:
+Graphs and charts showing trends over time.
+Filters to view data for specific business cards or date ranges.
+G. Localization and Internationalization. (for mobile app only)
+Support for multiple languages in the app interface (e.g., English, Spanish, French).
+Allow users to input and display data (e.g., names, addresses) in various languages and character sets.
+Ensure business card templates are locale-aware, formatting dates, phone numbers, and addresses appropriately.
+I. Accessibility Compliance.
+Ensure the app complies with WCAG 2.1 guidelines for accessibility.
+Support features like voice-over support, high-contrast modes, and screen reader compatibility.
+Allow users to add alt text for images to improve accessibility of business cards.
+
+4. Security and Privacy Considerations
+A. Data Encryption
+In Transit:
+Use HTTPS for all network communication.
+At Rest:
+Ensure Firebase's data encryption at rest is enabled.
+B. Authentication and Authorization
+Firebase Security Rules:
+Enforce strict read/write permissions.
+Regularly review and update rules as needed.
+Session Management:
+Implement secure token handling.
+Use refresh tokens where applicable.
+C. Privacy Controls
+User Options:
+Public Business Card: Accessible to anyone with the link.
+Private Business Card: Only accessible to authenticated users or via direct link.
+Account Deletion:
+Implement functionality for users to delete their account and data.
+Compliance:
+Ensure GDPR and other relevant data protection regulations are followed.
+D. Data Minimization
+Data Collection:
+Collect only necessary information.
+Make optional fields truly optional.
+E. Secure Coding Practices
+Input Validation:
+Sanitize and validate all user inputs to prevent injection attacks.
+Dependency Management:
+Keep all libraries and dependencies up to date.
+Monitor for security vulnerabilities.
+Define clear data retention policies:
+Specify how long user data is retained after account deletion.
+Outline procedures for permanent data deletion upon user request.
+Ensure compliance with data protection regulations like GDPR and CCPA.
+Regular audits to maintain compliance with international data laws.
+F. Payment Security
+PCI Compliance:
+Do not store any sensitive payment information.
+Use Stripe's secure checkout methods.
+G. Legal and Compliance.
+Draft and enforce a Terms of Service agreement outlining user responsibilities.
+Include an Acceptable Use Policy to prevent misuse of the platform (e.g., spamming, harassment).
+Ensure users agree to these terms during registration.
+
+5. Development Phases and Milestones
+Phase 1: Project Setup and Web Platform Development
+Duration: 4 Weeks
+Milestones:
+Project Initialization:
+Set up GitHub repositories.
+Configure project structure for web app with Next.js and Tailwind CSS.
+Authentication Implementation:
+Integrate Firebase Authentication.
+Implement login and registration pages.
+Profile Management:
+Develop forms for profile creation and editing.
+Implement client-side and server-side validation.
+Integrate Firebase Firestore for data storage.
+Business Card Templates:
+Design initial set of business card templates.
+Implement template selection and preview functionality.
+Sharing Features:
+Generate QR codes linking to user profiles.
+Create public URLs for business cards.
+Testing and Deployment:
+Perform unit and integration testing.
+Deploy the web app on Vercel.
+Phase 2: Mobile App Development (iOS & Android)
+Duration: 6 Weeks
+Milestones:
+iOS App Development:
+Set up the Xcode project using Swift.
+Implement authentication flows with Firebase.
+Develop profile management screens.
+Integrate NFC functionality using Core NFC.
+Implement QR code generation and display.
+Android App Development:
+Initialize React Native project.
+Implement authentication with Firebase.
+Develop UI for profile management.
+Integrate NFC functionality using React Native NFC Manager.
+Implement QR code features.
+Data Syncing and Refresh Mechanisms:
+Implement data fetching and syncing with Firestore.
+Add pull-to-refresh and manual refresh options.
+Testing:
+Perform device testing on multiple iOS and Android devices.
+Fix platform-specific issues.
+Deployment Preparation:
+Prepare App Store and Google Play Store listings.
+Ensure compliance with store guidelines.
+Phase 3: Advanced Features and Optimization
+Duration: 4 Weeks
+Milestones:
+Analytics Dashboard:
+Implement analytics event logging.
+Develop analytics dashboard UI on web and mobile apps.
+Premium Features and Stripe Integration:
+Define premium feature set.
+Integrate Stripe for payment processing.
+Implement subscription management.
+Additional Business Card Templates:
+Design and add more templates, including premium ones.
+Security Enhancements:
+Conduct security audits.
+Implement additional security measures as needed.
+Performance Optimization:
+Optimize app load times and responsiveness.
+Implement code splitting and lazy loading where appropriate.
+Phase 4: Testing, Deployment, and Post-Launch Support
+Duration: 2 Weeks
+Milestones:
+Final Testing:
+Comprehensive testing across all platforms.
+User acceptance testing with a focus group.
+Deployment:
+Deploy updated web app.
+Submit mobile apps to App Store and Google Play Store.
+Monitoring and Analytics:
+Monitor app performance and user engagement.
+Collect user feedback for future improvements.
+Documentation:
+Finalize technical documentation.
+Prepare user guides and FAQs.
+6. Project Management and Documentation
+A. Version Control
+Use Git with repositories hosted on GitHub.
+Implement branching strategies (e.g., main, develop, feature/* branches).
+B. Task Management
+Use a project management tool (e.g., Jira, Trello) to track tasks, bugs, and progress.
+Define sprints and assign tasks with clear deadlines.
+C. Communication
+Regular meetings (e.g., weekly stand-ups) to discuss progress and blockers.
+Use communication tools like Slack or Microsoft Teams.
+D. Documentation
+Maintain a README file with project setup instructions.
+Document API endpoints and data schemas.
+Keep a changelog of updates and version releases.
+E. Testing
+Implement unit tests for critical functions.
+Use testing frameworks compatible with each platform (e.g., Jest for React Native).
+Perform end-to-end testing before each release.
