@@ -33,15 +33,6 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await logout();
-      console.log('Sign out successful');
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
-  };
-
   const handleForgotPassword = () => {
     setIsForgotPassword(true);
   };
