@@ -86,7 +86,7 @@ export const AuthModal: React.FC = () => {
       )}
       <div className="mb-6">
         {isForgotPassword ? (
-          <ForgotPasswordForm onCancel={handleCancelForgotPassword} />
+          <ForgotPasswordForm onCancel={handleCancelForgotPassword} onBackToSignIn={handleCancelForgotPassword} />
         ) : isLogin ? (
           <LoginForm onSuccess={handleSuccess} />
         ) : (
