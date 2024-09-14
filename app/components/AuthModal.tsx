@@ -11,7 +11,7 @@ import { ForgotPasswordForm } from './ForgotPasswordForm';
 export const AuthModal: React.FC = () => {
   const [isLogin, setIsLogin] = useState(false); // Changed to false
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
