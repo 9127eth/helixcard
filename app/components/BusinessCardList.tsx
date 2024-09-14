@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { BusinessCardItem } from './BusinessCardItem';
 
@@ -39,7 +39,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   }
 
   if (cards.length === 0) {
-    return <div>You haven't created any business cards yet.</div>;
+    return <div>You haven&apos;t created any business cards yet.</div>;
   }
 
   return (
