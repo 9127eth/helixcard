@@ -5,7 +5,9 @@ import Layout from './components/Layout';
 import WelcomeMessage from './components/WelcomeMessage';
 import { AuthModal } from './components/AuthModal';
 
+
 export default function Home() {
+
   return (
     <Layout>
       <div className="flex flex-col md:flex-row min-h-screen">

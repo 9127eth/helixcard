@@ -45,7 +45,14 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {cards.map(card => (
-        <BusinessCardItem key={card.id} card={card} />
+        <BusinessCardItem 
+          key={card.id} 
+          card={{
+            ...card,
+            isPrimary: false, // Default value, adjust as needed
+            cardSlug: card.id // Using id as cardSlug, adjust if you have a specific slug field
+          }} 
+        />
       ))}
     </div>
   );

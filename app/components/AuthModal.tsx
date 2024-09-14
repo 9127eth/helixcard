@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
+import { saveBusinessCard } from '../lib/firebaseOperations';
 
 export const AuthModal: React.FC = () => {
   const [isLogin, setIsLogin] = useState(false); // Changed to false
@@ -41,13 +42,45 @@ export const AuthModal: React.FC = () => {
     setIsForgotPassword(false);
   };
 
+  const handleCreateCard = async () => {
+    if (!user) {
+      console.error('User not authenticated');
+      return;
+    }
+
+    try {
+      const cardData = {
+        name: 'Test User',
+        jobTitle: 'Developer',
+        company: 'Test Company',
+        phoneNumber: '123-456-7890',
+        email: 'test@example.com',
+        aboutMe: 'This is a test card',
+        specialty: 'Testing',
+        linkedIn: 'https://linkedin.com/in/testuser',
+        twitter: 'https://twitter.com/testuser',
+        customMessage: 'Hello, this is a test card!',
+      };
+
+      const { cardSlug, cardUrl } = await saveBusinessCard(user, cardData);
+      console.log('New card created with slug:', cardSlug);
+      console.log('New card URL:', cardUrl);
+    } catch (error) {
+      console.error('Error creating card:', error);
+    }
+  };
+
   if (user) {
-    return null; // We'll handle the sign-out button in the Layout component
+    return (
+      <div>
+        <button onClick={handleCreateCard}>Create Test Card</button>
+      </div>
+    );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
-      <h4 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+    <div className="bg-off-white dark:bg-black p-8 rounded-lg shadow-md w-full max-w-md">
+      <h4 className="text-2xl font-bold mb-6 text-center text-black dark:text-off-white">
         {isForgotPassword ? 'Reset Password' : isLogin ? 'Welcome Back' : 'Create Account'}
       </h4>
       {!isForgotPassword && (
@@ -66,12 +99,12 @@ export const AuthModal: React.FC = () => {
         </button>
       )}
       {!isForgotPassword && (
-        <div className="relative mb-4">
+        <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            <div className="w-full border-t border-gray-300"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or</span>
+          <div className="relative flex justify-center text-sm z-10">
+            <span className="px-2 bg-white text-gray-500" style={{backgroundColor: 'white'}}>Or</span>
           </div>
         </div>
       )}

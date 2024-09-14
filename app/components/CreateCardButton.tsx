@@ -1,10 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '../hooks/useAuth';
 
 export const CreateCardButton: React.FC = () => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return null;
+  }
+
   return (
-    <Link href="/create-card" className="inline-block mb-6 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-      Create New Business Card
+    <Link href="/create-card" className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors mb-4">
+      Create New Card
     </Link>
   );
 };

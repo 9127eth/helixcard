@@ -8,9 +8,9 @@ import { useRouter } from 'next/navigation';
 const CreateCardPage: React.FC = () => {
   const router = useRouter();
 
-  const handleSuccess = (cardId: string, cardUrl: string) => {
+  const handleSuccess = (cardSlug: string, cardUrl: string) => {
     console.log('Business card created successfully');
-    console.log('Card ID:', cardId);
+    console.log('Card Slug:', cardSlug);
     console.log('Card URL:', cardUrl);
     router.push('/dashboard');
   };

@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { saveBusinessCard } from '../lib/firebaseOperations';
+import { generateCardSlug, isValidSlug } from '../lib/slugUtils';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface BusinessCardFormProps {
-  onSuccess: (cardId: string, cardUrl: string) => void;
+  onSuccess: (cardSlug: string, cardUrl: string) => void;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess }) => {
   const { user } = useAuth();
+  const [isPro, setIsPro] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     jobTitle: '',
@@ -19,9 +23,22 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
     linkedIn: '',
     twitter: '',
     customMessage: '',
+    customSlug: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserStatus = async () => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setIsPro(userDoc.data().isPro || false);
+        }
+      }
+    };
+    fetchUserStatus();
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -33,8 +50,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      setError('You must be logged in to create a business card');
+    if (!user || !user.uid) {
+      setError('You must be logged in with a valid account to create a business card');
       return;
     }
 
@@ -42,15 +59,27 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
     setError(null);
 
     try {
-      const { cardId, cardUrl } = await saveBusinessCard(user, formData);
-      onSuccess(cardId, cardUrl);
+      const cardSlug = isPro ? formData.customSlug : generateCardSlug(false);
+      
+      if (isPro && formData.customSlug && !isValidSlug(formData.customSlug)) {
+        setError('Invalid custom slug. Use only lowercase letters, numbers, and hyphens (3-20 characters).');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { cardSlug: savedCardSlug, cardUrl } = await saveBusinessCard(user, formData, cardSlug);
+      onSuccess(savedCardSlug, cardUrl);
     } catch (error) {
-      console.error('Error saving business card:', error);
-      setError('Failed to save business card. Please try again.');
+      setError('An error occurred while creating the business card');
+      console.error('Error creating business card:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!user) {
+    return <div>Please log in to create a business card.</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,9 +166,19 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
         className="w-full px-3 py-2 border border-gray-300 rounded-md"
         rows={2}
       />
+      {isPro && (
+        <input
+          type="text"
+          name="customSlug"
+          value={formData.customSlug}
+          onChange={handleChange}
+          placeholder="Custom Slug (Pro users only)"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+        />
+      )}
       <button
         type="submit"
-        className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
+        className="w-full py-2 px-4 bg-dark-pink text-white rounded-md hover:bg-red disabled:bg-light-pink"
         disabled={isSubmitting}
       >
         {isSubmitting ? 'Creating...' : 'Create Business Card'}
