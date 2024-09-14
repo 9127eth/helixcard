@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, actionCodeSettings } from '../lib/firebase';
 
 interface ForgotPasswordFormProps {
   onCancel: () => void;
@@ -19,7 +19,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onCancel
     setError(null);
 
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setMessage('Password reset email sent. Please check your inbox.');
       setIsSubmitted(true);
     } catch (err) {
