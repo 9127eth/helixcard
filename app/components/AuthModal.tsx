@@ -15,6 +15,7 @@ export const AuthModal: React.FC = () => {
 
   const handleSuccess = () => {
     console.log('Authentication successful');
+    // Add any additional logic here
   };
 
   const handleGoogleSignIn = async () => {
