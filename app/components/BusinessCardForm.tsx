@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { db } from '../lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { saveBusinessCard } from '../lib/firebaseOperations';
 
 interface BusinessCardFormProps {
-  onSuccess: () => void;
+  onSuccess: (cardId: string, cardUrl: string) => void;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess }) => {
@@ -21,6 +20,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
     twitter: '',
     customMessage: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -32,22 +33,28 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      setError('You must be logged in to create a business card');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      await setDoc(doc(db, 'businessCards', user.uid), {
-        ...formData,
-        userId: user.uid,
-        createdAt: new Date().toISOString(),
-      });
-      onSuccess();
+      const { cardId, cardUrl } = await saveBusinessCard(user, formData);
+      onSuccess(cardId, cardUrl);
     } catch (error) {
       console.error('Error saving business card:', error);
+      setError('Failed to save business card. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <p className="text-red-500">{error}</p>}
       <input
         type="text"
         name="name"
@@ -132,9 +139,10 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
       />
       <button
         type="submit"
-        className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+        className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
+        disabled={isSubmitting}
       >
-        Create Business Card
+        {isSubmitting ? 'Creating...' : 'Create Business Card'}
       </button>
     </form>
   );

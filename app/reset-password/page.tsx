@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { confirmPasswordReset } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import Layout from '../components/Layout';
+import Link from 'next/link';
 
 const ResetPasswordForm = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -35,7 +36,14 @@ const ResetPasswordForm = () => {
   return (
     <div className="max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">Reset Your Password</h1>
-      {message && <p className="text-green-500 mb-4">{message}</p>}
+      {message && (
+        <div>
+          <p className="text-green-500 mb-4">{message}</p>
+          <Link href="/login" className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+            Return to login
+          </Link>
+        </div>
+      )}
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {!message && !error && (
         <form onSubmit={handleSubmit}>
