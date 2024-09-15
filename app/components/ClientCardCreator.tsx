@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { User } from 'firebase/auth';
 import { saveBusinessCard } from '../lib/firebaseOperations';
