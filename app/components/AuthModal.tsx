@@ -11,9 +11,12 @@ import { saveBusinessCard } from '../lib/firebaseOperations';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
+import dynamic from 'next/dynamic';
+
+const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
 export const AuthModal: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(false); // Changed to false
+  const [isLogin, setIsLogin] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const { user } = useAuth();
 
@@ -57,38 +60,10 @@ export const AuthModal: React.FC = () => {
     setIsForgotPassword(false);
   };
 
-  const handleCreateCard = async () => {
-    if (!user) {
-      console.error('User not authenticated');
-      return;
-    }
-
-    try {
-      const cardData = {
-        name: 'Test User',
-        jobTitle: 'Developer',
-        company: 'Test Company',
-        phoneNumber: '123-456-7890',
-        email: 'test@example.com',
-        aboutMe: 'This is a test card',
-        specialty: 'Testing',
-        linkedIn: 'https://linkedin.com/in/testuser',
-        twitter: 'https://twitter.com/testuser',
-        customMessage: 'Hello, this is a test card!',
-      };
-
-      const { cardSlug, cardUrl } = await saveBusinessCard(user, cardData);
-      console.log('New card created with slug:', cardSlug);
-      console.log('New card URL:', cardUrl);
-    } catch (error) {
-      console.error('Error creating card:', error);
-    }
-  };
-
   if (user) {
     return (
       <div>
-        <button onClick={handleCreateCard}>Create Test Card</button>
+        <ClientCardCreator user={user} />
       </div>
     );
   }
