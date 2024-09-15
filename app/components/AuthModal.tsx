@@ -37,9 +37,18 @@ export const AuthModal: React.FC = () => {
         await createUserDocument(userCredential.user);
       }
       handleSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Google Sign-In Error:', error);
-      // Handle the error appropriately, e.g., show an error message to the user
+      if (error instanceof Error && 'code' in error) {
+        const firebaseError = error as { code: string };
+        if (firebaseError.code === 'failed-precondition' || firebaseError.code === 'unavailable') {
+          alert('Unable to connect to the server. Please check your internet connection and try again.');
+        } else {
+          alert('An error occurred during sign-in. Please try again later.');
+        }
+      } else {
+        alert('An unexpected error occurred during sign-in. Please try again later.');
+      }
     }
   };
 
