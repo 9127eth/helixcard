@@ -2,7 +2,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { setLogLevel } from "firebase/app";
-import { enableIndexedDbPersistence, initializeFirestore, CACHE_SIZE_UNLIMITED, getFirestore } from 'firebase/firestore';
+import { enableIndexedDbPersistence, getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
