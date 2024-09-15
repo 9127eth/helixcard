@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, writeBatch, runTransaction } from 'firebase/firestore';
+import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { generateCardSlug, isCardSlugUnique, generateCardUrl } from './slugUtils';
 
