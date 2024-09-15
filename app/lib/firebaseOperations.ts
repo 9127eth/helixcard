@@ -21,7 +21,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   if (!user || !user.uid) throw new Error('User not authenticated or invalid');
 
   try {
-    const userRef = doc(db, 'users', user.uid);
+    const userRef = doc(db, 'users', user.uid || 'defaultUser');
     const userDoc = await getDoc(userRef);
 
     if (!userDoc.exists()) {
@@ -38,7 +38,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
       isUnique = await isCardSlugUnique(user.uid, cardSlug);
     }
 
-    const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
+    const cardRef = doc(collection(db, 'users', user.uid || 'defaultUser', 'businessCards'), cardSlug || 'defaultSlug');
     const isPrimary = !userData.primaryCardId;
     const cardWithMetadata = {
       ...cardData,
