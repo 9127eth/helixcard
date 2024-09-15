@@ -2,6 +2,7 @@ import { db } from './firebase';
 import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { generateCardSlug, isCardSlugUnique, generateCardUrl } from './slugUtils';
+import { FirebaseError } from 'firebase/app';
 
 interface BusinessCardData {
   name: string;
@@ -56,8 +57,8 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
     const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
 
     return { cardSlug, cardUrl };
-  } catch (error) {
-    if (error instanceof Error && error.name === 'FirebaseError' && (error as any).code === 'unavailable') {
+  } catch (error: unknown) {
+    if (error instanceof FirebaseError && error.code === 'unavailable') {
       // Handle offline scenario
       console.warn('Operation performed offline. Changes will be synced when online.');
       // You might want to store this operation in IndexedDB or local storage to sync later
