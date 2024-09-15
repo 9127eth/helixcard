@@ -8,6 +8,13 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+      // Add null check for 'auth'
+  if (!auth) {
+    console.error('Authentication is not initialized.');
+    setLoading(false);
+    return;
+  }
+  
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -17,6 +24,11 @@ export function useAuth() {
   }, []);
 
   const logout = async () => {
+     // Add null check for 'auth'
+  if (!auth) {
+    console.error('Authentication is not initialized.');
+    return;
+  }
     try {
       await signOut(auth);
     } catch (error) {
@@ -26,6 +38,11 @@ export function useAuth() {
   };
 
   const signUp = async (email: string, password: string) => {
+      // Add null check for 'auth'
+  if (!auth) {
+    console.error('Authentication is not initialized.');
+    throw new Error('Authentication is not initialized.');
+  }
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User authenticated:', userCredential.user.uid);

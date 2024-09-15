@@ -30,7 +30,12 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
 
   useEffect(() => {
     const fetchUserStatus = async () => {
-      if (user) {
+      // Add null check for Firestore instance
+if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+  
+        if (user) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           setIsPro(userDoc.data().isPro || false);

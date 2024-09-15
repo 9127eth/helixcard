@@ -17,10 +17,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      onSuccess();
+      if (auth) {
+        await createUserWithEmailAndPassword(auth, email, password);
+        onSuccess();
+      } else {
+        throw new Error('Auth is not initialized');
+      }
     } catch (err) {
       setError('Failed to create an account. Please try again.');
       console.error(err);

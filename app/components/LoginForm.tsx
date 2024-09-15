@@ -16,10 +16,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      onSuccess();
+      if (auth) {
+        await signInWithEmailAndPassword(auth, email, password);
+        onSuccess();
+      } else {
+        throw new Error('Auth is not initialized');
+      }
     } catch (err) {
       setError('Failed to log in. Please check your credentials and try again.');
       console.error(err);
