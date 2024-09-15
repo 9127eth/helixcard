@@ -24,10 +24,10 @@ if (typeof window !== 'undefined') {
   db = getFirestore(app);
   storage = getStorage(app);
 }
-
 const actionCodeSettings = {
   url: 'https://helixcard.app/reset-password',
   handleCodeInApp: true,
 };
 
 export { app, auth, db, storage, actionCodeSettings };
+
