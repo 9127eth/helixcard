@@ -21,48 +21,79 @@ export async function saveBusinessCard(
   cardData: BusinessCardData,
   customSlug?: string
 ): Promise<{ cardSlug: string; cardUrl: string }> {
-  if (!user || !user.uid) throw new Error('User not authenticated or invalid');
+  console.log('Starting saveBusinessCard function');
+  console.log('User:', user?.uid);
+  console.log('Custom Slug:', customSlug);
+
+  if (!user || !user.uid) {
+    console.error('User not authenticated or invalid');
+    throw new Error('User not authenticated or invalid');
+  }
 
   if (!db) {
+    console.error('Firestore is not initialized.');
     throw new Error('Firestore is not initialized.');
   }
 
+  console.log('Firestore initialized successfully');
+
   const userRef = doc(db, 'users', user.uid);
-  const userDoc = await getDoc(userRef);
+  console.log('User reference created');
 
-  if (!userDoc.exists()) {
-    throw new Error('User document not found');
+  try {
+    const userDoc = await getDoc(userRef);
+    console.log('User document fetched');
+
+    if (!userDoc.exists()) {
+      console.error('User document not found');
+      throw new Error('User document not found');
+    }
+
+    const userData = userDoc.data();
+    console.log('User data:', userData);
+
+    let cardSlug = generateCardSlug(userData.isPro, customSlug);
+    console.log('Generated card slug:', cardSlug);
+
+    let isUnique = await isCardSlugUnique(user.uid, cardSlug);
+    console.log('Is slug unique:', isUnique);
+
+    while (!isUnique) {
+      console.log('Slug not unique, generating new one');
+      cardSlug = generateCardSlug(userData.isPro);
+      isUnique = await isCardSlugUnique(user.uid, cardSlug);
+    }
+
+    const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
+    console.log('Card reference created');
+
+    const isPrimary = !userData.primaryCardId;
+    const cardWithMetadata = {
+      ...cardData,
+      cardSlug,
+      isPrimary,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    console.log('Saving card data:', cardWithMetadata);
+    await setDoc(cardRef, cardWithMetadata);
+    console.log('Card data saved successfully');
+
+    if (isPrimary) {
+      console.log('Updating primary card ID');
+      await updateDoc(userRef, { primaryCardId: cardSlug });
+      console.log('Primary card ID updated');
+    }
+
+    const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
+    console.log('Generated card URL:', cardUrl);
+
+    return { cardSlug, cardUrl };
+  } catch (error) {
+    console.error('Error in saveBusinessCard:', error);
+    throw error;
   }
-
-  const userData = userDoc.data();
-
-  let cardSlug = generateCardSlug(userData.isPro, customSlug);
-  let isUnique = await isCardSlugUnique(user.uid, cardSlug);
-
-  while (!isUnique) {
-    cardSlug = generateCardSlug(userData.isPro);
-    isUnique = await isCardSlugUnique(user.uid, cardSlug);
-  }
-
-  const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
-  const isPrimary = !userData.primaryCardId;
-  const cardWithMetadata = {
-    ...cardData,
-    cardSlug,
-    isPrimary,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  await setDoc(cardRef, cardWithMetadata);
-
-  if (isPrimary) {
-    await updateDoc(userRef, { primaryCardId: cardSlug });
-  }
-
-  const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
-
-  return { cardSlug, cardUrl };
 }
 
 export async function setPrimaryCard(userId: string, cardSlug: string): Promise<void> {

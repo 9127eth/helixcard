@@ -10,6 +10,9 @@ interface ClientCardCreatorProps {
 
 const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
   const handleCreateCard = async () => {
+    console.log('Starting handleCreateCard function');
+    console.log('User:', user?.uid);
+
     if (!user) {
       console.error('User not authenticated');
       return;
@@ -29,11 +32,17 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
         customMessage: 'Hello, this is a test card!',
       };
 
+      console.log('Card data:', cardData);
+
       const { cardSlug, cardUrl } = await saveBusinessCard(user, cardData);
       console.log('New card created with slug:', cardSlug);
       console.log('New card URL:', cardUrl);
     } catch (error) {
       console.error('Error creating card:', error);
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+      }
     }
   };
 

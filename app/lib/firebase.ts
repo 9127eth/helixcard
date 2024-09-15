@@ -26,6 +26,8 @@ if (typeof window !== 'undefined') {
   db = getFirestore(app);
   storage = getStorage(app);
 }
+console.log('Firebase config:', firebaseConfig);
+
 const actionCodeSettings = {
   url: 'https://helixcard.app/reset-password',
   handleCodeInApp: true,
