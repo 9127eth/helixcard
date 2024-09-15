@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { saveBusinessCard } from '../lib/firebaseOperations';
 import { generateCardSlug, isValidSlug } from '../lib/slugUtils';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, Firestore } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface BusinessCardFormProps {
@@ -31,7 +31,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
   useEffect(() => {
     const fetchUserStatus = async () => {
       if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userDoc = await getDoc(doc(db as Firestore, 'users', user.uid));
         if (userDoc.exists()) {
           setIsPro(userDoc.data().isPro || false);
         }
@@ -59,6 +59,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
     setError(null);
 
     try {
+      console.log('Attempting to create business card');
       const cardSlug = isPro ? formData.customSlug : generateCardSlug(false);
       
       if (isPro && formData.customSlug && !isValidSlug(formData.customSlug)) {
@@ -67,11 +68,17 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess })
         return;
       }
 
+      console.log('Calling saveBusinessCard function');
       const { cardSlug: savedCardSlug, cardUrl } = await saveBusinessCard(user, formData, cardSlug);
+      console.log('Business card saved successfully');
       onSuccess(savedCardSlug, cardUrl);
     } catch (error) {
-      setError('An error occurred while creating the business card');
       console.error('Error creating business card:', error);
+      if (error instanceof Error) {
+        setError(`An error occurred while creating the business card: ${error.message}`);
+      } else {
+        setError('An unknown error occurred while creating the business card');
+      }
     } finally {
       setIsSubmitting(false);
     }

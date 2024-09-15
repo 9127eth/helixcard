@@ -30,7 +30,13 @@ export const AuthModal: React.FC = () => {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      if (!auth) {
+        throw new Error('Auth instance is not initialized');
+      }
       const userCredential = await signInWithPopup(auth, provider);
+      if (!db) {
+        throw new Error('Firestore instance is not initialized');
+      }
       const userDocRef = doc(db, 'users', userCredential.user.uid);
       const userDoc = await getDoc(userDocRef);
       if (!userDoc.exists()) {

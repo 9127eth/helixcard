@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, Firestore } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { BusinessCardItem } from './BusinessCardItem';
 
@@ -18,17 +18,30 @@ interface BusinessCardListProps {
 export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) => {
   const [cards, setCards] = useState<BusinessCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCards = async () => {
-      const q = query(collection(db, 'users', userId, 'businessCards'));
-      const querySnapshot = await getDocs(q);
-      const fetchedCards = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as BusinessCard));
-      setCards(fetchedCards);
-      setIsLoading(false);
+      if (!db) {
+        setError('Database not initialized');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const q = query(collection(db as Firestore, 'users', userId, 'businessCards'));
+        const querySnapshot = await getDocs(q);
+        const fetchedCards = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as BusinessCard));
+        setCards(fetchedCards);
+      } catch (err) {
+        console.error('Error fetching business cards:', err);
+        setError('Failed to fetch business cards');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchCards();
@@ -36,6 +49,10 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
 
   if (isLoading) {
     return <div>Loading your business cards...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
   if (cards.length === 0) {

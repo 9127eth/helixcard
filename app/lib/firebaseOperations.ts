@@ -1,4 +1,5 @@
-import { db } from './firebase';
+import { firestore } from './firebase';
+import { Firestore } from 'firebase/firestore';
 import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, runTransaction } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { generateCardSlug, isCardSlugUnique, generateCardUrl } from './slugUtils';
@@ -19,26 +20,34 @@ interface BusinessCardData {
 
 export async function saveBusinessCard(user: User, cardData: BusinessCardData, customSlug?: string): Promise<{ cardSlug: string; cardUrl: string }> {
   if (!user || !user.uid) throw new Error('User not authenticated or invalid');
+  if (!db) throw new Error('Firestore database instance is undefined');
 
   try {
-    const userRef = doc(db, 'users', user.uid || 'defaultUser');
+    console.log('Attempting to save business card for user:', user.uid);
+    const userRef = doc(db, 'users', user.uid);
+    console.log('User reference created');
+
     const userDoc = await getDoc(userRef);
+    console.log('User document fetched');
 
     if (!userDoc.exists()) {
       throw new Error('User document not found');
     }
 
     const userData = userDoc.data();
+    console.log('User data retrieved:', userData);
 
     let cardSlug = generateCardSlug(userData.isPro, customSlug);
     let isUnique = await isCardSlugUnique(user.uid, cardSlug);
+    console.log('Card slug generated:', cardSlug, 'Is unique:', isUnique);
 
     while (!isUnique) {
       cardSlug = generateCardSlug(userData.isPro);
       isUnique = await isCardSlugUnique(user.uid, cardSlug);
+      console.log('Regenerated card slug:', cardSlug, 'Is unique:', isUnique);
     }
 
-    const cardRef = doc(collection(db, 'users', user.uid || 'defaultUser', 'businessCards'), cardSlug || 'defaultSlug');
+    const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
     const isPrimary = !userData.primaryCardId;
     const cardWithMetadata = {
       ...cardData,
@@ -48,29 +57,37 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
       updatedAt: new Date().toISOString(),
     };
 
+    console.log('Saving card data:', cardWithMetadata);
     await setDoc(cardRef, cardWithMetadata);
+    console.log('Card data saved successfully');
 
     if (isPrimary) {
+      console.log('Updating primary card ID');
       await updateDoc(userRef, { primaryCardId: cardSlug });
+      console.log('Primary card ID updated');
     }
 
     const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
+    console.log('Card URL generated:', cardUrl);
 
     return { cardSlug, cardUrl };
   } catch (error: unknown) {
-    if (error instanceof FirebaseError && error.code === 'unavailable') {
-      // Handle offline scenario
-      console.warn('Operation performed offline. Changes will be synced when online.');
-      // You might want to store this operation in IndexedDB or local storage to sync later
-      return { cardSlug: 'offline-' + Date.now(), cardUrl: 'Offline URL' };
+    console.error('Error in saveBusinessCard:', error);
+    if (error instanceof FirebaseError) {
+      console.error('Firebase error code:', error.code);
+      console.error('Firebase error message:', error.message);
+      if (error.code === 'unavailable') {
+        console.warn('Operation performed offline. Changes will be synced when online.');
+        return { cardSlug: 'offline-' + Date.now(), cardUrl: 'Offline URL' };
+      }
     }
     throw error;
   }
 }
 
 export async function setPrimaryCard(userId: string, cardSlug: string): Promise<void> {
-  const userRef = doc(db, 'users', userId);
-  const cardRef = doc(collection(db, 'users', userId, 'businessCards'), cardSlug);
+  const userRef = doc(firestore, 'users', userId);
+  const cardRef = doc(collection(firestore, 'users', userId, 'businessCards'), cardSlug);
 
   const userDoc = await getDoc(userRef);
   const cardDoc = await getDoc(cardRef);
@@ -84,12 +101,12 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
     throw new Error('Only pro users can set a primary card');
   }
 
-  await runTransaction(db, async (transaction) => {
+  await runTransaction(firestore, async (transaction) => {
     // Update user document
     transaction.update(userRef, { primaryCardId: cardSlug });
-
     // Update all cards
-    const cardsQuery = query(collection(db, 'users', userId, 'businessCards'));
+    const cardsRef = collection(firestore, 'users', userId, 'businessCards');
+    const cardsQuery = query(cardsRef);
     const cardsSnapshot = await getDocs(cardsQuery);
 
     cardsSnapshot.forEach((doc) => {
@@ -103,6 +120,8 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
 }
 
 async function generateUniqueUsername(): Promise<string> {
+  if (!db) throw new Error('Firestore database instance is undefined');
+
   let username = generateRandomUsername();
   let isUnique = false;
 
@@ -126,6 +145,8 @@ function generateRandomUsername(): string {
 }
 
 export async function getUserByUsername(username: string): Promise<User | null> {
+  if (!db) throw new Error('Firestore database instance is undefined');
+
   const usersRef = collection(db, 'users');
   const q = query(usersRef, where('username', '==', username));
   const querySnapshot = await getDocs(q);
@@ -138,9 +159,7 @@ export async function getUserByUsername(username: string): Promise<User | null> 
 }
 
 export async function updateUsername(userId: string, newUsername: string): Promise<void> {
-  if (!validateCustomUsername(newUsername)) {
-    throw new Error('Invalid username format');
-  }
+  if (!db) throw new Error('Firestore database instance is undefined');
 
   const isUnique = await isUsernameUnique(newUsername);
   if (!isUnique) {
@@ -155,6 +174,8 @@ export async function updateUsername(userId: string, newUsername: string): Promi
 }
 
 async function isUsernameUnique(username: string): Promise<boolean> {
+  if (!db) throw new Error('Firestore database instance is undefined');
+
   const userQuery = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
   return userQuery.empty;
 }
@@ -171,6 +192,11 @@ export async function createUserDocument(user: User): Promise<void> {
   }
 
   console.log('Creating user document for UID:', user.uid);
+
+  if (!db) {
+    console.error('Firestore database instance is undefined');
+    return;
+  }
 
   const userRef = doc(db, 'users', user.uid);
 

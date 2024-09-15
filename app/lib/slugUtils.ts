@@ -9,6 +9,9 @@ export function generateCardSlug(isPro: boolean, customSlug?: string): string {
 }
 
 export async function isCardSlugUnique(userId: string, cardSlug: string): Promise<boolean> {
+  if (!db) {
+    throw new Error('Firestore database is not initialized');
+  }
   const cardRef = collection(db, 'users', userId, 'businessCards');
   const q = query(cardRef, where('cardSlug', '==', cardSlug));
   const querySnapshot = await getDocs(q);
@@ -38,8 +41,10 @@ function generateRandomSlug(): string {
 export async function generateUniqueUsername(): Promise<string> {
   let username = generateRandomSlug();
   let isUnique = false;
-
   while (!isUnique) {
+    if (!db) {
+      throw new Error('Firestore database is not initialized');
+    }
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('username', '==', username));
     const querySnapshot = await getDocs(q);

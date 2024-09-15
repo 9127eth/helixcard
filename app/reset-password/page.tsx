@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { confirmPasswordReset } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import Layout from '../components/Layout';
 import Link from 'next/link';
 
-const ResetPasswordForm = () => {
+// ResetPasswordForm component
+const ResetPasswordForm: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,16 +23,20 @@ const ResetPasswordForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!oobCode) return;
-
     try {
-      await confirmPasswordReset(auth, oobCode, newPassword);
-      setMessage('Password has been reset successfully. You can now log in with your new password.');
+      if (auth) {
+        await confirmPasswordReset(auth, oobCode, newPassword);
+        setMessage('Password has been reset successfully. You can now log in with your new password.');
+      } else {
+        throw new Error('Auth is not initialized');
+      }
     } catch (err) {
       setError('Failed to reset password. Please try again.');
       console.error(err);
     }
   };
 
+  // Return statement for ResetPasswordForm
   return (
     <div className="max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">Reset Your Password</h1>
@@ -67,15 +71,14 @@ const ResetPasswordForm = () => {
       )}
     </div>
   );
-};
+}; // End of ResetPasswordForm component
 
+// ResetPasswordPage component (main page component)
 const ResetPasswordPage: React.FC = () => {
   return (
-    <Layout title="Reset Password - HelixCard">
-      <Suspense fallback={<div>Loading...</div>}>
-        <ResetPasswordForm />
-      </Suspense>
-    </Layout>
+    <div className="container mx-auto px-4 py-8">
+      <ResetPasswordForm />
+    </div>
   );
 };
 

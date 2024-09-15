@@ -8,35 +8,40 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    if (typeof window !== 'undefined' && auth) {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setUser(user);
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    }
   }, []);
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
+    if (auth) {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error('Logout error:', error);
+        throw error;
+      }
     }
   };
 
   const signUp = async (email: string, password: string) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('User authenticated:', userCredential.user.uid);
-      // Wait for the auth state to update
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Creating user document for UID:', userCredential.user.uid);
-      await createUserDocument(userCredential.user);
-      console.log('User signed up and document created successfully');
-    } catch (error) {
-      console.error('Error during sign up:', error);
-      throw error;
+    if (auth) {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        console.log('User authenticated:', userCredential.user.uid);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Creating user document for UID:', userCredential.user.uid);
+        await createUserDocument(userCredential.user);
+        console.log('User signed up and document created successfully');
+      } catch (error) {
+        console.error('Error during sign up:', error);
+        throw error;
+      }
     }
   };
 
