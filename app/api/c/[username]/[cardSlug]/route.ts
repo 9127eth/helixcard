@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/app/lib/firebase';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/app/lib/firebase-admin';
 
 export async function GET(
   request: NextRequest,
@@ -10,8 +9,8 @@ export async function GET(
 
   try {
     // Find user by username
-    const userQuery = query(collection(db, 'users'), where('username', '==', username));
-    const userSnapshot = await getDocs(userQuery);
+    const userQuery = db.collection('users').where('username', '==', username);
+    const userSnapshot = await userQuery.get();
 
     if (userSnapshot.empty) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -25,10 +24,10 @@ export async function GET(
 
     if (cardSlug) {
       // Fetch specific business card
-      const cardRef = doc(db, 'users', userId, 'businessCards', cardSlug);
-      const cardDoc = await getDoc(cardRef);
+      const cardRef = db.collection('users').doc(userId).collection('businessCards').doc(cardSlug);
+      const cardDoc = await cardRef.get();
 
-      if (!cardDoc.exists()) {
+      if (!cardDoc.exists) {
         return NextResponse.json({ error: 'Business card not found' }, { status: 404 });
       }
 
@@ -38,11 +37,10 @@ export async function GET(
       if (!userData.primaryCardId) {
         return NextResponse.json({ error: 'Primary business card not set' }, { status: 404 });
       }
+      const cardRef = db.collection('users').doc(userId).collection('businessCards').doc(userData.primaryCardId);
+      const cardDoc = await cardRef.get();
 
-      const cardRef = doc(db, 'users', userId, 'businessCards', userData.primaryCardId);
-      const cardDoc = await getDoc(cardRef);
-
-      if (!cardDoc.exists()) {
+      if (!cardDoc.exists) {
         return NextResponse.json({ error: 'Primary business card not found' }, { status: 404 });
       }
 

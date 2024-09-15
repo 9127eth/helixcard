@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "firebase": "^9.x.x",
     "@firebase/firestore": "^3.x.x",
-    "firebase-admin": "^12.5.0",
+    "firebase": "^10.13.1",
+    "firebase-admin": "^11.x.x",
     "next": "14.2.11",
     "next-themes": "^0.3.0",
     "react": "^18",
