@@ -8,6 +8,7 @@ if (!admin.apps.length) {
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error('Firebase environment variables are not set');
   }
+
   try {
     admin.initializeApp({
       credential: admin.credential.cert({
@@ -22,8 +23,7 @@ if (!admin.apps.length) {
     console.error('Firebase admin initialization error', error);
   }
 }
-// In firebaseAdmin.ts
-console.log('Private Key has escaped newlines:', process.env.FIREBASE_PRIVATE_KEY?.includes('\\n'));
 
+export default admin;
 export const db = admin.firestore();
 export const auth = admin.auth();
