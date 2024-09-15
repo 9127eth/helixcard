@@ -7,7 +7,6 @@ import { useAuth } from '../hooks/useAuth';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
-import { saveBusinessCard } from '../lib/firebaseOperations';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
