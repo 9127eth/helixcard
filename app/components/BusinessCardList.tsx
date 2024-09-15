@@ -21,7 +21,12 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
 
   useEffect(() => {
     const fetchCards = async () => {
-      const q = query(collection(db, 'users', userId, 'businessCards'));
+      // Add null check for Firestore instance
+if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+  
+        const q = query(collection(db, 'users', userId, 'businessCards'));
       const querySnapshot = await getDocs(q);
       const fetchedCards = querySnapshot.docs.map(doc => ({
         id: doc.id,

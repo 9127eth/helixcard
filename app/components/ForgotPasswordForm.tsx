@@ -17,11 +17,14 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onCancel
     e.preventDefault();
     setMessage(null);
     setError(null);
-
     try {
-      await sendPasswordResetEmail(auth, email, actionCodeSettings);
-      setMessage('Password reset email sent. Please check your inbox.');
-      setIsSubmitted(true);
+      if (auth) {
+        await sendPasswordResetEmail(auth, email, actionCodeSettings);
+        setMessage('Password reset email sent. Please check your inbox.');
+        setIsSubmitted(true);
+      } else {
+        throw new Error('Authentication is not initialized');
+      }
     } catch (err) {
       setError('Failed to send password reset email. Please try again.');
       console.error(err);

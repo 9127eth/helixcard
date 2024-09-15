@@ -9,9 +9,8 @@ interface CardInfo {
 
 const URLTest: React.FC = () => {
   const [cardInfo, setCardInfo] = useState<CardInfo | null>(null);
-
   const handleCreateCard = async () => {
-    const user = auth.currentUser;
+    const user = auth?.currentUser;
     if (!user) {
       console.error('User not authenticated');
       return;
@@ -40,10 +39,12 @@ const URLTest: React.FC = () => {
       console.error('Error creating card:', error);
     }
   };
-
   const handleSetPrimary = async () => {
-    const user = auth.currentUser;
-    if (!user || !cardInfo) return;
+    const user = auth?.currentUser;
+    if (!user || !cardInfo) {
+      console.error('User not authenticated or card info not available');
+      return;
+    }
 
     try {
       await setPrimaryCard(user.uid, cardInfo.cardSlug);

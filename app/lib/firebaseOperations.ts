@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, runTransaction } from 'firebase/firestore';
+import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, runTransaction, Firestore } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { generateCardSlug, isCardSlugUnique, generateCardUrl } from './slugUtils';
 
@@ -16,8 +16,16 @@ interface BusinessCardData {
   customMessage: string;
 }
 
-export async function saveBusinessCard(user: User, cardData: BusinessCardData, customSlug?: string): Promise<{ cardSlug: string; cardUrl: string }> {
+export async function saveBusinessCard(
+  user: User,
+  cardData: BusinessCardData,
+  customSlug?: string
+): Promise<{ cardSlug: string; cardUrl: string }> {
   if (!user || !user.uid) throw new Error('User not authenticated or invalid');
+
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
 
   const userRef = doc(db, 'users', user.uid);
   const userDoc = await getDoc(userRef);
@@ -58,6 +66,10 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
 }
 
 export async function setPrimaryCard(userId: string, cardSlug: string): Promise<void> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+
   const userRef = doc(db, 'users', userId);
   const cardRef = doc(collection(db, 'users', userId, 'businessCards'), cardSlug);
 
@@ -77,6 +89,11 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
     // Update user document
     transaction.update(userRef, { primaryCardId: cardSlug });
 
+   // Add null check for Firestore instance
+if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+  
     // Update all cards
     const cardsQuery = query(collection(db, 'users', userId, 'businessCards'));
     const cardsSnapshot = await getDocs(cardsQuery);
@@ -92,11 +109,15 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
 }
 
 async function generateUniqueUsername(): Promise<string> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+
   let username = generateRandomUsername();
   let isUnique = false;
 
   while (!isUnique) {
-    const usersRef = collection(db, 'users');
+    const usersRef = collection(db as Firestore, 'users');
     const q = query(usersRef, where('username', '==', username));
     const querySnapshot = await getDocs(q);
 
@@ -115,6 +136,10 @@ function generateRandomUsername(): string {
 }
 
 export async function getUserByUsername(username: string): Promise<User | null> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+
   const usersRef = collection(db, 'users');
   const q = query(usersRef, where('username', '==', username));
   const querySnapshot = await getDocs(q);
@@ -127,6 +152,10 @@ export async function getUserByUsername(username: string): Promise<User | null> 
 }
 
 export async function updateUsername(userId: string, newUsername: string): Promise<void> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+
   if (!validateCustomUsername(newUsername)) {
     throw new Error('Invalid username format');
   }
@@ -144,7 +173,12 @@ export async function updateUsername(userId: string, newUsername: string): Promi
 }
 
 async function isUsernameUnique(username: string): Promise<boolean> {
-  const userQuery = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
+  // Add null check for Firestore instance
+if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+  
+    const userQuery = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
   return userQuery.empty;
 }
 
@@ -157,6 +191,10 @@ export async function createUserDocument(user: User): Promise<void> {
   if (!user || !user.uid) {
     console.error('Invalid user object:', user);
     return;
+  }
+
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
   }
 
   console.log('Creating user document for UID:', user.uid);

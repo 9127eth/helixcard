@@ -9,7 +9,12 @@ export function generateCardSlug(isPro: boolean, customSlug?: string): string {
 }
 
 export async function isCardSlugUnique(userId: string, cardSlug: string): Promise<boolean> {
-  const cardRef = collection(db, 'users', userId, 'businessCards');
+  // Add null check for Firestore instance
+if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+  
+    const cardRef = collection(db, 'users', userId, 'businessCards');
   const q = query(cardRef, where('cardSlug', '==', cardSlug));
   const querySnapshot = await getDocs(q);
   return querySnapshot.empty;
@@ -40,6 +45,11 @@ export async function generateUniqueUsername(): Promise<string> {
   let isUnique = false;
 
   while (!isUnique) {
+    // Add null check for Firestore instance
+if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
+  
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('username', '==', username));
     const querySnapshot = await getDocs(q);

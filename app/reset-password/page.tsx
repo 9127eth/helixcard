@@ -25,7 +25,11 @@ const ResetPasswordForm = () => {
     if (!oobCode) return;
 
     try {
-      await confirmPasswordReset(auth, oobCode, newPassword);
+        if (!auth) {
+            setError('Authentication is not initialized.');
+            return;
+          }
+        await confirmPasswordReset(auth, oobCode, newPassword);
       setMessage('Password has been reset successfully. You can now log in with your new password.');
     } catch (err) {
       setError('Failed to reset password. Please try again.');
