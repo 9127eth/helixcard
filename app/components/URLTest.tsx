@@ -39,6 +39,11 @@ const URLTest: React.FC = () => {
       console.log('New card URL:', cardUrl);
     } catch (error) {
       console.error('Error creating card:', error);
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+      }
+      // Optionally, update UI to show error message
     }
   };
   const handleSetPrimary = async () => {

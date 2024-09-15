@@ -36,17 +36,35 @@ export const AuthModal: React.FC = () => {
         throw new Error('Auth instance is not initialized');
       }
       const userCredential = await signInWithPopup(auth, provider);
-      if (!db) {
-        throw new Error('Firestore instance is not initialized');
+      
+      // Retry mechanism for Firestore operations
+      const maxRetries = 3;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          if (!db) {
+            throw new Error('Firestore instance is not initialized');
+          }
+          const userDocRef = doc(db, 'users', userCredential.user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (!userDoc.exists()) {
+            await createUserDocument(userCredential.user);
+          }
+          handleSuccess();
+          return; // Exit the function if successful
+        } catch (firestoreError) {
+          console.error(`Firestore operation attempt ${i + 1} failed:`, firestoreError);
+          if (i === maxRetries - 1) {
+            throw firestoreError; // Rethrow the error if all retries fail
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+        }
       }
-      const userDocRef = doc(db, 'users', userCredential.user.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (!userDoc.exists()) {
-        await createUserDocument(userCredential.user);
-      }
-      handleSuccess();
     } catch (error) {
       console.error('Google Sign-In Error:', error);
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+      }
       // Handle the error appropriately, e.g., show an error message to the user
     }
   };

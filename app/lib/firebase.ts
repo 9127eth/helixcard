@@ -35,3 +35,12 @@ const actionCodeSettings = {
 
 export { app, auth, db, storage, actionCodeSettings };
 
+export const initFirebase = () => {
+  if (typeof window !== 'undefined' && !app) {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+  }
+};
+

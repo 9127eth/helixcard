@@ -21,6 +21,11 @@ export async function saveBusinessCard(
   cardData: BusinessCardData,
   customSlug?: string
 ): Promise<{ cardSlug: string; cardUrl: string }> {
+  if (!db) {
+    console.error('Firestore is not initialized.');
+    throw new Error('Firestore is not initialized.');
+  }
+
   console.log('Starting saveBusinessCard function');
   console.log('User:', user?.uid);
   console.log('Custom Slug:', customSlug);
@@ -29,13 +34,6 @@ export async function saveBusinessCard(
     console.error('User not authenticated or invalid');
     throw new Error('User not authenticated or invalid');
   }
-
-  if (!db) {
-    console.error('Firestore is not initialized.');
-    throw new Error('Firestore is not initialized.');
-  }
-
-  console.log('Firestore initialized successfully');
 
   const userRef = doc(db, 'users', user.uid);
   console.log('User reference created');
@@ -256,3 +254,5 @@ export async function createUserDocument(user: User): Promise<void> {
     }
   }
 }
+
+export const isOnline = () => typeof window !== 'undefined' && navigator.onLine;

@@ -55,6 +55,10 @@ if (!db) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!navigator.onLine) {
+      setError('You are currently offline. Please check your internet connection and try again.');
+      return;
+    }
     if (!user || !user.uid) {
       setError('You must be logged in with a valid account to create a business card');
       return;
