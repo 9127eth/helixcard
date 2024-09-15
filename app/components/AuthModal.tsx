@@ -8,6 +8,9 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import { saveBusinessCard } from '../lib/firebaseOperations';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { createUserDocument } from '../lib/firebaseOperations';
 
 export const AuthModal: React.FC = () => {
   const [isLogin, setIsLogin] = useState(false); // Changed to false
@@ -27,10 +30,16 @@ export const AuthModal: React.FC = () => {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        await createUserDocument(userCredential.user);
+      }
       handleSuccess();
     } catch (error) {
       console.error('Google Sign-In Error:', error);
+      // Handle the error appropriately, e.g., show an error message to the user
     }
   };
 

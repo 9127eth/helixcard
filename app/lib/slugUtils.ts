@@ -15,12 +15,16 @@ export async function isCardSlugUnique(userId: string, cardSlug: string): Promis
   return querySnapshot.empty;
 }
 
-export function generateCardUrl(username: string, cardSlug?: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
-  if (cardSlug) {
-    return `${baseUrl}/c/${username}/${cardSlug}`;
+export function generateCardUrl(isPro: boolean, username: string, cardSlug: string, isPrimary: boolean): string {
+  if (isPro) {
+    return isPrimary
+      ? `https://www.helixcard.app/c/${username}`
+      : `https://www.helixcard.app/c/${username}/${cardSlug}`;
+  } else {
+    return isPrimary
+      ? `https://www.helixcard.app/c/${cardSlug}`
+      : `https://www.helixcard.app/c/${username}/${cardSlug}`;
   }
-  return `${baseUrl}/c/${username}`;
 }
 
 function sanitizeSlug(slug: string): string {

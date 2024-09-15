@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, writeBatch, runTransaction } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { generateCardSlug, isCardSlugUnique, generateCardUrl } from './slugUtils';
 
@@ -17,31 +17,16 @@ interface BusinessCardData {
 }
 
 export async function saveBusinessCard(user: User, cardData: BusinessCardData, customSlug?: string): Promise<{ cardSlug: string; cardUrl: string }> {
-  console.log('Starting saveBusinessCard function');
-  console.log('User:', user);
-  console.log('CardData:', cardData);
-
   if (!user || !user.uid) throw new Error('User not authenticated or invalid');
 
   const userRef = doc(db, 'users', user.uid);
   const userDoc = await getDoc(userRef);
 
-  let userData;
   if (!userDoc.exists()) {
-    const username = await generateUniqueUsername();
-    userData = {
-      username,
-      isPro: false,
-      primaryCardId: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    await setDoc(userRef, userData);
-  } else {
-    userData = userDoc.data();
+    throw new Error('User document not found');
   }
 
-  console.log('About to create/update user document');
+  const userData = userDoc.data();
 
   let cardSlug = generateCardSlug(userData.isPro, customSlug);
   let isUnique = await isCardSlugUnique(user.uid, cardSlug);
@@ -52,23 +37,22 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   }
 
   const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
+  const isPrimary = !userData.primaryCardId;
   const cardWithMetadata = {
     ...cardData,
     cardSlug,
-    isPrimary: false,
+    isPrimary,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  console.log('About to create business card document');
-
   await setDoc(cardRef, cardWithMetadata);
 
-  if (!userData.primaryCardId) {
+  if (isPrimary) {
     await updateDoc(userRef, { primaryCardId: cardSlug });
   }
 
-  const cardUrl = generateCardUrl(userData.username, cardSlug);
+  const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
 
   return { cardSlug, cardUrl };
 }
@@ -89,17 +73,22 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
     throw new Error('Only pro users can set a primary card');
   }
 
-  await updateDoc(userRef, { primaryCardId: cardSlug });
+  await runTransaction(db, async (transaction) => {
+    // Update user document
+    transaction.update(userRef, { primaryCardId: cardSlug });
 
-  const cardsQuery = query(collection(db, 'users', userId, 'businessCards'));
-  const cardsSnapshot = await getDocs(cardsQuery);
+    // Update all cards
+    const cardsQuery = query(collection(db, 'users', userId, 'businessCards'));
+    const cardsSnapshot = await getDocs(cardsQuery);
 
-  const batch = writeBatch(db);
-  cardsSnapshot.forEach((doc) => {
-    batch.update(doc.ref, { isPrimary: doc.id === cardSlug });
+    cardsSnapshot.forEach((doc) => {
+      const isNewPrimary = doc.id === cardSlug;
+      transaction.update(doc.ref, { 
+        isPrimary: isNewPrimary,
+        cardUrl: generateCardUrl(userData.isPro, userData.username, doc.id, isNewPrimary)
+      });
+    });
   });
-
-  await batch.commit();
 }
 
 async function generateUniqueUsername(): Promise<string> {
@@ -122,7 +111,7 @@ async function generateUniqueUsername(): Promise<string> {
 }
 
 function generateRandomUsername(): string {
-  return 'user_' + Math.random().toString(36).substr(2, 9);
+  return Math.random().toString(36).substr(2, 9);
 }
 
 export async function getUserByUsername(username: string): Promise<User | null> {
@@ -162,4 +151,39 @@ async function isUsernameUnique(username: string): Promise<boolean> {
 export function validateCustomUsername(username: string): boolean {
   const usernameRegex = /^[a-z0-9-]{3,20}$/;
   return usernameRegex.test(username);
+}
+
+export async function createUserDocument(user: User): Promise<void> {
+  if (!user || !user.uid) {
+    console.error('Invalid user object:', user);
+    return;
+  }
+
+  console.log('Creating user document for UID:', user.uid);
+
+  const userRef = doc(db, 'users', user.uid);
+
+  try {
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+      const username = await generateUniqueUsername();
+      const userData = {
+        username,
+        isPro: false,
+        primaryCardId: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await setDoc(userRef, userData);
+      console.log('User document created successfully for UID:', user.uid);
+    } else {
+      console.log('User document already exists for UID:', user.uid);
+    }
+  } catch (error) {
+    console.error('Error creating user document:', error);
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+    }
+  }
 }
