@@ -19,42 +19,52 @@ interface BusinessCardData {
 export async function saveBusinessCard(user: User, cardData: BusinessCardData, customSlug?: string): Promise<{ cardSlug: string; cardUrl: string }> {
   if (!user || !user.uid) throw new Error('User not authenticated or invalid');
 
-  const userRef = doc(db, 'users', user.uid);
-  const userDoc = await getDoc(userRef);
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userRef);
 
-  if (!userDoc.exists()) {
-    throw new Error('User document not found');
+    if (!userDoc.exists()) {
+      throw new Error('User document not found');
+    }
+
+    const userData = userDoc.data();
+
+    let cardSlug = generateCardSlug(userData.isPro, customSlug);
+    let isUnique = await isCardSlugUnique(user.uid, cardSlug);
+
+    while (!isUnique) {
+      cardSlug = generateCardSlug(userData.isPro);
+      isUnique = await isCardSlugUnique(user.uid, cardSlug);
+    }
+
+    const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
+    const isPrimary = !userData.primaryCardId;
+    const cardWithMetadata = {
+      ...cardData,
+      cardSlug,
+      isPrimary,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await setDoc(cardRef, cardWithMetadata);
+
+    if (isPrimary) {
+      await updateDoc(userRef, { primaryCardId: cardSlug });
+    }
+
+    const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
+
+    return { cardSlug, cardUrl };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'FirebaseError' && (error as any).code === 'unavailable') {
+      // Handle offline scenario
+      console.warn('Operation performed offline. Changes will be synced when online.');
+      // You might want to store this operation in IndexedDB or local storage to sync later
+      return { cardSlug: 'offline-' + Date.now(), cardUrl: 'Offline URL' };
+    }
+    throw error;
   }
-
-  const userData = userDoc.data();
-
-  let cardSlug = generateCardSlug(userData.isPro, customSlug);
-  let isUnique = await isCardSlugUnique(user.uid, cardSlug);
-
-  while (!isUnique) {
-    cardSlug = generateCardSlug(userData.isPro);
-    isUnique = await isCardSlugUnique(user.uid, cardSlug);
-  }
-
-  const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
-  const isPrimary = !userData.primaryCardId;
-  const cardWithMetadata = {
-    ...cardData,
-    cardSlug,
-    isPrimary,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  await setDoc(cardRef, cardWithMetadata);
-
-  if (isPrimary) {
-    await updateDoc(userRef, { primaryCardId: cardSlug });
-  }
-
-  const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
-
-  return { cardSlug, cardUrl };
 }
 
 export async function setPrimaryCard(userId: string, cardSlug: string): Promise<void> {

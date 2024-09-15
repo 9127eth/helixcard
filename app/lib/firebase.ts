@@ -1,9 +1,8 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { setLogLevel } from "firebase/app";
-import { enableIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -16,7 +15,9 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED
+});
 const storage = getStorage(app);
 
 setLogLevel('debug');
@@ -26,11 +27,13 @@ const actionCodeSettings = {
   handleCodeInApp: true,
 };
 
-enableIndexedDbPersistence(db).catch((err) => {
+enableIndexedDbPersistence(db).then(() => {
+  console.log('Offline persistence enabled successfully');
+}).catch((err) => {
   if (err.code == 'failed-precondition') {
-    console.log('Multiple tabs open, persistence can only be enabled in one tab at a a time.');
+    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
   } else if (err.code == 'unimplemented') {
-    console.log('The current browser does not support all of the features required to enable persistence');
+    console.warn('The current browser does not support all of the features required to enable persistence');
   }
 });
 
