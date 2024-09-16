@@ -46,10 +46,10 @@ export function useAuth() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User authenticated:', userCredential.user.uid);
-      // Wait for the auth state to update
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Creating user document for UID:', userCredential.user.uid);
+      
+      // Create user document immediately after authentication
       await createUserDocument(userCredential.user);
+      
       console.log('User signed up and document created successfully');
     } catch (error) {
       console.error('Error during sign up:', error);

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { saveBusinessCard } from '../lib/firebaseOperations';
-import { generateCardSlug, isValidSlug } from '../lib/slugUtils';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -66,17 +65,8 @@ if (!db) {
 
     setIsSubmitting(true);
     setError(null);
-
     try {
-      const cardSlug = isPro ? formData.customSlug : generateCardSlug(false);
-      
-      if (isPro && formData.customSlug && !isValidSlug(formData.customSlug)) {
-        setError('Invalid custom slug. Use only lowercase letters, numbers, and hyphens (3-20 characters).');
-        setIsSubmitting(false);
-        return;
-      }
-
-      const { cardSlug: savedCardSlug, cardUrl } = await saveBusinessCard(user, formData, cardSlug);
+      const { cardSlug: savedCardSlug, cardUrl } = await saveBusinessCard(user, formData);
       onSuccess(savedCardSlug, cardUrl);
     } catch (error) {
       setError('An error occurred while creating the business card');

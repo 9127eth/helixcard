@@ -1,7 +1,15 @@
 import { db } from './firebase';
-import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, runTransaction, Firestore } from 'firebase/firestore';
+import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, writeBatch, serverTimestamp, Firestore } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { generateCardSlug, isCardSlugUnique, generateCardUrl } from './slugUtils';
+import { generateCardSlug, generateCardUrl } from './slugUtils';
+import { generateUniqueUsername } from './slugUtils';
+
+// Added UserData interface
+interface UserData {
+  isPro: boolean;
+  username: string | null;
+  primaryCardId: string | null;
+}
 
 interface BusinessCardData {
   name: string;
@@ -14,154 +22,96 @@ interface BusinessCardData {
   linkedIn: string;
   twitter: string;
   customMessage: string;
+  customSlug?: string; // Added customSlug as an optional property
 }
 
-export async function saveBusinessCard(
-  user: User,
-  cardData: BusinessCardData,
-  customSlug?: string
-): Promise<{ cardSlug: string; cardUrl: string }> {
+export async function saveBusinessCard(user: User, cardData: BusinessCardData): Promise<{ cardSlug: string; cardUrl: string }> {
   if (!db) {
-    console.error('Firestore is not initialized.');
-    throw new Error('Firestore is not initialized.');
+    throw new Error('Firebase database is not initialized');
+  }
+  const userRef = doc(db as Firestore, 'users', user.uid);
+  const userDoc = await getDoc(userRef);
+
+  if (!userDoc.exists()) {
+    throw new Error('User document does not exist');
   }
 
-  console.log('Starting saveBusinessCard function');
-  console.log('User:', user?.uid);
-  console.log('Custom Slug:', customSlug);
+  const userData = userDoc.data();
+  const username = userData.username;
 
-  if (!user || !user.uid) {
-    console.error('User not authenticated or invalid');
-    throw new Error('User not authenticated or invalid');
+  if (!username) {
+    throw new Error('Username not found for user');
   }
 
-  const userRef = doc(db, 'users', user.uid);
-  console.log('User reference created');
+  const existingCards = await getDocs(collection(userRef, 'businessCards'));
+  const isPrimary = existingCards.empty;
 
-  try {
-    const userDoc = await getDoc(userRef);
-    console.log('User document fetched');
-
-    if (!userDoc.exists()) {
-      console.error('User document not found');
-      throw new Error('User document not found');
-    }
-
-    const userData = userDoc.data();
-    console.log('User data:', userData);
-
-    let cardSlug = generateCardSlug(userData.isPro, customSlug);
-    console.log('Generated card slug:', cardSlug);
-
-    let isUnique = await isCardSlugUnique(user.uid, cardSlug);
-    console.log('Is slug unique:', isUnique);
-
-    while (!isUnique) {
-      console.log('Slug not unique, generating new one');
-      cardSlug = generateCardSlug(userData.isPro);
-      isUnique = await isCardSlugUnique(user.uid, cardSlug);
-    }
-
-    const cardRef = doc(collection(db, 'users', user.uid, 'businessCards'), cardSlug);
-    console.log('Card reference created');
-
-    const isPrimary = !userData.primaryCardId;
-    const cardWithMetadata = {
-      ...cardData,
-      cardSlug,
-      isPrimary,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    console.log('Saving card data:', cardWithMetadata);
-    await setDoc(cardRef, cardWithMetadata);
-    console.log('Card data saved successfully');
-
-    if (isPrimary) {
-      console.log('Updating primary card ID');
-      await updateDoc(userRef, { primaryCardId: cardSlug });
-      console.log('Primary card ID updated');
-    }
-
-    const cardUrl = generateCardUrl(userData.isPro, userData.username, cardSlug, isPrimary);
-    console.log('Generated card URL:', cardUrl);
-
-    return { cardSlug, cardUrl };
-  } catch (error) {
-    console.error('Error in saveBusinessCard:', error);
-    throw error;
+  let cardSlug: string;
+  if (isPrimary) {
+    cardSlug = username;
+  } else {
+    cardSlug = generateCardSlug(); // This generates a 3-character slug for additional cards
   }
+
+  const cardRef = doc(collection(userRef, 'businessCards'), cardSlug);
+
+  const cardDataToSave = {
+    ...cardData,
+    cardSlug,
+    isPrimary,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(cardRef, cardDataToSave);
+
+  if (isPrimary) {
+    await updateDoc(userRef, { primaryCardId: cardSlug });
+  }
+
+  const cardUrl = `https://www.helixcard.app/c/${username}${isPrimary ? '' : `/${cardSlug}`}`;
+
+  return { cardSlug, cardUrl };
 }
 
 export async function setPrimaryCard(userId: string, cardSlug: string): Promise<void> {
   if (!db) {
-    throw new Error('Firestore is not initialized.');
+    throw new Error('Firebase database is not initialized');
+  }
+  const userRef = doc(db as Firestore, 'users', userId);
+  const userDoc = await getDoc(userRef);
+
+  if (!userDoc.exists()) {
+    throw new Error('User document does not exist');
   }
 
-  const userRef = doc(db, 'users', userId);
-  const cardRef = doc(collection(db, 'users', userId, 'businessCards'), cardSlug);
-
-  const userDoc = await getDoc(userRef);
+  const cardRef = doc(collection(userRef, 'businessCards'), cardSlug);
   const cardDoc = await getDoc(cardRef);
 
-  if (!userDoc.exists() || !cardDoc.exists()) {
-    throw new Error('User or card not found');
+  if (!cardDoc.exists()) {
+    throw new Error('Business card does not exist');
   }
 
-  const userData = userDoc.data();
-  if (!userData.isPro) {
-    throw new Error('Only pro users can set a primary card');
+  const batch = writeBatch(db as Firestore);
+
+  // Set the current primary card to non-primary
+  const userData = userDoc.data() as UserData;
+  if (userData.primaryCardId) {
+    const currentPrimaryCardRef = doc(collection(userRef, 'businessCards'), userData.primaryCardId);
+    batch.update(currentPrimaryCardRef, { isPrimary: false });
   }
 
-  await runTransaction(db, async (transaction) => {
-    // Update user document
-    transaction.update(userRef, { primaryCardId: cardSlug });
+  // Set the new card as primary
+  batch.update(cardRef, { isPrimary: true });
 
-   // Add null check for Firestore instance
-if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
-  
-    // Update all cards
-    const cardsQuery = query(collection(db, 'users', userId, 'businessCards'));
-    const cardsSnapshot = await getDocs(cardsQuery);
+  // Update the user's primaryCardId
+  batch.update(userRef, { primaryCardId: cardSlug });
 
-    cardsSnapshot.forEach((doc) => {
-      const isNewPrimary = doc.id === cardSlug;
-      transaction.update(doc.ref, { 
-        isPrimary: isNewPrimary,
-        cardUrl: generateCardUrl(userData.isPro, userData.username, doc.id, isNewPrimary)
-      });
-    });
-  });
-}
+  await batch.commit();
 
-async function generateUniqueUsername(): Promise<string> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
-
-  let username = generateRandomUsername();
-  let isUnique = false;
-
-  while (!isUnique) {
-    const usersRef = collection(db as Firestore, 'users');
-    const q = query(usersRef, where('username', '==', username));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      isUnique = true;
-    } else {
-      username = generateRandomUsername();
-    }
-  }
-
-  return username;
-}
-
-function generateRandomUsername(): string {
-  return Math.random().toString(36).substr(2, 9);
+  // Generate and return the new primary card URL
+  const newPrimaryCardUrl = generateCardUrl(userId, cardSlug, true);
+  console.log('New primary card URL:', newPrimaryCardUrl);
 }
 
 export async function getUserByUsername(username: string): Promise<User | null> {
@@ -185,29 +135,26 @@ export async function updateUsername(userId: string, newUsername: string): Promi
     throw new Error('Firestore is not initialized.');
   }
 
-  if (!validateCustomUsername(newUsername)) {
-    throw new Error('Invalid username format');
-  }
-
-  const isUnique = await isUsernameUnique(newUsername);
-  if (!isUnique) {
-    throw new Error('Username is already taken');
-  }
-
   const userRef = doc(db, 'users', userId);
-  await updateDoc(userRef, {
-    username: newUsername,
-    updatedAt: new Date().toISOString(),
-  });
+  
+  try {
+    await updateDoc(userRef, {
+      username: newUsername,
+      updatedAt: new Date().toISOString(),
+    });
+    console.log('Username updated successfully for UID:', userId);
+  } catch (error) {
+    console.error('Error updating username:', error);
+    throw error;
+  }
 }
 
 async function isUsernameUnique(username: string): Promise<boolean> {
-  // Add null check for Firestore instance
-if (!db) {
+  if (!db) {
     throw new Error('Firestore is not initialized.');
   }
   
-    const userQuery = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
+  const userQuery = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
   return userQuery.empty;
 }
 
@@ -229,25 +176,23 @@ export async function createUserDocument(user: User): Promise<void> {
   console.log('Creating user document for UID:', user.uid);
 
   const userRef = doc(db, 'users', user.uid);
-
   try {
-    const userDoc = await getDoc(userRef);
-    if (!userDoc.exists()) {
-      const username = await generateUniqueUsername();
-      const userData = {
-        username,
-        isPro: false,
-        primaryCardId: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      await setDoc(userRef, userData);
-      console.log('User document created successfully for UID:', user.uid);
-    } else {
-      console.log('User document already exists for UID:', user.uid);
-    }
+    let username;
+    do {
+      username = await generateUniqueUsername();
+    } while (!(await isUsernameUnique(username)));
+
+    const userData = {
+      isPro: false,
+      primaryCardId: null,
+      username,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await setDoc(userRef, userData, { merge: true });
+    console.log('User document created/updated successfully for UID:', user.uid);
   } catch (error) {
-    console.error('Error creating user document:', error);
+    console.error('Error creating/updating user document:', error);
     if (error instanceof Error) {
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);

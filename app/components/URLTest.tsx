@@ -11,6 +11,7 @@ interface CardInfo {
 
 const URLTest: React.FC = () => {
   const [cardInfo, setCardInfo] = useState<CardInfo | null>(null);
+
   const handleCreateCard = async () => {
     const user = auth?.currentUser;
     if (!user) {
@@ -30,6 +31,7 @@ const URLTest: React.FC = () => {
         linkedIn: 'https://linkedin.com/in/testuser',
         twitter: 'https://twitter.com/testuser',
         customMessage: 'Hello, this is a test card!',
+        customSlug: 'test-card', // Only for pro users
       };
 
       const { cardSlug, cardUrl } = await saveBusinessCard(user, cardData);
@@ -43,9 +45,9 @@ const URLTest: React.FC = () => {
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
       }
-      // Optionally, update UI to show error message
     }
   };
+
   const handleSetPrimary = async () => {
     const user = auth?.currentUser;
     if (!user || !cardInfo) {

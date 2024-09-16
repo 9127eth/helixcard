@@ -1267,3 +1267,30 @@ Your approach to **assigning a primary business card to every user**—with free
 **Recommendation:** Proceed with your outlined strategy. Ensure thorough testing to handle edge cases (e.g., username uniqueness for pro users) and maintain clear documentation for users on how their URLs are structured based on their subscription status.
 
 If you have any further questions or need assistance with specific implementation details, feel free to ask!
+
+Here is the final format for the card URL:
+
+	All Users Have a Primary Card:
+	•	Free Users: Use a randomly generated slug (also serves as their user ID) for their primary card (https://www.helixcard.app/c/{randomSlug aka UserID}).
+	•	Pro Users: Use their customizable username for their primary card (https://www.helixcard.app/c/{username}).
+	•	Additional Cards:
+	•	Free Users: Each additional card also uses a randomly generated slug appended to the primary URL.: helixcard.app/c/{UserId}/{additionalRandomSlug}
+
+	•	Pro Users: Additional cards can have custom slugs for better organization and branding. helixcard.app/{username}/{customSlug}
+
+    Well we have to make an update to account for free users becoming pro users.
+
+    Now, when someone signs up, they get a random slug, but they can update to a custom username if they turn pro.
+
+    The tricky part is that we need to update all of their existing URLs, if they have any.
+
+But the way im thinking of it is
+
+	All Users Have a Primary Card:
+	•	All Users: Use a randomly generated slug (also serves as their user ID) for their primary card (https://www.helixcard.app/c/{randomSlug aka UserID}).
+	•	Pro Users: Can still use their random slug that is their user ID, but have the option to customize their username for their primary card (https://www.helixcard.app/c/{username}) and for additional cards can either use the default (https://www.helixcard.app/c/{username}/{additionalRandomSlug}) or they can use a custom slug (https://www.helixcard.app/{username}/{customSlug}).
+	•	Additional Cards:
+	•	Free Users Additional Card: Uses a randomly generated slug appended to the primary URL.: helixcard.app/c/{UserId}/{additionalRandomSlug}
+
+    
+    
