@@ -34,7 +34,14 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
 
       console.log('Card data:', cardData);
 
-      const { cardSlug, cardUrl } = await saveBusinessCard(user, cardData);
+      const { cardSlug, cardUrl } = await saveBusinessCard(user, {
+        ...cardData,
+        prefix: '',
+        credentials: '',
+        pronouns: '',
+        facebookUrl: '',
+        instagramUrl: ''
+      });
       console.log('New card created with slug:', cardSlug);
       console.log('New card URL:', cardUrl);
     } catch (error) {

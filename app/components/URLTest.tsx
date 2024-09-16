@@ -34,7 +34,14 @@ const URLTest: React.FC = () => {
         customSlug: 'test-card', // Only for pro users
       };
 
-      const { cardSlug, cardUrl } = await saveBusinessCard(user, cardData);
+      const { cardSlug, cardUrl } = await saveBusinessCard(user, {
+        ...cardData,
+        prefix: '',
+        credentials: '',
+        pronouns: '',
+        facebookUrl: '',
+        instagramUrl: ''
+      });
 
       setCardInfo({ cardSlug, cardUrl });
       console.log('New card created with slug:', cardSlug);

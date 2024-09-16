@@ -3,6 +3,7 @@ import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, writ
 import { User } from 'firebase/auth';
 import { generateCardSlug, generateCardUrl } from './slugUtils';
 import { generateUniqueUsername } from './slugUtils';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 // Added UserData interface
 interface UserData {
@@ -18,11 +19,19 @@ interface BusinessCardData {
   phoneNumber: string;
   email: string;
   aboutMe: string;
-  specialty: string;
   linkedIn: string;
   twitter: string;
   customMessage: string;
   customSlug?: string; // Added customSlug as an optional property
+  prefix: string;
+  credentials: string;
+  pronouns: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  profilePicture?: File;
+  cv?: File;
+  // Remove specialty if you no longer use it
+  // specialty: string;
 }
 
 export async function saveBusinessCard(user: User, cardData: BusinessCardData): Promise<{ cardSlug: string; cardUrl: string }> {
@@ -55,12 +64,32 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData): 
 
   const cardRef = doc(collection(userRef, 'businessCards'), cardSlug);
 
+  // Upload profile picture if provided
+  let profilePictureUrl = null;
+  if (cardData.profilePicture) {
+    const storage = getStorage();
+    const profilePictureRef = ref(storage, `profilePictures/${user.uid}/${Date.now()}_${cardData.profilePicture.name}`);
+    await uploadBytes(profilePictureRef, cardData.profilePicture);
+    profilePictureUrl = await getDownloadURL(profilePictureRef);
+  }
+
+  // Upload CV if provided
+  let cvUrl = null;
+  if (cardData.cv) {
+    const storage = getStorage();
+    const cvRef = ref(storage, `cvs/${user.uid}/${Date.now()}_${cardData.cv.name}`);
+    await uploadBytes(cvRef, cardData.cv);
+    cvUrl = await getDownloadURL(cvRef);
+  }
+
   const cardDataToSave = {
     ...cardData,
     cardSlug,
     isPrimary,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    profilePictureUrl: profilePictureUrl,
+    cvUrl: cvUrl,
   };
 
   await setDoc(cardRef, cardDataToSave);
@@ -149,7 +178,7 @@ export async function updateUsername(userId: string, newUsername: string): Promi
   }
 }
 
-async function isUsernameUnique(username: string): Promise<boolean> {
+async function _isUsernameUnique(username: string): Promise<boolean> {
   if (!db) {
     throw new Error('Firestore is not initialized.');
   }
@@ -180,7 +209,7 @@ export async function createUserDocument(user: User): Promise<void> {
     let username;
     do {
       username = await generateUniqueUsername();
-    } while (!(await isUsernameUnique(username)));
+    } while (!(await _isUsernameUnique(username)));
 
     const userData = {
       isPro: false,

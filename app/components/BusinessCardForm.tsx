@@ -11,18 +11,39 @@ interface BusinessCardFormProps {
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess }) => {
   const { user } = useAuth();
   const [isPro, setIsPro] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    jobTitle: string;
+    company: string;
+    phoneNumber: string;
+    email: string;
+    aboutMe: string;
+    linkedIn: string;
+    twitter: string;
+    customMessage: string;
+    customSlug: string;
+    prefix: string;
+    credentials: string;
+    pronouns: string;
+    facebookUrl: string;
+    instagramUrl: string;
+  }>({
     name: '',
     jobTitle: '',
     company: '',
     phoneNumber: '',
     email: '',
     aboutMe: '',
-    specialty: '',
     linkedIn: '',
     twitter: '',
     customMessage: '',
     customSlug: '',
+    prefix: '',
+    credentials: '',
+    pronouns: '',
+    facebookUrl: '',
+    instagramUrl: '',
+    // File fields are optional, so we can omit them from the initial state
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,25 +73,41 @@ if (!db) {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!navigator.onLine) {
-      setError('You are currently offline. Please check your internet connection and try again.');
-      return;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+    if (files && files.length > 0) {
+      setFormData(prevState => ({
+        ...prevState,
+        [name]: files[0]
+      }));
     }
-    if (!user || !user.uid) {
-      setError('You must be logged in with a valid account to create a business card');
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    if (!user) {
+      setError('User not authenticated');
+      setIsSubmitting(false);
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
     try {
-      const { cardSlug: savedCardSlug, cardUrl } = await saveBusinessCard(user, formData);
-      onSuccess(savedCardSlug, cardUrl);
+      const { cardSlug, cardUrl } = await saveBusinessCard(user, {
+        ...formData,
+        // Make sure all fields from BusinessCardData are included
+        prefix: formData.prefix || '',
+        credentials: formData.credentials || '',
+        pronouns: formData.pronouns || '',
+        facebookUrl: formData.facebookUrl || '',
+        instagramUrl: formData.instagramUrl || '',
+      });
+      onSuccess(cardSlug, cardUrl);
     } catch (error) {
-      setError('An error occurred while creating the business card');
-      console.error('Error creating business card:', error);
+      console.error('Error saving business card:', error);
+      setError('Failed to save business card. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -134,14 +171,6 @@ if (!db) {
         rows={3}
       />
       <input
-        type="text"
-        name="specialty"
-        value={formData.specialty}
-        onChange={handleChange}
-        placeholder="Specialty"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
         type="url"
         name="linkedIn"
         value={formData.linkedIn}
@@ -175,6 +204,72 @@ if (!db) {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
         />
       )}
+      <input
+        type="text"
+        name="prefix"
+        value={formData.prefix}
+        onChange={handleChange}
+        placeholder="Prefix (e.g., Dr.)"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+      />
+      <input
+        type="text"
+        name="credentials"
+        value={formData.credentials}
+        onChange={handleChange}
+        placeholder="Credentials (e.g., PharmD, MD)"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+      />
+      <input
+        type="text"
+        name="pronouns"
+        value={formData.pronouns}
+        onChange={handleChange}
+        placeholder="Pronouns"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+      />
+      <input
+        type="url"
+        name="facebookUrl"
+        value={formData.facebookUrl}
+        onChange={handleChange}
+        placeholder="Facebook URL"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+      />
+      <input
+        type="url"
+        name="instagramUrl"
+        value={formData.instagramUrl}
+        onChange={handleChange}
+        placeholder="Instagram URL"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+      />
+      <div className="space-y-2">
+        <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700">
+          Profile Image
+        </label>
+        <input
+          type="file"
+          id="profilePicture"
+          name="profilePicture"
+          onChange={handleFileChange}
+          accept="image/*"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+        />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="cv" className="block text-sm font-medium text-gray-700">
+          CV/Resume (PDF)
+        </label>
+        <input
+          type="file"
+          id="cv"
+          name="cv"
+          onChange={handleFileChange}
+          accept=".pdf"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+        />
+      </div>
       <button
         type="submit"
         className="w-full py-2 px-4 bg-dark-pink text-white rounded-md hover:bg-red disabled:bg-light-pink"

@@ -55,7 +55,16 @@ if (!db) {
           card={{
             ...card,
             isPrimary: false, // Default value, adjust as needed
-            cardSlug: card.id // Using id as cardSlug, adjust if you have a specific slug field
+            cardSlug: card.id, // Using id as cardSlug, adjust if you have a specific slug field
+            prefix: '', // Add missing properties with default values
+            credentials: '',
+            pronouns: '',
+            profilePictureUrl: '',
+            facebookUrl: '',
+            instagramUrl: '',
+            linkedIn: '',
+            twitter: '',
+            // Add any other missing properties here
           }} 
         />
       ))}
