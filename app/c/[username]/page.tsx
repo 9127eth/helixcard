@@ -2,12 +2,12 @@ import { Metadata } from 'next';
 import BusinessCardDisplay from '@/app/components/BusinessCardDisplay';
 
 interface BusinessCardProps {
-  params: { username: string };
+  params: { username: string; cardSlug: string };
 }
 
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
-  const { username } = params;
-  const res = await fetch(`/api/c/${username}`);
+  const { username, cardSlug } = params;
+  const res = await fetch(`/api/c/${username}/${cardSlug}`);
   const data = await res.json();
 
   return {
@@ -17,14 +17,18 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
 }
 
 export default async function BusinessCardPage({ params }: BusinessCardProps) {
-  const { username } = params;
+  const { username, cardSlug } = params;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
   try {
-    const res = await fetch(`/api/c/${username}`);
+    const res = await fetch(`${baseUrl}/api/c/${username}/${cardSlug}`);
+
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`Fetch error: ${res.status} ${res.statusText}`, errorText);
       return <div>Error loading card data. Please try again later.</div>;
     }
+
     const data = await res.json();
 
     if (!data.card) {
@@ -33,7 +37,11 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
 
     return <BusinessCardDisplay card={data.card} />;
   } catch (error) {
-    console.error('Error fetching card data:', error);
+    if (error instanceof Error) {
+      console.error('Error fetching card data:', error.message);
+    } else {
+      console.error('Unknown error fetching card data:', error);
+    }
     return <div>Error loading card data. Please try again later.</div>;
   }
 }
