@@ -8,6 +8,9 @@ interface BusinessCardProps {
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
   const { username, cardSlug } = params;
   const res = await fetch(`/api/c/${username}/${cardSlug}`);
+  if (!res.ok) {
+    return {};
+  }
   const data = await res.json();
 
   return {
