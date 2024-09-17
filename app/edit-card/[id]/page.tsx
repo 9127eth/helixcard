@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../hooks/useAuth';
-import Layout from '../components/Layout';
-import { BusinessCardForm } from '../components/BusinessCardForm';
-import { getBusinessCard, updateBusinessCard } from '../lib/firebaseOperations';
+import { useAuth } from '../../hooks/useAuth';
+import Layout from '../../components/Layout';
+import { BusinessCardForm } from '../../components/BusinessCardForm';
+import { getBusinessCard, updateBusinessCard } from '../../lib/firebaseOperations';
 
 interface BusinessCardData {
   id?: string;
