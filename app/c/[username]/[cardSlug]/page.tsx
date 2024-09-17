@@ -7,7 +7,7 @@ interface BusinessCardProps {
 
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
   const { username, cardSlug } = params;
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/c/${username}/${cardSlug}`);
+  const res = await fetch(`/api/c/${username}/${cardSlug}`);
   const data = await res.json();
 
   return {
@@ -18,12 +18,22 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
 
 export default async function BusinessCardPage({ params }: BusinessCardProps) {
   const { username, cardSlug } = params;
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/c/${username}/${cardSlug}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`/api/c/${username}/${cardSlug}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Fetch error: ${res.status} ${res.statusText}`, errorText);
+      return <div>Error loading card data. Please try again later.</div>;
+    }
+    const data = await res.json();
 
-  if (!data.card) {
-    return <div>Card not found</div>;
+    if (!data.card) {
+      return <div>Card not found</div>;
+    }
+
+    return <BusinessCardDisplay card={data.card} />;
+  } catch (error) {
+    console.error('Error fetching card data:', error);
+    return <div>Error loading card data. Please try again later.</div>;
   }
-
-  return <BusinessCardDisplay card={data.card} />;
 }
