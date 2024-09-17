@@ -7,7 +7,7 @@ interface BusinessCardProps {
 
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
   const { username, cardSlug } = params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
   const res = await fetch(`${baseUrl}/api/c/${username}/${cardSlug}`);
 
   if (!res.ok) {
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
 
 export default async function BusinessCardPage({ params }: BusinessCardProps) {
   const { username, cardSlug } = params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
 
   try {
     const res = await fetch(`${baseUrl}/api/c/${username}/${cardSlug}`);
