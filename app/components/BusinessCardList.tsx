@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { BusinessCardItem } from './BusinessCardItem';
 
@@ -18,15 +18,21 @@ interface BusinessCardListProps {
 export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) => {
   const [cards, setCards] = useState<BusinessCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [username, setUsername] = useState('');
 
   useEffect(() => {
     const fetchCards = async () => {
-      // Add null check for Firestore instance
-if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
+      if (!db) {
+        throw new Error('Firestore is not initialized.');
+      }
   
-        const q = query(collection(db, 'users', userId, 'businessCards'));
+      // Fetch the user document to get the username
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (userDoc.exists()) {
+        setUsername(userDoc.data().username || '');
+      }
+
+      const q = query(collection(db, 'users', userId, 'businessCards'));
       const querySnapshot = await getDocs(q);
       const fetchedCards = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -66,6 +72,7 @@ if (!db) {
             twitter: '',
             // Add any other missing properties here
           }} 
+          username={username}
         />
       ))}
     </div>

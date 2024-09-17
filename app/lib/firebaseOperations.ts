@@ -1,8 +1,7 @@
 import { db } from './firebase';
-import { doc, setDoc, collection, updateDoc, getDoc, query, where, getDocs, writeBatch, serverTimestamp, Firestore } from 'firebase/firestore';
+import { setDoc, collection, query, where, getDocs, writeBatch, serverTimestamp, Firestore, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { generateCardSlug, generateCardUrl } from './slugUtils';
-import { generateUniqueUsername } from './slugUtils';
+import { generateCardSlug, generateCardUrl, generateUniqueUsername } from './slugUtils';
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 // Added UserData interface
@@ -230,3 +229,23 @@ export async function createUserDocument(user: User): Promise<void> {
 }
 
 export const isOnline = () => typeof window !== 'undefined' && navigator.onLine;
+// These imports are already present at the top of the file
+// import { doc, getDoc, updateDoc } from 'firebase/firestore';
+
+// New function
+export async function getBusinessCard(userId: string, cardId: string) {
+  if (!db) throw new Error('Firestore is not initialized');
+  const cardRef = doc(db as Firestore, 'users', userId, 'businessCards', cardId);
+  const cardSnap = await getDoc(cardRef);
+  if (cardSnap.exists()) {
+    return { id: cardSnap.id, ...cardSnap.data() };
+  } else {
+    throw new Error('Business card not found');
+  }
+}
+
+export async function updateBusinessCard(userId: string, cardId: string, cardData: Partial<BusinessCardData>) {
+  if (!db) throw new Error('Firebase database is not initialized');
+  const cardRef = doc(db as Firestore, 'users', userId, 'businessCards', cardId);
+  await updateDoc(cardRef, cardData);
+}

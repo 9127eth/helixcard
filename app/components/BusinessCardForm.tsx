@@ -1,49 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { saveBusinessCard } from '../lib/firebaseOperations';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface BusinessCardFormProps {
-  onSuccess: (cardSlug: string, cardUrl: string) => void;
+  onSuccess: (cardData: BusinessCardData) => void;
+  initialData?: Partial<BusinessCardData>;
 }
 
-export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess }) => {
+interface BusinessCardData {
+  name: string;
+  jobTitle: string;
+  company: string;
+  phoneNumber: string;
+  email: string;
+  aboutMe: string;
+  linkedIn: string;
+  twitter: string;
+  customMessage: string;
+  customSlug?: string;
+  prefix: string;
+  credentials: string;
+  pronouns: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  profilePicture?: File;
+  cv?: File;
+}
+
+export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData }) => {
   const { user } = useAuth();
   const [isPro, setIsPro] = useState(false);
-  const [formData, setFormData] = useState<{
-    name: string;
-    jobTitle: string;
-    company: string;
-    phoneNumber: string;
-    email: string;
-    aboutMe: string;
-    linkedIn: string;
-    twitter: string;
-    customMessage: string;
-    customSlug: string;
-    prefix: string;
-    credentials: string;
-    pronouns: string;
-    facebookUrl: string;
-    instagramUrl: string;
-  }>({
-    name: '',
-    jobTitle: '',
-    company: '',
-    phoneNumber: '',
-    email: '',
-    aboutMe: '',
-    linkedIn: '',
-    twitter: '',
-    customMessage: '',
-    customSlug: '',
-    prefix: '',
-    credentials: '',
-    pronouns: '',
-    facebookUrl: '',
-    instagramUrl: '',
-    // File fields are optional, so we can omit them from the initial state
+  const [formData, setFormData] = useState<BusinessCardData>({
+    name: initialData?.name || '',
+    jobTitle: initialData?.jobTitle || '',
+    company: initialData?.company || '',
+    phoneNumber: initialData?.phoneNumber || '',
+    email: initialData?.email || '',
+    aboutMe: initialData?.aboutMe || '',
+    linkedIn: initialData?.linkedIn || '',
+    twitter: initialData?.twitter || '',
+    customMessage: initialData?.customMessage || '',
+    customSlug: initialData?.customSlug || '',
+    prefix: initialData?.prefix || '',
+    credentials: initialData?.credentials || '',
+    pronouns: initialData?.pronouns || '',
+    facebookUrl: initialData?.facebookUrl || '',
+    instagramUrl: initialData?.instagramUrl || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,16 +98,7 @@ if (!db) {
     }
 
     try {
-      const { cardSlug, cardUrl } = await saveBusinessCard(user, {
-        ...formData,
-        // Make sure all fields from BusinessCardData are included
-        prefix: formData.prefix || '',
-        credentials: formData.credentials || '',
-        pronouns: formData.pronouns || '',
-        facebookUrl: formData.facebookUrl || '',
-        instagramUrl: formData.instagramUrl || '',
-      });
-      onSuccess(cardSlug, cardUrl);
+      await onSuccess(formData);
     } catch (error) {
       console.error('Error saving business card:', error);
       setError('Failed to save business card. Please try again.');
@@ -275,7 +269,7 @@ if (!db) {
         className="w-full py-2 px-4 bg-dark-pink text-white rounded-md hover:bg-red disabled:bg-light-pink"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Creating...' : 'Create Business Card'}
+        {isSubmitting ? 'Saving...' : initialData ? 'Update Business Card' : 'Create Business Card'}
       </button>
     </form>
   );

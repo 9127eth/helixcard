@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/app/lib/firebase-admin';
+import admin from 'firebase-admin';
 
 export async function GET(
   request: NextRequest,
@@ -52,4 +53,50 @@ export async function GET(
     console.error('Error fetching business card:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { username: string } }
+) {
+  const { username } = params;
+
+  try {
+    const body = await request.json();
+    const { cardData } = body;
+
+    // Find user by username
+    const userQuery = db.collection('users').where('username', '==', username);
+    const userSnapshot = await userQuery.get();
+
+    if (userSnapshot.empty) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const userDoc = userSnapshot.docs[0];
+    const userId = userDoc.id;
+
+    // Generate a new card slug
+    const cardSlug = generateCardSlug();
+
+    // Create a new business card document
+    const cardRef = db.collection('users').doc(userId).collection('businessCards').doc(cardSlug);
+    await cardRef.set({
+      ...cardData,
+      cardSlug,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const cardUrl = `https://www.helixcard.app/c/${username}/${cardSlug}`;
+
+    return NextResponse.json({ cardSlug, cardUrl }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating business card:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+function generateCardSlug(): string {
+  return Math.random().toString(36).substring(2, 5);
 }

@@ -22,9 +22,14 @@ interface BusinessCard {
 
 interface BusinessCardItemProps {
   card: BusinessCard;
+  username: string; // Add this prop
 }
 
-export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card }) => {
+export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, username }) => {
+  const cardUrl = card.isPrimary
+    ? `/c/${username}`
+    : `/c/${username}/${card.cardSlug}`;
+
   return (
     <div className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${card.isPrimary ? 'border-blue-500' : ''}`}>
       {card.profilePictureUrl && (
@@ -55,12 +60,12 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card }) => {
         <Link href={`/edit-card/${card.id}`} className="text-indigo-600 hover:text-indigo-800 mr-4">
           Edit
         </Link>
-        <Link href={`/view-card/${card.id}`} className="text-indigo-600 hover:text-indigo-800">
+        <Link href={cardUrl} className="text-indigo-600 hover:text-indigo-800">
           View
         </Link>
       </div>
       <p className="text-sm text-gray-500 mt-2">
-        URL: https://www.helixcard.app/c/{card.cardSlug}
+        URL: https://www.helixcard.app{cardUrl}
       </p>
     </div>
   );
