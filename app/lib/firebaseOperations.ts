@@ -57,10 +57,10 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
 
   // Check if primaryCardPlaceholder is true
   const userDoc = await getDoc(userRef);
-  const userData = userDoc.data();
-  const isPlaceholder = userData?.primaryCardPlaceholder;
+  const userData = userDoc.data() as UserData;
+  const isPlaceholder = userData?.primaryCardPlaceholder || false;
 
-  let isPrimary = isPlaceholder || cardData.isPrimary || false;
+  const isPrimary = isPlaceholder || cardData.isPrimary || false;
 
   // Generate a new cardSlug if it's not provided
   if (!cardData.cardSlug) {
