@@ -4,6 +4,7 @@ import { auth } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
 
 export function useAuth() {
+  console.log('useAuth hook called'); // Add this line
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,21 +39,28 @@ export function useAuth() {
   };
 
   const signUp = async (email: string, password: string) => {
-      // Add null check for 'auth'
-  if (!auth) {
-    console.error('Authentication is not initialized.');
-    throw new Error('Authentication is not initialized.');
-  }
+    if (!auth) {
+      console.error('Authentication is not initialized.');
+      throw new Error('Authentication is not initialized.');
+    }
     try {
+      console.log('Starting user creation with email:', email);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User authenticated:', userCredential.user.uid);
       
-      // Create user document immediately after authentication
+      console.log('Attempting to create user document...');
       await createUserDocument(userCredential.user);
+      console.log('User document created successfully');
       
       console.log('User signed up and document created successfully');
+      return userCredential.user;
     } catch (error) {
       console.error('Error during sign up:', error);
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
       throw error;
     }
   };

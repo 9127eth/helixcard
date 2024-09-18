@@ -37,6 +37,8 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
 
     const data = await res.json();
 
+    console.log('API response:', data);
+
     if (!data.card) {
       return <div>Card not found</div>;
     }

@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { useAuth } from '../hooks/useAuth'; // Import the useAuth hook
 import Link from 'next/link';
 
 interface RegisterFormProps {
@@ -10,6 +9,7 @@ interface RegisterFormProps {
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
+  const { signUp } = useAuth(); // Use the useAuth hook
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -18,12 +18,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     e.preventDefault();
     setError(null);
     try {
-      if (auth) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        onSuccess();
-      } else {
-        throw new Error('Auth is not initialized');
-      }
+      await signUp(email, password); // Use the signUp function from useAuth
+      onSuccess();
     } catch (err) {
       setError('Failed to create an account. Please try again.');
       console.error(err);

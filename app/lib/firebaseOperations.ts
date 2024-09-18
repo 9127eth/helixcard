@@ -60,7 +60,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
   const userData = userDoc.data();
   const isPlaceholder = userData?.primaryCardPlaceholder;
 
-  let isPrimary = isPlaceholder || cardData.isPrimary || false;
+  const isPrimary = isPlaceholder || cardData.isPrimary || false;
 
   // Generate a new cardSlug if it's not provided
   if (!cardData.cardSlug) {
@@ -192,12 +192,15 @@ export function validateCustomUsername(username: string): boolean {
 }
 
 export async function createUserDocument(user: User): Promise<void> {
+  console.log('Entered createUserDocument function');
+
   if (!user || !user.uid) {
     console.error('Invalid user object:', user);
     return;
   }
 
   if (!db) {
+    console.error('Firestore is not initialized.');
     throw new Error('Firestore is not initialized.');
   }
 
@@ -205,9 +208,24 @@ export async function createUserDocument(user: User): Promise<void> {
 
   const userRef = doc(db, 'users', user.uid);
   try {
+    // Check if the document already exists
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      console.log('User document already exists. Skipping creation.');
+      return;
+    }
+
     let username;
+    let attempts = 0;
+    const maxAttempts = 5;
+
     do {
       username = await generateUniqueUsername();
+      console.log('Generated username:', username);
+      attempts++;
+      if (attempts >= maxAttempts) {
+        throw new Error('Failed to generate a unique username after multiple attempts');
+      }
     } while (!(await _isUsernameUnique(username)));
 
     const userData = {
@@ -217,14 +235,17 @@ export async function createUserDocument(user: User): Promise<void> {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
-    await setDoc(userRef, userData, { merge: true });
-    console.log('User document created/updated successfully for UID:', user.uid);
+
+    await setDoc(userRef, userData);
+    console.log('User document created successfully for UID:', user.uid);
   } catch (error) {
-    console.error('Error creating/updating user document:', error);
+    console.error('Error creating user document:', error);
     if (error instanceof Error) {
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
     }
+    throw error; // Re-throw the error to be handled by the calling function
   }
 }
 
