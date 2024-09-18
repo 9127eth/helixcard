@@ -40,7 +40,9 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
         credentials: '',
         pronouns: '',
         facebookUrl: '',
-        instagramUrl: ''
+        instagramUrl: '',
+        isPrimary: false,
+        cardSlug: '', // Added missing property
       });
       console.log('New card created with slug:', cardSlug);
       console.log('New card URL:', cardUrl);

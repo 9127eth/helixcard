@@ -8,7 +8,7 @@ interface BusinessCardFormProps {
   initialData?: Partial<BusinessCardData>;
 }
 
-interface BusinessCardData {
+export interface BusinessCardData {
   name: string;
   jobTitle: string;
   company: string;
@@ -53,35 +53,37 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
   useEffect(() => {
     const fetchUserStatus = async () => {
-      // Add null check for Firestore instance
-if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
-  
-        if (user) {
+      if (!db) {
+        throw new Error('Firestore is not initialized.');
+      }
+
+      if (user) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           setIsPro(userDoc.data().isPro || false);
         }
       }
     };
+
     fetchUserStatus();
   }, [user]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
     if (files && files.length > 0) {
-      setFormData(prevState => ({
+      setFormData((prevState) => ({
         ...prevState,
-        [name]: files[0]
+        [name]: files[0],
       }));
     }
   };
@@ -251,25 +253,12 @@ if (!db) {
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
         />
       </div>
-      <div className="space-y-2">
-        <label htmlFor="cv" className="block text-sm font-medium text-gray-700">
-          CV/Resume (PDF)
-        </label>
-        <input
-          type="file"
-          id="cv"
-          name="cv"
-          onChange={handleFileChange}
-          accept=".pdf"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
-        />
-      </div>
       <button
         type="submit"
-        className="w-full py-2 px-4 bg-dark-pink text-white rounded-md hover:bg-red disabled:bg-light-pink"
+        className="w-full bg-blue-500 text-white px-4 py-2 rounded-md"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Saving...' : initialData ? 'Update Business Card' : 'Create Business Card'}
+        {isSubmitting ? 'Submitting...' : 'Submit'}
       </button>
     </form>
   );

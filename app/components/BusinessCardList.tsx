@@ -2,14 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { BusinessCardItem } from './BusinessCardItem';
-
-interface BusinessCard {
-  id: string;
-  name: string;
-  jobTitle: string;
-  company: string;
-  // Add other relevant fields
-}
+import { BusinessCard } from '@/app/types';
 
 interface BusinessCardListProps {
   userId: string;
@@ -25,7 +18,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
       if (!db) {
         throw new Error('Firestore is not initialized.');
       }
-  
+
       // Fetch the user document to get the username
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
@@ -34,10 +27,10 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
 
       const q = query(collection(db, 'users', userId, 'businessCards'));
       const querySnapshot = await getDocs(q);
-      const fetchedCards = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as BusinessCard));
+      const fetchedCards: BusinessCard[] = querySnapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      })) as BusinessCard[];
       setCards(fetchedCards);
       setIsLoading(false);
     };
@@ -55,23 +48,10 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {cards.map(card => (
-        <BusinessCardItem 
-          key={card.id} 
-          card={{
-            ...card,
-            isPrimary: false, // Default value, adjust as needed
-            cardSlug: card.id, // Using id as cardSlug, adjust if you have a specific slug field
-            prefix: '', // Add missing properties with default values
-            credentials: '',
-            pronouns: '',
-            profilePictureUrl: '',
-            facebookUrl: '',
-            instagramUrl: '',
-            linkedIn: '',
-            twitter: '',
-            // Add any other missing properties here
-          }} 
+      {cards.map((card) => (
+        <BusinessCardItem
+          key={card.id}
+          card={card}
           username={username}
         />
       ))}

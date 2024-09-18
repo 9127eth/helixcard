@@ -1,14 +1,27 @@
 import { db } from './firebase';
-import { setDoc, collection, query, where, getDocs, writeBatch, serverTimestamp, Firestore, doc, updateDoc, getDoc } from 'firebase/firestore';
+import {
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  getDoc,
+  QueryDocumentSnapshot,
+  DocumentData
+} from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { generateCardSlug, generateCardUrl, generateUniqueUsername } from './slugUtils';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { generateCardUrl, generateUniqueUsername, generateCardSlug } from './slugUtils';
 
 // Added UserData interface
 interface UserData {
   isPro: boolean;
   username: string | null;
   primaryCardId: string | null;
+  primaryCardPlaceholder: boolean;
 }
 
 interface BusinessCardData {
@@ -21,7 +34,8 @@ interface BusinessCardData {
   linkedIn: string;
   twitter: string;
   customMessage: string;
-  customSlug?: string; // Added customSlug as an optional property
+  customSlug?: string; // Optional property
+  cardSlug: string;
   prefix: string;
   credentials: string;
   pronouns: string;
@@ -29,103 +43,89 @@ interface BusinessCardData {
   instagramUrl: string;
   profilePicture?: File;
   cv?: File;
+  isPrimary: boolean; // Added property
   // Remove specialty if you no longer use it
   // specialty: string;
 }
 
-export async function saveBusinessCard(user: User, cardData: BusinessCardData): Promise<{ cardSlug: string; cardUrl: string }> {
-  if (!db) {
-    throw new Error('Firebase database is not initialized');
-  }
-  const userRef = doc(db as Firestore, 'users', user.uid);
+export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
+  if (!user) throw new Error('User is not authenticated');
+  if (!db) throw new Error('Firestore is not initialized');
+
+  const userRef = doc(db, 'users', user.uid);
+  const businessCardsRef = collection(userRef, 'businessCards');
+
+  // Check if primaryCardPlaceholder is true
   const userDoc = await getDoc(userRef);
-
-  if (!userDoc.exists()) {
-    throw new Error('User document does not exist');
-  }
-
   const userData = userDoc.data();
-  const username = userData.username;
+  const isPlaceholder = userData?.primaryCardPlaceholder;
 
-  if (!username) {
-    throw new Error('Username not found for user');
+  let isPrimary = isPlaceholder || cardData.isPrimary || false;
+
+  // Generate a new cardSlug if it's not provided
+  if (!cardData.cardSlug) {
+    cardData.cardSlug = generateCardSlug();
   }
 
-  const existingCards = await getDocs(collection(userRef, 'businessCards'));
-  const isPrimary = existingCards.empty;
+  const newCardRef = doc(businessCardsRef, cardData.cardSlug);
+  const batch = writeBatch(db);
 
-  let cardSlug: string;
-  if (isPrimary) {
-    cardSlug = username;
-  } else {
-    cardSlug = generateCardSlug(); // This generates a 3-character slug for additional cards
-  }
-
-  const cardRef = doc(collection(userRef, 'businessCards'), cardSlug);
-
-  // Upload profile picture if provided
-  let profilePictureUrl = null;
-  if (cardData.profilePicture) {
-    const storage = getStorage();
-    const profilePictureRef = ref(storage, `profilePictures/${user.uid}/${Date.now()}_${cardData.profilePicture.name}`);
-    await uploadBytes(profilePictureRef, cardData.profilePicture);
-    profilePictureUrl = await getDownloadURL(profilePictureRef);
-  }
-
-  // Upload CV if provided
-  let cvUrl = null;
-  if (cardData.cv) {
-    const storage = getStorage();
-    const cvRef = ref(storage, `cvs/${user.uid}/${Date.now()}_${cardData.cv.name}`);
-    await uploadBytes(cvRef, cardData.cv);
-    cvUrl = await getDownloadURL(cvRef);
-  }
-
-  const cardDataToSave = {
+  batch.set(newCardRef, {
     ...cardData,
-    cardSlug,
     isPrimary,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    profilePictureUrl: profilePictureUrl,
-    cvUrl: cvUrl,
-  };
-
-  await setDoc(cardRef, cardDataToSave);
+  } as BusinessCardData);
 
   if (isPrimary) {
-    await updateDoc(userRef, { primaryCardId: cardSlug });
+    // Update user document
+    batch.update(userRef, {
+      primaryCardId: cardData.cardSlug,
+      primaryCardPlaceholder: false,
+      updatedAt: serverTimestamp(),
+    });
+
+    // Unset previous primary cards if any
+    const primaryCardsQuery = query(businessCardsRef, where('isPrimary', '==', true));
+    const primaryCardsSnapshot = await getDocs(primaryCardsQuery);
+    primaryCardsSnapshot.forEach((docSnap: QueryDocumentSnapshot<DocumentData>) => {
+      if (docSnap.id !== cardData.cardSlug) {
+        batch.update(docSnap.ref, { isPrimary: false });
+      }
+    });
   }
 
-  const cardUrl = `https://www.helixcard.app/c/${username}${isPrimary ? '' : `/${cardSlug}`}`;
+  await batch.commit();
 
-  return { cardSlug, cardUrl };
+  const cardUrl = await generateCardUrl(user.uid, cardData.cardSlug, isPrimary);
+
+  return { cardSlug: cardData.cardSlug, cardUrl };
 }
 
 export async function setPrimaryCard(userId: string, cardSlug: string): Promise<void> {
   if (!db) {
     throw new Error('Firebase database is not initialized');
   }
-  const userRef = doc(db as Firestore, 'users', userId);
+  const userRef = doc(db, 'users', userId);
   const userDoc = await getDoc(userRef);
 
   if (!userDoc.exists()) {
     throw new Error('User document does not exist');
   }
 
-  const cardRef = doc(collection(userRef, 'businessCards'), cardSlug);
+  const cardRef = doc(userRef, 'businessCards', cardSlug);
   const cardDoc = await getDoc(cardRef);
 
   if (!cardDoc.exists()) {
     throw new Error('Business card does not exist');
   }
 
-  const batch = writeBatch(db as Firestore);
+  const batch = writeBatch(db);
 
   // Set the current primary card to non-primary
   const userData = userDoc.data() as UserData;
   if (userData.primaryCardId) {
-    const currentPrimaryCardRef = doc(collection(userRef, 'businessCards'), userData.primaryCardId);
+    const currentPrimaryCardRef = doc(userRef, 'businessCards', userData.primaryCardId);
     batch.update(currentPrimaryCardRef, { isPrimary: false });
   }
 
@@ -138,7 +138,7 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
   await batch.commit();
 
   // Generate and return the new primary card URL
-  const newPrimaryCardUrl = generateCardUrl(userId, cardSlug, true);
+  const newPrimaryCardUrl = await generateCardUrl(userId, cardSlug, true);
   console.log('New primary card URL:', newPrimaryCardUrl);
 }
 
@@ -168,7 +168,7 @@ export async function updateUsername(userId: string, newUsername: string): Promi
   try {
     await updateDoc(userRef, {
       username: newUsername,
-      updatedAt: new Date().toISOString(),
+      updatedAt: serverTimestamp(),
     });
     console.log('Username updated successfully for UID:', userId);
   } catch (error) {
@@ -214,8 +214,8 @@ export async function createUserDocument(user: User): Promise<void> {
       isPro: false,
       primaryCardId: null,
       username,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
     await setDoc(userRef, userData, { merge: true });
     console.log('User document created/updated successfully for UID:', user.uid);
@@ -229,13 +229,10 @@ export async function createUserDocument(user: User): Promise<void> {
 }
 
 export const isOnline = () => typeof window !== 'undefined' && navigator.onLine;
-// These imports are already present at the top of the file
-// import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
-// New function
 export async function getBusinessCard(userId: string, cardId: string) {
   if (!db) throw new Error('Firestore is not initialized');
-  const cardRef = doc(db as Firestore, 'users', userId, 'businessCards', cardId);
+  const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
   const cardSnap = await getDoc(cardRef);
   if (cardSnap.exists()) {
     return { id: cardSnap.id, ...cardSnap.data() };
@@ -246,6 +243,36 @@ export async function getBusinessCard(userId: string, cardId: string) {
 
 export async function updateBusinessCard(userId: string, cardId: string, cardData: Partial<BusinessCardData>) {
   if (!db) throw new Error('Firebase database is not initialized');
-  const cardRef = doc(db as Firestore, 'users', userId, 'businessCards', cardId);
+  const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
   await updateDoc(cardRef, cardData);
 }
+
+export const deleteBusinessCard = async (user: User, cardSlug: string) => {
+  if (!user) throw new Error('User not authenticated');
+  if (!db) throw new Error('Firestore is not initialized');
+
+  const userRef = doc(db, 'users', user.uid);
+  const cardRef = doc(userRef, 'businessCards', cardSlug);
+
+  // Fetch the card to check if it's primary
+  const cardDoc = await getDoc(cardRef);
+  if (!cardDoc.exists()) throw new Error('Business card does not exist');
+
+  const cardData = cardDoc.data() as BusinessCardData;
+  // Start a batch
+  const batch = writeBatch(db);
+
+  // Delete the card
+  batch.delete(cardRef);
+
+  if (cardData.isPrimary) {
+    // Update user document to set primaryCardId to null and primaryCardPlaceholder to true
+    batch.update(userRef, {
+      primaryCardId: null,
+      primaryCardPlaceholder: true,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  await batch.commit();
+};

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { auth } from '../lib/firebase';
 import { saveBusinessCard, setPrimaryCard } from '../lib/firebaseOperations';
+import { generateCardSlug } from '../lib/slugUtils';
 
 interface CardInfo {
   cardSlug: string;
@@ -34,24 +35,26 @@ const URLTest: React.FC = () => {
         customSlug: 'test-card', // Only for pro users
       };
 
-      const { cardSlug, cardUrl } = await saveBusinessCard(user, {
+      // Generate cardSlug and set isPrimary
+      const cardSlug = cardData.customSlug || generateCardSlug();
+      const isPrimary = false; // Set to true if needed
+
+      const { cardSlug: returnedCardSlug, cardUrl } = await saveBusinessCard(user, {
         ...cardData,
         prefix: '',
         credentials: '',
         pronouns: '',
         facebookUrl: '',
-        instagramUrl: ''
+        instagramUrl: '',
+        cardSlug,
+        isPrimary,
       });
 
-      setCardInfo({ cardSlug, cardUrl });
-      console.log('New card created with slug:', cardSlug);
+      setCardInfo({ cardSlug: returnedCardSlug, cardUrl });
+      console.log('New card created with slug:', returnedCardSlug);
       console.log('New card URL:', cardUrl);
     } catch (error) {
       console.error('Error creating card:', error);
-      if (error instanceof Error) {
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-      }
     }
   };
 
