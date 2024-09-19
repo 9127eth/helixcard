@@ -26,6 +26,8 @@ export interface BusinessCardData {
   instagramUrl: string;
   profilePicture?: File;
   cv?: File;
+  cardSlug: string; // Add this line
+  isPrimary: boolean; // Add this line
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData }) => {
@@ -47,6 +49,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     pronouns: initialData?.pronouns || '',
     facebookUrl: initialData?.facebookUrl || '',
     instagramUrl: initialData?.instagramUrl || '',
+    cardSlug: initialData?.cardSlug || '',
+    isPrimary: initialData?.isPrimary || false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

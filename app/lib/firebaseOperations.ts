@@ -10,8 +10,6 @@ import {
   doc,
   updateDoc,
   getDoc,
-  QueryDocumentSnapshot,
-  DocumentData
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { generateCardUrl, generateUniqueUsername, generateCardSlug } from './slugUtils';

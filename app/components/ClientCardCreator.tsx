@@ -5,6 +5,7 @@ import { User } from 'firebase/auth';
 import { BusinessCardForm, BusinessCardData } from './BusinessCardForm';
 import { saveBusinessCard } from '../lib/firebaseOperations';
 import { useRouter } from 'next/navigation';
+import { generateCardSlug } from '../lib/slugUtils';
 
 interface ClientCardCreatorProps {
   user: User | null;
@@ -19,9 +20,15 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
       return;
     }
     try {
-      const { cardSlug, cardUrl } = await saveBusinessCard(user, cardData as any);
+      const cardSlug = generateCardSlug(); // Implement this function to generate a unique slug
+      const updatedCardData = {
+        ...cardData,
+        cardSlug,
+        isPrimary: false, // Set this based on your business logic
+      };
+      const { cardSlug: returnedCardSlug, cardUrl } = await saveBusinessCard(user, updatedCardData);
       alert('Business card created successfully.');
-      console.log('New card created with slug:', cardSlug);
+      console.log('New card created with slug:', returnedCardSlug);
       console.log('New card URL:', cardUrl);
       router.push('/dashboard'); // Redirect to dashboard after creation
     } catch (error) {
