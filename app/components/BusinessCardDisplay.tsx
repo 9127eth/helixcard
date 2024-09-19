@@ -93,7 +93,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
         )}
       </div>
       {card.isPrimary && <p className="text-sm text-center text-blue-500">Primary Card</p>}
-      <button onClick={handleDelete} className="mt-4 bg-red-500 text-white px-4 py-2 rounded">
+      <button
+        onClick={handleDelete}
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+      >
         Delete Card
       </button>
     </div>

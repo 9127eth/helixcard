@@ -3,6 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
+import { useAuth } from '../hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import { deleteBusinessCard } from '../lib/firebaseOperations';
 
 interface BusinessCardItemProps {
   card: BusinessCard;
@@ -10,7 +13,37 @@ interface BusinessCardItemProps {
 }
 
 export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, username }) => {
+  const { user } = useAuth();
+  const router = useRouter();
   const cardUrl = card.isPrimary ? `/c/${username}` : `/c/${username}/${card.cardSlug}`;
+
+  const handleDelete = async () => {
+    if (!user) {
+      alert('You must be logged in to delete a card.');
+      return;
+    }
+
+    let confirmDelete: boolean;
+
+    if (card.isPrimary) {
+      confirmDelete = confirm(
+        'Deleting your primary card will deactivate your primary URL. Are you sure you want to proceed?'
+      );
+    } else {
+      confirmDelete = confirm('Are you sure you want to delete this business card?');
+    }
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteBusinessCard(user, card.cardSlug);
+      alert('Business card deleted successfully.');
+      router.refresh(); // Refresh the page or redirect as needed
+    } catch (error: unknown) {
+      console.error('Error deleting business card:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
 
   return (
     <div
@@ -62,13 +95,22 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, userna
           </a>
         )}
       </div>
-      <div className="mt-4">
-        <Link href={`/edit-card/${card.id}`} className="text-indigo-600 hover:text-indigo-800 mr-4">
-          Edit
-        </Link>
-        <Link href={cardUrl} className="text-indigo-600 hover:text-indigo-800">
-          View
-        </Link>
+      <div className="mt-4 flex justify-between items-center">
+        <div>
+          <Link href={`/edit-card/${card.id}`} className="text-indigo-600 hover:text-indigo-800 mr-4">
+            Edit
+          </Link>
+          <Link href={cardUrl} className="text-indigo-600 hover:text-indigo-800">
+            View
+          </Link>
+        </div>
+        <button
+          onClick={handleDelete}
+          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"
+          style={{ border: '2px solid black' }} // Add this line
+        >
+          Delete
+        </button>
       </div>
       <p className="text-sm text-gray-500 mt-2">
         URL: https://www.helixcard.app{cardUrl}
