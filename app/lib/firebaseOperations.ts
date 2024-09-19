@@ -51,10 +51,19 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
   if (!db) throw new Error('Firestore is not initialized');
 
   const userRef = doc(db, 'users', user.uid);
+  const userDoc = await getDoc(userRef);
+  const userData = userDoc.data() as UserData;
+
   const businessCardsRef = collection(userRef, 'businessCards');
 
-  // Generate a new cardSlug
-  const cardSlug = generateCardSlug();
+  const isFirstCard = !userData.primaryCardId;
+  const isPlaceholder = userData.primaryCardPlaceholder;
+
+  let cardSlug = cardData.cardSlug || generateCardSlug();
+
+  if (isFirstCard || isPlaceholder) {
+    cardSlug = userData.username || user.uid;
+  }
 
   const newCardRef = doc(businessCardsRef, cardSlug);
   const batch = writeBatch(db);
@@ -62,14 +71,21 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
   batch.set(newCardRef, {
     ...cardData,
     cardSlug,
-    isPrimary: false,
+    isPrimary: isFirstCard || isPlaceholder,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 
+  if (isFirstCard || isPlaceholder) {
+    batch.update(userRef, {
+      primaryCardId: cardSlug,
+      primaryCardPlaceholder: false,
+    });
+  }
+
   await batch.commit();
 
-  const cardUrl = await generateCardUrl(user.uid, cardSlug, false);
+  const cardUrl = await generateCardUrl(user.uid, cardSlug, isFirstCard || isPlaceholder);
 
   return { cardSlug, cardUrl };
 }

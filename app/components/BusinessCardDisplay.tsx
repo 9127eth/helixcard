@@ -25,6 +25,13 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
     let confirmDelete: boolean;
 
     if (card.isPrimary) {
+      const confirm = window.confirm(
+        'Deleting your primary card will deactivate your primary URL. Are you sure you want to proceed?'
+      );
+      if (!confirm) return;
+    }
+
+    if (card.isPrimary) {
       confirmDelete = confirm(
         'You are about to delete your primary business card. The primary URL will be reserved as a placeholder until you create a new primary card. Do you wish to continue?'
       );

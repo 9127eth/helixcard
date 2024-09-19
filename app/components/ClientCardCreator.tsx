@@ -6,6 +6,8 @@ import { BusinessCardForm, BusinessCardData } from './BusinessCardForm';
 import { saveBusinessCard } from '../lib/firebaseOperations';
 import { useRouter } from 'next/navigation';
 import { generateCardSlug } from '../lib/slugUtils';
+import { doc, getDoc, updateDoc } from 'firebase/firestore'; // Import necessary Firestore functions
+import { db } from '../lib/firebase'; // Import the Firestore database instance
 
 interface ClientCardCreatorProps {
   user: User | null;
@@ -19,17 +21,46 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
       alert('You must be logged in to create a card.');
       return;
     }
+
     try {
-      const cardSlug = generateCardSlug(); // Implement this function to generate a unique slug
+      if (!db) {
+        throw new Error('Firestore database instance is not available.');
+      }
+      // Fetch user document to check for existing primary card
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const userData = userDocSnap.data();
+
+      const isFirstCard = !userData?.primaryCardId;
+      const isPlaceholder = userData?.primaryCardPlaceholder === true;
+
+      let cardSlug = generateCardSlug();
+
+      // Use username as cardSlug for the first (primary) card
+      if (isFirstCard || isPlaceholder) {
+        if (!userData?.username) {
+          throw new Error('Username not found for user');
+        }
+        cardSlug = userData.username;
+      }
+
       const updatedCardData = {
         ...cardData,
         cardSlug,
-        isPrimary: false, // Set this based on your business logic
+        isPrimary: isFirstCard || isPlaceholder,
       };
-      const { cardSlug: returnedCardSlug, cardUrl } = await saveBusinessCard(user, updatedCardData);
+
+      const { cardSlug: returnedCardSlug } = await saveBusinessCard(user, updatedCardData);
+
+      // Update user document if this is the primary card
+      if (isFirstCard || isPlaceholder) {
+        await updateDoc(userDocRef, {
+          primaryCardId: returnedCardSlug,
+          primaryCardPlaceholder: false,
+        });
+      }
+
       alert('Business card created successfully.');
-      console.log('New card created with slug:', returnedCardSlug);
-      console.log('New card URL:', cardUrl);
       router.push('/dashboard'); // Redirect to dashboard after creation
     } catch (error) {
       console.error('Error creating card:', error);
