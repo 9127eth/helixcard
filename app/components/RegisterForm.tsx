@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth'; // Import the useAuth hook
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -13,6 +14,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +22,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     try {
       await signUp(email, password); // Use the signUp function from useAuth
       onSuccess();
+      router.push('/dashboard');
     } catch (err) {
       setError('Failed to create an account. Please try again.');
       console.error(err);

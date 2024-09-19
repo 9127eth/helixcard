@@ -1,12 +1,22 @@
 'use client';
 
 import React from 'react';
+import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import WelcomeMessage from './components/WelcomeMessage';
 import { AuthModal } from './components/AuthModal';
-
+import DashboardPage from './dashboard/page';
 
 export default function Home() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (user) {
+    return <DashboardPage />;
+  }
 
   return (
     <Layout>

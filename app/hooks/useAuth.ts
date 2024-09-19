@@ -2,20 +2,19 @@ import { useState, useEffect } from 'react';
 import { User, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function useAuth() {
-  console.log('useAuth hook called'); // Add this line
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-      // Add null check for 'auth'
-  if (!auth) {
-    console.error('Authentication is not initialized.');
-    setLoading(false);
-    return;
-  }
-  
+    if (!auth) {
+      console.error('Authentication is not initialized.');
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -25,11 +24,10 @@ export function useAuth() {
   }, []);
 
   const logout = async () => {
-     // Add null check for 'auth'
-  if (!auth) {
-    console.error('Authentication is not initialized.');
-    return;
-  }
+    if (!auth) {
+      console.error('Authentication is not initialized.');
+      return;
+    }
     try {
       await signOut(auth);
     } catch (error) {

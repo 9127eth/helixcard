@@ -7,10 +7,8 @@ import { useAuth } from '../hooks/useAuth';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
-import { getDoc, doc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { createUserDocument } from '../lib/firebaseOperations';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -18,6 +16,8 @@ export const AuthModal: React.FC = () => {
   const [isLogin, setIsLogin] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const { user } = useAuth();
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
@@ -26,46 +26,28 @@ export const AuthModal: React.FC = () => {
 
   const handleSuccess = () => {
     console.log('Authentication successful');
-    // Add any additional logic here
+    // No need to redirect, the home page will handle it
   };
 
   const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
     try {
+      const provider = new GoogleAuthProvider();
       if (!auth) {
+        console.error('Auth instance is not initialized');
         throw new Error('Auth instance is not initialized');
       }
-      const userCredential = await signInWithPopup(auth, provider);
-      
-      // Retry mechanism for Firestore operations
-      const maxRetries = 3;
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          if (!db) {
-            throw new Error('Firestore instance is not initialized');
-          }
-          const userDocRef = doc(db, 'users', userCredential.user.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (!userDoc.exists()) {
-            await createUserDocument(userCredential.user);
-          }
-          handleSuccess();
-          return; // Exit the function if successful
-        } catch (firestoreError) {
-          console.error(`Firestore operation attempt ${i + 1} failed:`, firestoreError);
-          if (i === maxRetries - 1) {
-            throw firestoreError; // Rethrow the error if all retries fail
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
-        }
-      }
+      console.log('Attempting Google Sign-In...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google Sign-In successful:', result.user.uid);
+      handleSuccess();
     } catch (error) {
       console.error('Google Sign-In Error:', error);
       if (error instanceof Error) {
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
       }
-      // Handle the error appropriately, e.g., show an error message to the user
+      setError('Failed to sign in with Google. Please try again.');
     }
   };
 
@@ -147,6 +129,7 @@ export const AuthModal: React.FC = () => {
           </button>
         </div>
       )}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
     </div>
   );
 };
