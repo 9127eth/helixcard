@@ -43,6 +43,11 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard' }) => {
       </header>
       <main className="container mx-auto px-4 py-8">
         {children}
+        {user && (
+          <div className="text-sm text-gray-600 mb-4">
+            Signed in as: {user.email}
+          </div>
+        )}
       </main>
     </div>
   );

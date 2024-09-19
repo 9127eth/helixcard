@@ -255,7 +255,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       </div>
       <button
         type="submit"
-        className="w-full bg-blue-500 text-white px-4 py-2 rounded-md"
+        className="w-full bg-blue-500 px-4 py-2 rounded-md border border-blue-700 hover:bg-blue-600 transition-colors font-bold text-base"
         disabled={isSubmitting}
       >
         {isSubmitting ? 'Submitting...' : 'Submit'}

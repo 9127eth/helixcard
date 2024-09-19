@@ -2,13 +2,39 @@ MVP
 
 All users will have a randomly assigned username upon account creation that is mapped to their user id.
 This username will be mapped to their primary card slug. so the url to their primary card will be 
-https://www.helixcard.app/c/{username}
+https://www.helixcard.app/c/{username}. When a user creates their first card, it automatically becomes their primary card, accessible at:
+https://www.helixcard.app/{username}
 
 Usernames should be 6 characters.
 
 When a user adds an additional card, the url for that card will be 
 https://www.helixcard.app/c/{username}/{additionalSlug} where the additional slug is a randomly generated and only 3 characters long. 
 
+First Card Creation Implementation Plan
+
+To implement the new requirements for the MVP while keeping in mind the placeholder functionality, we should start by modifying the user registration process and the card creation process. Here's a step-by-step approach:
+Update User Registration:
+When a user registers, generate a random 6-character username and store it in the user document.
+Set up the primaryCardPlaceholder field to true initially.
+Modify Card Creation Process:
+When a user creates their first card, set it as the primary card and use the username as the slug.
+Update the primaryCardPlaceholder to false.
+Adjust URL Generation:
+Modify the generateCardUrl function to use the username for the primary card.
+Update Placeholder Handling:
+Ensure the placeholder functionality works with the new URL structure.
+Let's start by updating the user registration process and the card creation function. We'll need to modify the following files:
+User registration function (likely in a file like app/lib/auth.ts or similar)
+Card creation function (likely in a file like app/lib/cards.ts or similar)
+URL generation function (likely in app/utils/url.ts or similar)
+Let's begin with the user registration function:
+
+As it relates to primary cards and deleting, make sure to reference handlingbusinessdeletions.txt
+
+After above is complete, do the following:
+Updating the placeholder handling in the card deletion process.
+Modifying the routing logic to handle the new URL structure.
+Updating any components that display or use card URLs.
 
 Post MVP
 

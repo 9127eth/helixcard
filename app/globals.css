@@ -1,16 +1,23 @@
+/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
 @tailwind base;
+/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
 @tailwind components;
+/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
 @tailwind utilities;
 
 :root {
   --background: #FFFFFF;
   --foreground: #221122;
+  --primary: #3B82F6;  /* Blue-500 in Tailwind */
+  --primary-text: #FFFFFF;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #FFFFFF;
-    --foreground: #221122;
+    --background: #1F2937;  /* Gray-800 in Tailwind */
+    --foreground: #F3F4F6;  /* Gray-100 in Tailwind */
+    --primary: #3B82F6;
+    --primary-text: #FFFFFF;
   }
 }
 
@@ -18,6 +25,11 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.bg-blue-500 {
+  background-color: var(--primary);
+  color: var(--primary-text);
 }
 
 @layer utilities {

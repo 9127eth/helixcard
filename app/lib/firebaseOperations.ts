@@ -55,51 +55,25 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
   const userRef = doc(db, 'users', user.uid);
   const businessCardsRef = collection(userRef, 'businessCards');
 
-  // Check if primaryCardPlaceholder is true
-  const userDoc = await getDoc(userRef);
-  const userData = userDoc.data() as UserData;
-  const isPlaceholder = userData?.primaryCardPlaceholder || false;
+  // Generate a new cardSlug
+  const cardSlug = generateCardSlug();
 
-  const isPrimary = isPlaceholder || cardData.isPrimary || false;
-
-  // Generate a new cardSlug if it's not provided
-  if (!cardData.cardSlug) {
-    cardData.cardSlug = generateCardSlug();
-  }
-
-  const newCardRef = doc(businessCardsRef, cardData.cardSlug);
+  const newCardRef = doc(businessCardsRef, cardSlug);
   const batch = writeBatch(db);
 
   batch.set(newCardRef, {
     ...cardData,
-    isPrimary,
+    cardSlug,
+    isPrimary: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  } as BusinessCardData);
-
-  if (isPrimary) {
-    // Update user document
-    batch.update(userRef, {
-      primaryCardId: cardData.cardSlug,
-      primaryCardPlaceholder: false,
-      updatedAt: serverTimestamp(),
-    });
-
-    // Unset previous primary cards if any
-    const primaryCardsQuery = query(businessCardsRef, where('isPrimary', '==', true));
-    const primaryCardsSnapshot = await getDocs(primaryCardsQuery);
-    primaryCardsSnapshot.forEach((docSnap: QueryDocumentSnapshot<DocumentData>) => {
-      if (docSnap.id !== cardData.cardSlug) {
-        batch.update(docSnap.ref, { isPrimary: false });
-      }
-    });
-  }
+  });
 
   await batch.commit();
 
-  const cardUrl = await generateCardUrl(user.uid, cardData.cardSlug, isPrimary);
+  const cardUrl = await generateCardUrl(user.uid, cardSlug, false);
 
-  return { cardSlug: cardData.cardSlug, cardUrl };
+  return { cardSlug, cardUrl };
 }
 
 export async function setPrimaryCard(userId: string, cardSlug: string): Promise<void> {
