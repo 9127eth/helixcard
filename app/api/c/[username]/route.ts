@@ -4,9 +4,9 @@ import { BusinessCard } from '@/app/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { username: string; cardSlug: string } }
+  { params }: { params: { username: string } }
 ) {
-  const { username, cardSlug } = params;
+  const { username } = params;
 
   try {
     // Find user by username
@@ -14,25 +14,30 @@ export async function GET(
     const userSnapshot = await userQuery.get();
 
     if (userSnapshot.empty) {
-      return NextResponse.json({ error: 'User not found', user: { primaryCardId: null, primaryCardPlaceholder: false } }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const userDoc = userSnapshot.docs[0];
     const userId = userDoc.id;
+    const userData = userDoc.data();
 
-    // Fetch specific business card
-    const cardRef = db.collection('users').doc(userId).collection('businessCards').doc(cardSlug);
+    if (!userData.primaryCardId) {
+      return NextResponse.json({ error: 'Primary card not found' }, { status: 404 });
+    }
+
+    // Fetch primary business card
+    const cardRef = db.collection('users').doc(userId).collection('businessCards').doc(userData.primaryCardId);
     const cardDoc = await cardRef.get();
 
     if (!cardDoc.exists) {
-      return NextResponse.json({ error: 'Business card not found', user: { primaryCardId: null, primaryCardPlaceholder: false } }, { status: 404 });
+      return NextResponse.json({ error: 'Primary card not found' }, { status: 404 });
     }
 
     const cardData = { id: cardDoc.id, ...cardDoc.data() } as BusinessCard;
 
     return NextResponse.json({ card: cardData });
   } catch (error) {
-    console.error('Error fetching business card:', error);
+    console.error('Error fetching primary business card:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

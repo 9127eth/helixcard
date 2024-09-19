@@ -15,8 +15,9 @@ interface ApiResponse {
 }
 
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
-  const { username, cardSlug } = params;
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/c/${username}${cardSlug ? `/${cardSlug}` : ''}`);
+  const { username } = params;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
+  const res = await fetch(`${baseUrl}/api/c/${username}`, { next: { revalidate: 60 } });
 
   if (!res.ok) {
     return {
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
     };
   }
 
-  const data = (await res.json()) as ApiResponse;
+  const data = await res.json() as ApiResponse;
 
   if (data.card) {
     return {
@@ -46,11 +47,11 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
 }
 
 export default async function BusinessCardPage({ params }: BusinessCardProps) {
-  const { username, cardSlug } = params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
+  const { username } = params;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
 
   try {
-    const res = await fetch(`${baseUrl}/api/c/${username}${cardSlug ? `/${cardSlug}` : ''}`);
+    const res = await fetch(`${baseUrl}/api/c/${username}`, { next: { revalidate: 60 } });
 
     if (!res.ok) {
       const errorText = await res.text();
