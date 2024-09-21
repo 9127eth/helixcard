@@ -4,6 +4,7 @@ import React from 'react';
 import Layout from '../components/Layout';
 import { BusinessCardList } from '../components/BusinessCardList';
 import { CreateCardButton } from '../components/CreateCardButton';
+import { CreateCardIcon } from '../components/smallcreatecardbutton';
 import { useAuth } from '../hooks/useAuth';
 
 const DashboardPage: React.FC = () => {
@@ -15,9 +16,11 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Layout title="Dashboard - HelixCard" showSidebar={true}>
-      <div className="p-6"> {/* Added p-6 for padding on all sides */}
-        <h1 className="text-2xl font-bold mb-6">Your Business Cards</h1>
-        <CreateCardButton />
+      <div className="p-6">
+        <div className="flex items-center mb-6">
+          <h1 className="text-2xl font-bold">Your Business Cards</h1>
+          <CreateCardIcon />
+        </div>
         <BusinessCardList userId={user.uid} />
       </div>
     </Layout>

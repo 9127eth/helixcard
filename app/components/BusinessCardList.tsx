@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { BusinessCardItem } from './BusinessCardItem';
+import { CreateCardButton } from './CreateCardButton';
 import { BusinessCard } from '@/app/types';
 
 interface BusinessCardListProps {
@@ -42,12 +43,8 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
     return <div>Loading your business cards...</div>;
   }
 
-  if (cards.length === 0) {
-    return <div>You haven&apos;t created any business cards yet.</div>;
-  }
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4"> {/* Added px-4 for horizontal padding */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
       {cards.map((card) => (
         <BusinessCardItem
           key={card.id}
@@ -55,6 +52,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
           username={username}
         />
       ))}
+      <CreateCardButton />
     </div>
   );
 };

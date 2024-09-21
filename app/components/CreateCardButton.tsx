@@ -10,8 +10,9 @@ export const CreateCardButton: React.FC = () => {
   }
 
   return (
-    <Link href="/create-card" className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors mb-4 font-bold">
-      Create New Card
+    <Link href="/create-card" className="flex flex-col items-center justify-center h-full min-h-[12rem] bg-white text-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow border-2 border-[#FECAB9]">
+      <div className="text-3xl mb-2">+</div>
+      <div className="font-bold text-xl">Create New</div>
     </Link>
   );
 };
