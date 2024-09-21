@@ -56,16 +56,19 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   }
 
   return (
-    <div className="flex">
-      <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 px-4 ${isPreviewOpen ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+    <div className="flex justify-center">
+      <div className={`max-w-3xl w-full grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 ${isPreviewOpen ? 'md:w-2/3' : 'w-full'} transition-all duration-300`}>
         {cards.map((card) => (
-          <BusinessCardItem
-            key={card.id}
-            card={card}
-            onView={() => handleViewCard(card)}
-          />
+          <div className="h-[10.619rem]" key={card.id}>
+            <BusinessCardItem
+              card={card}
+              onView={() => handleViewCard(card)}
+            />
+          </div>
         ))}
-        <CreateCardButton />
+        <div className="h-[10.619rem]">
+          <CreateCardButton />
+        </div>
       </div>
       <PreviewModal
         isOpen={isPreviewOpen}

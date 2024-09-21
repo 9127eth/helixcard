@@ -27,8 +27,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
 
   return (
     <div 
-      className={`w-1/3 transition-all duration-300 ease-in-out ${
-        isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
+      className={`fixed top-0 right-0 w-1/3 h-full bg-white shadow-lg transition-all duration-300 ease-in-out overflow-y-auto ${
+        isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
       <div className="p-4 relative">
