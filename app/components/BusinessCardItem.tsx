@@ -10,9 +10,10 @@ import { deleteBusinessCard } from '../lib/firebaseOperations';
 interface BusinessCardItemProps {
   card: BusinessCard;
   username: string;
+  onView: () => void;
 }
 
-export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, username }) => {
+export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, username, onView }) => {
   const { user } = useAuth();
   const router = useRouter();
   const cardUrl = card.isPrimary ? `/c/${username}` : `/c/${username}/${card.cardSlug}`;
@@ -55,64 +56,64 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, userna
         <Image
           src={card.profilePictureUrl}
           alt={`${card.name}'s profile picture`}
-          width={100}
-          height={100}
-          className="rounded-full mb-4"
+          width={80}
+          height={80}
+          className="rounded-full mb-3"
         />
       )}
-      <h3 className="text-xl font-semibold">
+      <h3 className="text-lg font-semibold">
         {card.prefix ? `${card.prefix} ` : ''}
         {card.name}
         {card.credentials ? `, ${card.credentials}` : ''}
       </h3>
-      {card.pronouns && <p className="text-sm text-gray-500">{card.pronouns}</p>}
-      <p className="text-gray-600">{card.jobTitle}</p>
-      <p className="text-gray-600">{card.company}</p>
+      {card.pronouns && <p className="text-xs text-gray-500">{card.pronouns}</p>}
+      <p className="text-sm text-gray-600">{card.jobTitle}</p>
+      <p className="text-sm text-gray-600">{card.company}</p>
       {card.isPrimary && (
         <span className="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded-full mt-2">
           Primary
         </span>
       )}
-      <div className="mt-4 flex space-x-2">
+      <div className="mt-3 flex space-x-2">
         {card.facebookUrl && (
           <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer">
-            <FaFacebook />
+            <FaFacebook size={16} />
           </a>
         )}
         {card.instagramUrl && (
           <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer">
-            <FaInstagram />
+            <FaInstagram size={16} />
           </a>
         )}
         {card.linkedIn && (
           <a href={card.linkedIn} target="_blank" rel="noopener noreferrer">
-            <FaLinkedin />
+            <FaLinkedin size={16} />
           </a>
         )}
         {card.twitter && (
           <a href={card.twitter} target="_blank" rel="noopener noreferrer">
-            <FaTwitter />
+            <FaTwitter size={16} />
           </a>
         )}
       </div>
-      <div className="mt-4 flex justify-between items-center">
+      <div className="mt-3 flex justify-between items-center">
         <div>
-          <Link href={`/edit-card/${card.id}`} className="text-indigo-600 hover:text-indigo-800 mr-4">
+          <Link href={`/edit-card/${card.id}`} className="text-sm text-indigo-600 hover:text-indigo-800 mr-3">
             Edit
           </Link>
-          <Link href={cardUrl} className="text-indigo-600 hover:text-indigo-800">
-            Preview
-          </Link>
+          <button onClick={onView} className="text-sm text-indigo-600 hover:text-indigo-800">
+            View
+          </button>
         </div>
         <button
           onClick={handleDelete}
-          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"
-          style={{ border: '2px solid black' }} // Add this line
+          className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition-colors"
+          style={{ border: '2px solid black' }}
         >
           Delete
         </button>
       </div>
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-xs text-gray-500 mt-2">
         URL: https://www.helixcard.app{cardUrl}
       </p>
     </div>

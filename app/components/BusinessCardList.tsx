@@ -4,6 +4,7 @@ import { db } from '../lib/firebase';
 import { BusinessCardItem } from './BusinessCardItem';
 import { CreateCardButton } from './CreateCardButton';
 import { BusinessCard } from '@/app/types';
+import PreviewModal from './PreviewModal';
 
 interface BusinessCardListProps {
   userId: string;
@@ -13,6 +14,8 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   const [cards, setCards] = useState<BusinessCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [username, setUsername] = useState('');
+  const [selectedCard, setSelectedCard] = useState<BusinessCard | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -39,20 +42,38 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
     fetchCards();
   }, [userId]);
 
+  const handleViewCard = (card: BusinessCard) => {
+    setSelectedCard(card);
+    setIsPreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
+  };
+
   if (isLoading) {
     return <div>Loading your business cards...</div>;
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
-      {cards.map((card) => (
-        <BusinessCardItem
-          key={card.id}
-          card={card}
-          username={username}
-        />
-      ))}
-      <CreateCardButton />
+    <div className="flex">
+      <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 px-4 ${isPreviewOpen ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
+        {cards.map((card) => (
+          <BusinessCardItem
+            key={card.id}
+            card={card}
+            username={username}
+            onView={() => handleViewCard(card)}
+          />
+        ))}
+        <CreateCardButton />
+      </div>
+      <PreviewModal
+        isOpen={isPreviewOpen}
+        onClose={handleClosePreview}
+        card={selectedCard}
+        username={username}
+      />
     </div>
   );
 };
