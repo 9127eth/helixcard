@@ -8,7 +8,7 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -16,7 +16,6 @@ export const AuthModal: React.FC = () => {
   const [isLogin, setIsLogin] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const { user } = useAuth();
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
   const toggleAuthMode = () => {

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { User, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
-import { useRouter, usePathname } from 'next/navigation';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
