@@ -9,7 +9,6 @@ import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
 
-
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
 export const AuthModal: React.FC = () => {
