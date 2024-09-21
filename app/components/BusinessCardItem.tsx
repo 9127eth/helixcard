@@ -101,7 +101,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, userna
             Edit
           </Link>
           <Link href={cardUrl} className="text-indigo-600 hover:text-indigo-800">
-            View
+            Preview
           </Link>
         </div>
         <button

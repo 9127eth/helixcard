@@ -47,7 +47,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4"> {/* Added px-4 for horizontal padding */}
       {cards.map((card) => (
         <BusinessCardItem
           key={card.id}

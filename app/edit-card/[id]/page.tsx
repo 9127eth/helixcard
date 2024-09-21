@@ -5,28 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import Layout from '../../components/Layout';
 import { BusinessCardForm } from '../../components/BusinessCardForm';
+import BusinessCardDisplay from '../../components/BusinessCardDisplay'; // Changed this line
 import { getBusinessCard, updateBusinessCard } from '../../lib/firebaseOperations';
-
-interface BusinessCardData {
-  id?: string;
-  name: string;
-  jobTitle: string;
-  company: string;
-  phoneNumber: string;
-  email: string;
-  aboutMe: string;
-  linkedIn: string;
-  twitter: string;
-  customMessage: string;
-  customSlug?: string;
-  prefix: string;
-  credentials: string;
-  pronouns: string;
-  facebookUrl: string;
-  instagramUrl: string;
-  profilePicture?: File;
-  cv?: File;
-}
+import { BusinessCard, BusinessCardData } from '@/app/types';
 
 export default function EditCardPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -73,9 +54,15 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
 
   return (
     <Layout title="Edit Business Card - HelixCard">
-      <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Edit Your Business Card</h1>
-        <BusinessCardForm initialData={cardData} onSuccess={handleSuccess} />
+      <div className="flex">
+        <div className="w-2/3 pr-8">
+          <h1 className="text-2xl font-bold mb-4">Edit Your Business Card</h1>
+          <BusinessCardForm initialData={cardData} onSuccess={handleSuccess} />
+        </div>
+        <div className="w-1/3">
+          <h2 className="text-xl font-semibold mb-4">Preview</h2>
+          {cardData && <BusinessCardDisplay card={cardData as BusinessCard} />}
+        </div>
       </div>
     </Layout>
   );

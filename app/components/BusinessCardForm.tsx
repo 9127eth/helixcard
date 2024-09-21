@@ -26,8 +26,9 @@ export interface BusinessCardData {
   instagramUrl: string;
   profilePicture?: File;
   cv?: File;
-  cardSlug: string; // Add this line
-  isPrimary: boolean; // Add this line
+  cardSlug: string;
+  isPrimary: boolean;
+  id?: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData }) => {

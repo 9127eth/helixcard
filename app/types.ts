@@ -15,4 +15,27 @@ export interface BusinessCard {
   twitter?: string;
 }
 
+export interface BusinessCardData {
+  id?: string;
+  name: string;
+  jobTitle: string;
+  company: string;
+  phoneNumber: string;
+  email: string;
+  aboutMe: string;
+  linkedIn: string;
+  twitter: string;
+  customMessage: string;
+  customSlug?: string;
+  prefix: string;
+  credentials: string;
+  pronouns: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  profilePicture?: File;
+  cv?: File;
+  cardSlug: string;
+  isPrimary: boolean;
+}
+
 

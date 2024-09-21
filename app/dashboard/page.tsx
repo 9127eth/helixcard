@@ -14,9 +14,9 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <Layout title="Dashboard - HelixCard">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Your Business Cards</h1>
+    <Layout title="Dashboard - HelixCard" showSidebar={true}>
+      <div className="p-6"> {/* Added p-6 for padding on all sides */}
+        <h1 className="text-2xl font-bold mb-6">Your Business Cards</h1>
         <CreateCardButton />
         <BusinessCardList userId={user.uid} />
       </div>
