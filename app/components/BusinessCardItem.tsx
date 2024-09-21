@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaStar } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -9,14 +9,12 @@ import { deleteBusinessCard } from '../lib/firebaseOperations';
 
 interface BusinessCardItemProps {
   card: BusinessCard;
-  username: string;
   onView: () => void;
 }
 
-export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, username, onView }) => {
+export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView }) => {
   const { user } = useAuth();
   const router = useRouter();
-  const cardUrl = card.isPrimary ? `/c/${username}` : `/c/${username}/${card.cardSlug}`;
 
   const handleDelete = async () => {
     if (!user) {
@@ -48,10 +46,18 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, userna
 
   return (
     <div
-      className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
+      className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative ${
         card.isPrimary ? 'border-blue-500' : ''
       }`}
     >
+      {card.isPrimary && (
+        <div className="absolute top-2 right-2 group">
+          <FaStar className="h-3 w-3 text-black" />
+          <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 right-0 bottom-full mb-2 whitespace-nowrap">
+            This is your primary card
+          </span>
+        </div>
+      )}
       {card.profilePictureUrl && (
         <Image
           src={card.profilePictureUrl}
@@ -69,11 +75,6 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, userna
       {card.pronouns && <p className="text-xs text-gray-500">{card.pronouns}</p>}
       <p className="text-sm text-gray-600">{card.jobTitle}</p>
       <p className="text-sm text-gray-600">{card.company}</p>
-      {card.isPrimary && (
-        <span className="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded-full mt-2">
-          Primary
-        </span>
-      )}
       <div className="mt-3 flex space-x-2">
         {card.facebookUrl && (
           <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer">
@@ -113,9 +114,6 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, userna
           Delete
         </button>
       </div>
-      <p className="text-xs text-gray-500 mt-2">
-        URL: https://www.helixcard.app{cardUrl}
-      </p>
     </div>
   );
 };
