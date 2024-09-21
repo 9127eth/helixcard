@@ -103,7 +103,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
             Edit
           </Link>
           <button onClick={onView} className="text-sm text-indigo-600 hover:text-indigo-800">
-            View
+            Preview
           </button>
         </div>
         <button

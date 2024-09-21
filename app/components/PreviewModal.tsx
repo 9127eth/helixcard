@@ -2,7 +2,7 @@ import React from 'react';
 import { BusinessCard } from '@/app/types';
 import BusinessCardDisplay from './BusinessCardDisplay';
 import { useState } from 'react';
-import { FaCopy } from 'react-icons/fa';
+import { FaCopy, FaExternalLinkAlt } from 'react-icons/fa';
 
 interface PreviewModalProps {
   isOpen: boolean;
@@ -37,8 +37,14 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
         </button>
         <BusinessCardDisplay card={card} />
         <div className="mt-8 flex justify-center">
-          <a href={cardUrl} target="_blank" rel="noopener noreferrer" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
-            Preview
+          <a 
+            href={cardUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs flex items-center"
+          >
+            View in Browser
+            <FaExternalLinkAlt className="ml-1" size={10} />
           </a>
         </div>
         <div className="mt-4 text-center">
