@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaStar } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -22,22 +21,13 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
       return;
     }
 
-    let confirmDelete: boolean;
-
-    if (card.isPrimary) {
-      confirmDelete = confirm(
-        'Deleting your primary card will deactivate your primary URL. Are you sure you want to proceed?'
-      );
-    } else {
-      confirmDelete = confirm('Are you sure you want to delete this business card?');
-    }
-
+    const confirmDelete = confirm('Are you sure you want to delete this business card?');
     if (!confirmDelete) return;
 
     try {
       await deleteBusinessCard(user, card.cardSlug);
       alert('Business card deleted successfully.');
-      router.refresh(); // Refresh the page or redirect as needed
+      router.refresh();
     } catch (error: unknown) {
       console.error('Error deleting business card:', error);
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -45,60 +35,21 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
   };
 
   return (
-    <div
-      className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative ${
-        card.isPrimary ? 'border-blue-500' : ''
-      }`}
-    >
+    <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative h-48 flex flex-col justify-between">
       {card.isPrimary && (
         <div className="absolute top-2 right-2 group">
           <FaStar className="h-3 w-3 text-black" />
           <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 right-0 bottom-full mb-2 whitespace-nowrap">
-            This is your primary card
+            Primary card
           </span>
         </div>
       )}
-      {card.profilePictureUrl && (
-        <Image
-          src={card.profilePictureUrl}
-          alt={`${card.name}'s profile picture`}
-          width={80}
-          height={80}
-          className="rounded-full mb-3"
-        />
-      )}
-      <p className="text-sm text-gray-500 mb-1">{card.description}</p>
-      <h3 className="text-lg font-semibold">
-        {card.prefix ? `${card.prefix} ` : ''}
-        {card.name}
-        {card.credentials ? `, ${card.credentials}` : ''}
-      </h3>
-      {card.pronouns && <p className="text-xs text-gray-500">{card.pronouns}</p>}
-      <p className="text-sm text-gray-600">{card.jobTitle}</p>
-      <p className="text-sm text-gray-600">{card.company}</p>
-      <div className="mt-3 flex space-x-2">
-        {card.facebookUrl && (
-          <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer">
-            <FaFacebook size={16} />
-          </a>
-        )}
-        {card.instagramUrl && (
-          <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer">
-            <FaInstagram size={16} />
-          </a>
-        )}
-        {card.linkedIn && (
-          <a href={card.linkedIn} target="_blank" rel="noopener noreferrer">
-            <FaLinkedin size={16} />
-          </a>
-        )}
-        {card.twitter && (
-          <a href={card.twitter} target="_blank" rel="noopener noreferrer">
-            <FaTwitter size={16} />
-          </a>
-        )}
+      <div>
+        <h3 className="text-3xl font-semibold mb-2 line-clamp-2 overflow-hidden">{card.description}</h3>
+        <p className="text-sm text-gray-600">{card.jobTitle}</p>
+        <p className="text-sm text-gray-600">{card.company}</p>
       </div>
-      <div className="mt-3 flex justify-between items-center">
+      <div className="flex justify-between items-center mt-4">
         <div>
           <Link href={`/edit-card/${card.id}`} className="text-sm text-indigo-600 hover:text-indigo-800 mr-3">
             Edit
@@ -110,7 +61,6 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <button
           onClick={handleDelete}
           className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition-colors"
-          style={{ border: '2px solid black' }}
         >
           Delete
         </button>

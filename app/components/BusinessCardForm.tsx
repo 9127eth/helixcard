@@ -134,7 +134,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
           required
         />
         <p className="text-xs text-gray-500 italic">
-          Note: This is for your reference only and won't be visible on your digital business card.
+          Note: This is for your reference only and will not be visible on your digital business card.
         </p>
       </div>
       <input

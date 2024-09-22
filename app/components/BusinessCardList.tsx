@@ -56,17 +56,17 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   }
 
   return (
-    <div className="flex justify-center">
-      <div className={`max-w-3xl w-full grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 ${isPreviewOpen ? 'md:w-2/3' : 'w-full'} transition-all duration-300`}>
+    <div className="flex justify-start">
+      <div className={`max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-6 px-2 ${isPreviewOpen ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
         {cards.map((card) => (
-          <div className="h-[10.619rem]" key={card.id}>
+          <div className="w-full" key={card.id}>
             <BusinessCardItem
               card={card}
               onView={() => handleViewCard(card)}
             />
           </div>
         ))}
-        <div className="h-[10.619rem]">
+        <div className="w-full">
           <CreateCardButton />
         </div>
       </div>
