@@ -62,6 +62,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
           className="rounded-full mb-4 mx-auto"
         />
       )}
+      <p className="text-sm text-gray-500 mb-2">{card.description}</p>
       <h1 className="text-2xl font-bold mb-2">
         {card.prefix ? `${card.prefix} ` : ''}
         {card.name}

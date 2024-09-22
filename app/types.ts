@@ -1,5 +1,6 @@
 export interface BusinessCard {
   id: string;
+  description: string; // Add this line
   name: string;
   prefix?: string;
   credentials?: string;
@@ -17,6 +18,7 @@ export interface BusinessCard {
 
 export interface BusinessCardData {
   id?: string;
+  description: string; // Add this line
   name: string;
   jobTitle: string;
   company: string;

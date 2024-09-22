@@ -67,6 +67,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
           className="rounded-full mb-3"
         />
       )}
+      <p className="text-sm text-gray-500 mb-1">{card.description}</p>
       <h3 className="text-lg font-semibold">
         {card.prefix ? `${card.prefix} ` : ''}
         {card.name}

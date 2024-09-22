@@ -29,6 +29,7 @@ export interface BusinessCardData {
   cardSlug: string;
   isPrimary: boolean;
   id?: string;
+  description: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData }) => {
@@ -52,6 +53,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     instagramUrl: initialData?.instagramUrl || '',
     cardSlug: initialData?.cardSlug || '',
     isPrimary: initialData?.isPrimary || false,
+    description: initialData?.description || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,6 +123,20 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && <p className="text-red-500">{error}</p>}
+      <div className="space-y-1">
+        <input
+          type="text"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          required
+        />
+        <p className="text-xs text-gray-500 italic">
+          Note: This is for your reference only and won't be visible on your digital business card.
+        </p>
+      </div>
       <input
         type="text"
         name="name"
