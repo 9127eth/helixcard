@@ -15,6 +15,8 @@ export interface BusinessCard {
   instagramUrl?: string;
   linkedIn?: string;
   twitter?: string;
+  aboutMe?: string;
+  customMessage?: string;
 }
 
 export interface BusinessCardData {

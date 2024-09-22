@@ -71,6 +71,21 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
       {card.pronouns && <p className="text-sm text-gray-500 mb-2">{card.pronouns}</p>}
       <p className="text-xl text-gray-700 mb-1">{card.jobTitle}</p>
       <p className="text-lg text-gray-600 mb-4">{card.company}</p>
+      
+      {card.aboutMe && (
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">About Me</h2>
+          <p className="text-gray-700">{card.aboutMe}</p>
+        </div>
+      )}
+      
+      {card.customMessage && (
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold mb-2">Custom Message</h2>
+          <p className="text-gray-700">{card.customMessage}</p>
+        </div>
+      )}
+
       <div className="flex justify-center space-x-4 mb-4">
         {card.facebookUrl && (
           <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer">

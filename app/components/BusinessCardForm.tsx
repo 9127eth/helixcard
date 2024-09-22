@@ -4,8 +4,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface BusinessCardFormProps {
-  onSuccess: (cardData: BusinessCardData) => void;
-  initialData?: Partial<BusinessCardData>;
+  onSuccess: (cardData: import('../types').BusinessCardData) => void;
+  initialData?: Partial<import('../types').BusinessCardData>;
   onDelete?: () => void;
 }
 
@@ -76,9 +76,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     fetchUserStatus();
   }, [user]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
@@ -131,167 +129,183 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   };
 
   if (!user) {
-    return <div>Please log in to create or edit a business card.</div>;
+    return <div className="text-sm">Please log in to create or edit a business card.</div>;
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <p className="text-red-500">{error}</p>}
-      <div className="space-y-1">
-        <input
-          type="text"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          required
-        />
-        <p className="text-xs text-gray-500 italic">
-          Note: This is for your reference only and will not be visible on your digital business card.
-        </p>
+    <form onSubmit={handleSubmit} className="space-y-6 text-sm">
+      {error && <p className="text-red-500 text-xs">{error}</p>}
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">Card Description</h3>
+        <div className="space-y-1">
+          <input
+            type="text"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            required
+          />
+          <p className="text-xs text-gray-500 italic">
+            Note: This is for your reference only and will not be visible on your digital business card.
+          </p>
+        </div>
       </div>
-      <input
-        type="text"
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        placeholder="Full Name"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-        required
-      />
-      <input
-        type="text"
-        name="jobTitle"
-        value={formData.jobTitle}
-        onChange={handleChange}
-        placeholder="Job Title"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="text"
-        name="company"
-        value={formData.company}
-        onChange={handleChange}
-        placeholder="Company"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="tel"
-        name="phoneNumber"
-        value={formData.phoneNumber}
-        onChange={handleChange}
-        placeholder="Phone Number"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="Email"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-        required
-      />
-      <textarea
-        name="aboutMe"
-        value={formData.aboutMe}
-        onChange={handleChange}
-        placeholder="About Me"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-        rows={3}
-      />
-      <input
-        type="url"
-        name="linkedIn"
-        value={formData.linkedIn}
-        onChange={handleChange}
-        placeholder="LinkedIn URL"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="text"
-        name="twitter"
-        value={formData.twitter}
-        onChange={handleChange}
-        placeholder="Twitter Handle"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <textarea
-        name="customMessage"
-        value={formData.customMessage}
-        onChange={handleChange}
-        placeholder="Custom Message"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-        rows={2}
-      />
-      {isPro && (
-        <input
-          type="text"
-          name="customSlug"
-          value={formData.customSlug}
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">Basic Information</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Full Name"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            required
+          />
+          <input
+            type="text"
+            name="jobTitle"
+            value={formData.jobTitle}
+            onChange={handleChange}
+            placeholder="Job Title"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+          <input
+            type="text"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            placeholder="Company"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+          <input
+            type="text"
+            name="pronouns"
+            value={formData.pronouns}
+            onChange={handleChange}
+            placeholder="Pronouns"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+        </div>
+        <textarea
+          name="aboutMe"
+          value={formData.aboutMe}
           onChange={handleChange}
-          placeholder="Custom Slug (Pro users only)"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
-        />
-      )}
-      <input
-        type="text"
-        name="prefix"
-        value={formData.prefix}
-        onChange={handleChange}
-        placeholder="Prefix (e.g., Dr.)"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="text"
-        name="credentials"
-        value={formData.credentials}
-        onChange={handleChange}
-        placeholder="Credentials (e.g., PharmD, MD)"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="text"
-        name="pronouns"
-        value={formData.pronouns}
-        onChange={handleChange}
-        placeholder="Pronouns"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="url"
-        name="facebookUrl"
-        value={formData.facebookUrl}
-        onChange={handleChange}
-        placeholder="Facebook URL"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <input
-        type="url"
-        name="instagramUrl"
-        value={formData.instagramUrl}
-        onChange={handleChange}
-        placeholder="Instagram URL"
-        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      />
-      <div className="space-y-2">
-        <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700">
-          Profile Image
-        </label>
-        <input
-          type="file"
-          id="profilePicture"
-          name="profilePicture"
-          onChange={handleFileChange}
-          accept="image/*"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          placeholder="About Me"
+          className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          rows={3}
         />
       </div>
-      <div className="flex justify-between items-center mt-6">
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">Contact Information</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="tel"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleChange}
+            placeholder="Phone Number"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Email"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">Social Links</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="url"
+            name="linkedIn"
+            value={formData.linkedIn}
+            onChange={handleChange}
+            placeholder="LinkedIn URL"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+          <input
+            type="text"
+            name="twitter"
+            value={formData.twitter}
+            onChange={handleChange}
+            placeholder="Twitter Handle"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+          <input
+            type="url"
+            name="facebookUrl"
+            value={formData.facebookUrl}
+            onChange={handleChange}
+            placeholder="Facebook URL"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+          <input
+            type="url"
+            name="instagramUrl"
+            value={formData.instagramUrl}
+            onChange={handleChange}
+            placeholder="Instagram URL"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">Additional Information</h3>
+        <textarea
+          name="customMessage"
+          value={formData.customMessage}
+          onChange={handleChange}
+          placeholder="Custom Message"
+          className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          rows={2}
+        />
+        <div className="space-y-2">
+          <label htmlFor="profilePicture" className="block text-xs font-medium text-gray-700">
+            Profile Image
+          </label>
+          <input
+            type="file"
+            id="profilePicture"
+            name="profilePicture"
+            onChange={handleFileChange}
+            accept="image/*"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
+          />
+        </div>
+        {isPro && (
+          <div className="space-y-2">
+            <label htmlFor="cv" className="block text-xs font-medium text-gray-700">
+              CV Upload (Pro feature)
+            </label>
+            <input
+              type="file"
+              id="cv"
+              name="cv"
+              onChange={handleFileChange}
+              accept=".pdf,.doc,.docx"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-between items-center">
         <button
           type="submit"
-          className="bg-blue-500 px-2 py-1 rounded-md border border-blue-700 hover:bg-blue-600 transition-colors font-bold text-sm"
+          className="bg-blue-500 px-3 py-1 rounded-md border border-blue-700 hover:bg-blue-600 transition-colors font-medium text-xs text-white"
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Saving...' : 'Save'}
