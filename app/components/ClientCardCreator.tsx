@@ -48,6 +48,7 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
         ...cardData,
         cardSlug,
         isPrimary: isFirstCard || isPlaceholder,
+        name: `${cardData.firstName} ${cardData.lastName}`,
       };
 
       const { cardSlug: returnedCardSlug } = await saveBusinessCard(user, updatedCardData);

@@ -56,7 +56,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
       {card.profilePictureUrl && (
         <Image
           src={card.profilePictureUrl}
-          alt={`${card.name}'s profile picture`}
+          alt={`${card.firstName} ${card.middleName ? card.middleName + ' ' : ''}${card.lastName}'s profile picture`}
           width={100}
           height={100}
           className="rounded-full mb-4 mx-auto"
@@ -65,7 +65,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
       {/* Removed description */}
       <h1 className="text-2xl font-bold mb-2">
         {card.prefix ? `${card.prefix} ` : ''}
-        {card.name}
+        {card.firstName}
+        {card.middleName ? ` ${card.middleName} ` : ' '}
+        {card.lastName}
         {card.credentials ? `, ${card.credentials}` : ''}
       </h1>
       {card.pronouns && <p className="text-sm text-gray-500 mb-2">{card.pronouns}</p>}

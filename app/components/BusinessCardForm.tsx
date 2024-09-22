@@ -10,7 +10,9 @@ interface BusinessCardFormProps {
 }
 
 export interface BusinessCardData {
-  name: string;
+  firstName: string;
+middleName?: string;
+lastName: string;
   jobTitle: string;
   company: string;
   phoneNumber: string;
@@ -37,7 +39,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   const { user } = useAuth();
   const [isPro, setIsPro] = useState(false);
   const [formData, setFormData] = useState<BusinessCardData>({
-    name: initialData?.name || '',
+    firstName: initialData?.firstName || '',
+    middleName: initialData?.middleName || '',
+    lastName: initialData?.lastName || '',
     jobTitle: initialData?.jobTitle || '',
     company: initialData?.company || '',
     phoneNumber: initialData?.phoneNumber || '',
@@ -156,16 +160,35 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
       <div className="space-y-4">
         <h3 className="font-semibold">Basic Information</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="firstName"
+            value={formData.firstName}
             onChange={handleChange}
-            placeholder="Full Name"
+            placeholder="First Name"
             className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
             required
           />
+          <input
+            type="text"
+            name="middleName"
+            value={formData.middleName}
+            onChange={handleChange}
+            placeholder="Middle Name"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+          <input
+            type="text"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            placeholder="Last Name"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            required
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
           <input
             type="text"
             name="jobTitle"

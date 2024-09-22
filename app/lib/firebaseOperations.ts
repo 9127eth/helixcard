@@ -23,7 +23,11 @@ interface UserData {
 }
 
 interface BusinessCardData {
-  name: string;
+  id?: string;
+  description: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
   jobTitle: string;
   company: string;
   phoneNumber: string;
@@ -41,9 +45,7 @@ interface BusinessCardData {
   instagramUrl: string;
   profilePicture?: File;
   cv?: File;
-  isPrimary: boolean; // Added property
-  // Remove specialty if you no longer use it
-  // specialty: string;
+  isPrimary: boolean; 
 }
 
 export async function saveBusinessCard(user: User, cardData: BusinessCardData) {

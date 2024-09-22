@@ -1,7 +1,9 @@
 export interface BusinessCard {
   id: string;
   description: string; // Add this line
-  name: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
   prefix?: string;
   credentials?: string;
   pronouns?: string;
@@ -21,8 +23,10 @@ export interface BusinessCard {
 
 export interface BusinessCardData {
   id?: string;
-  description: string; // Add this line
-  name: string;
+  description: string;
+  firstName: string;
+  middleName?: string; // Make this optional
+  lastName: string;
   jobTitle: string;
   company: string;
   phoneNumber: string;

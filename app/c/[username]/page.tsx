@@ -30,8 +30,8 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
 
   if (data.card) {
     return {
-      title: `${data.card.name}'s Business Card - HelixCard`,
-      description: `View ${data.card.name}'s digital business card`,
+      title: `${data.card.firstName}'s Business Card - HelixCard`,
+      description: `View ${data.card.firstName}'s digital business card`,
     };
   } else if (data.user.primaryCardId === null && data.user.primaryCardPlaceholder) {
     return {
