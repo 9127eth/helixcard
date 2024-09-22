@@ -13,32 +13,35 @@ interface BusinessCardListProps {
 export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) => {
   const [cards, setCards] = useState<BusinessCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [username] = useState('');
+  const [username, setUsername] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<BusinessCard | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
-    const fetchCards = async () => {
-      if (!db) {
-        throw new Error('Firestore is not initialized.');
+    const fetchCardsAndUsername = async () => {
+      setIsLoading(true);
+      try {
+        if (!db) {
+          throw new Error('Firestore instance is not initialized');
+        }
+        // Fetch cards (existing code)
+        const cardsSnapshot = await getDocs(query(collection(db, 'users', userId, 'businessCards')));
+        const fetchedCards = cardsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BusinessCard));
+        setCards(fetchedCards);
+
+        // Fetch username
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        if (userDoc.exists()) {
+          setUsername(userDoc.data().username);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
       }
-
-      // Fetch the user document to get the username
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const username = userDoc.exists() ? userDoc.data().username : '';
-
-      const q = query(collection(db, 'users', userId, 'businessCards'));
-      const querySnapshot = await getDocs(q);
-      const fetchedCards: BusinessCard[] = querySnapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-        username // Add username to each card
-      })) as BusinessCard[];
-      setCards(fetchedCards);
-      setIsLoading(false);
     };
 
-    fetchCards();
+    fetchCardsAndUsername();
   }, [userId]);
 
   const handleViewCard = (card: BusinessCard) => {
@@ -62,6 +65,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
             <BusinessCardItem
               card={card}
               onView={() => handleViewCard(card)}
+              username={username} // Pass username here
             />
           </div>
         ))}
@@ -73,7 +77,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
         isOpen={isPreviewOpen}
         onClose={handleClosePreview}
         card={selectedCard}
-        username={username}
+        username={username || ''}
       />
     </div>
   );

@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BusinessCard } from '@/app/types';
 import BusinessCardDisplay from './BusinessCardDisplay';
-import { useState } from 'react';
 import { FaCopy, FaExternalLinkAlt } from 'react-icons/fa';
 
 interface PreviewModalProps {
@@ -16,11 +15,13 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
 
   if (!card) return null;
 
-  const cardUrl = card.isPrimary ? `/c/${username}` : `/c/${username}/${card.cardSlug}`;
-  const fullCardUrl = `https://www.helixcard.app${cardUrl}`;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.helixcard.app';
+  const cardUrl = card.isPrimary 
+    ? `${baseUrl}/c/${username}`
+    : `${baseUrl}/c/${username}/${card.cardSlug}`;
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(fullCardUrl);
+    navigator.clipboard.writeText(cardUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
   };
@@ -59,7 +60,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-600 mt-1">{fullCardUrl}</p>
+          <p className="text-xs text-gray-600 mt-1">{cardUrl}</p>
         </div>
       </div>
     </div>

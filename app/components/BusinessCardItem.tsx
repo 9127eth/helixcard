@@ -10,9 +10,10 @@ import { ShareModal } from './ShareModal';
 interface BusinessCardItemProps {
   card: BusinessCard;
   onView: () => void;
+  username: string | null; // Add this line
 }
 
-export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView }) => {
+export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username }) => {
   const { user } = useAuth();
   const router = useRouter();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -75,6 +76,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         businessCard={card}
+        username={username} // Pass username here
       />
     </div>
   );

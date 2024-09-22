@@ -8,16 +8,20 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   businessCard: BusinessCard;
+  username: string | null; // Add this line
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, businessCard }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, businessCard, username }) => {
   const [qrCodeFormat, setQrCodeFormat] = useState<'png' | 'jpeg' | 'svg'>('png');
   const [isTransparent, setIsTransparent] = useState(false);
   const [qrCodeSize, setQrCodeSize] = useState(400);
 
-  const cardUrl = `${process.env.NEXT_PUBLIC_API_URL}/c/${
-    businessCard.username
-  }${businessCard.isPrimary ? '' : `/${businessCard.cardSlug}`}`;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.helixcard.app';
+  const cardUrl = username ? (
+    businessCard.isPrimary 
+      ? `${baseUrl}/c/${username}`
+      : `${baseUrl}/c/${username}/${businessCard.cardSlug}`
+  ) : '';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(cardUrl);
