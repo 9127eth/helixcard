@@ -6,7 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Layout from '../../components/Layout';
 import { BusinessCardForm } from '../../components/BusinessCardForm';
 import BusinessCardDisplay from '../../components/BusinessCardDisplay'; // Changed this line
-import { getBusinessCard, updateBusinessCard } from '../../lib/firebaseOperations';
+import { getBusinessCard, updateBusinessCard, deleteBusinessCard } from '../../lib/firebaseOperations';
 import { BusinessCard, BusinessCardData } from '@/app/types';
 
 export default function EditCardPage({ params }: { params: { id: string } }) {
@@ -44,6 +44,19 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
     }
   };
 
+  const handleDelete = async () => {
+    if (user && params.id) {
+      try {
+        await deleteBusinessCard(user, params.id);
+        alert('Business card deleted successfully.');
+        router.push('/dashboard');
+      } catch (error) {
+        console.error('Error deleting business card:', error);
+        alert('Failed to delete business card. Please try again.');
+      }
+    }
+  };
+
   if (isLoading) {
     return <Layout title="Edit Business Card - HelixCard"><div>Loading...</div></Layout>;
   }
@@ -57,7 +70,11 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
       <div className="flex">
         <div className="w-2/3 pr-8">
           <h1 className="text-2xl font-bold mb-4">Edit Your Business Card</h1>
-          <BusinessCardForm initialData={cardData} onSuccess={handleSuccess} />
+          <BusinessCardForm 
+            initialData={cardData} 
+            onSuccess={handleSuccess} 
+            onDelete={handleDelete} 
+          />
         </div>
         <div className="w-1/3">
           <h2 className="text-xl font-semibold mb-4">Preview</h2>

@@ -37,3 +37,12 @@ body {
     text-wrap: balance;
   }
 }
+
+.delete-button {
+  background-color: #ef4444 !important; /* red-500 */
+  color: white !important;
+}
+
+.delete-button:hover {
+  background-color: #dc2626 !important; /* red-600 */
+}

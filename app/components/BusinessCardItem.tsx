@@ -45,7 +45,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         </div>
       )}
       <div>
-        <h3 className="text-3xl font-semibold mb-2 line-clamp-2 overflow-hidden">{card.description}</h3>
+        <h3 className="text-lg font-semibold mb-2">{card.description}</h3>
         <p className="text-sm text-gray-600">{card.jobTitle}</p>
         <p className="text-sm text-gray-600">{card.company}</p>
       </div>
@@ -60,7 +60,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         </div>
         <button
           onClick={handleDelete}
-          className="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition-colors"
+          className="delete-button bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition-colors"
         >
           Delete
         </button>

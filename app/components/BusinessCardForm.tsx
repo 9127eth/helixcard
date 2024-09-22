@@ -6,6 +6,7 @@ import { db } from '../lib/firebase';
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => void;
   initialData?: Partial<BusinessCardData>;
+  onDelete?: () => void;
 }
 
 export interface BusinessCardData {
@@ -32,7 +33,7 @@ export interface BusinessCardData {
   description: string;
 }
 
-export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData }) => {
+export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
   const { user } = useAuth();
   const [isPro, setIsPro] = useState(false);
   const [formData, setFormData] = useState<BusinessCardData>({
@@ -116,8 +117,21 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     }
   };
 
+  const handleDelete = async () => {
+    if (confirm("Are you sure you want to delete this business card? This action cannot be undone.")) {
+      if (onDelete) {
+        try {
+          await onDelete();
+        } catch (error) {
+          console.error('Error deleting business card:', error);
+          setError('Failed to delete business card. Please try again.');
+        }
+      }
+    }
+  };
+
   if (!user) {
-    return <div>Please log in to create a business card.</div>;
+    return <div>Please log in to create or edit a business card.</div>;
   }
 
   return (
@@ -274,13 +288,25 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
         />
       </div>
-      <button
-        type="submit"
-        className="w-full bg-blue-500 px-4 py-2 rounded-md border border-blue-700 hover:bg-blue-600 transition-colors font-bold text-base"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Submitting...' : 'Submit'}
-      </button>
+      <div className="flex justify-between items-center mt-6">
+        <button
+          type="submit"
+          className="bg-blue-500 px-2 py-1 rounded-md border border-blue-700 hover:bg-blue-600 transition-colors font-bold text-sm"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Saving...' : 'Save'}
+        </button>
+        
+        {initialData && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="delete-button bg-red-500 px-2 py-1 rounded-md border border-red-700 hover:bg-red-600 transition-colors font-bold text-sm text-white"
+          >
+            Delete
+          </button>
+        )}
+      </div>
     </form>
   );
 };
