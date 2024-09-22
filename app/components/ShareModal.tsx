@@ -15,6 +15,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
   const [qrCodeFormat, setQrCodeFormat] = useState<'png' | 'jpeg' | 'svg'>('png');
   const [isTransparent, setIsTransparent] = useState(false);
   const [qrCodeSize, setQrCodeSize] = useState(400);
+  const [copyFeedback, setCopyFeedback] = useState('');
+  const [downloadFeedback, setDownloadFeedback] = useState('');
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.helixcard.app';
   const cardUrl = username ? (
@@ -25,7 +27,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(cardUrl);
-    // You might want to add a toast notification here
+    setCopyFeedback('Copied!');
+    setTimeout(() => setCopyFeedback(''), 2000); // Clear message after 2 seconds
   };
 
   const downloadQRCode = () => {
@@ -51,6 +54,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
       downloadLink.click();
       document.body.removeChild(downloadLink);
     }
+    
+    // Set feedback after download is initiated
+    setDownloadFeedback('QR code downloaded!');
+    setTimeout(() => setDownloadFeedback(''), 6000); // Clear message after 2 seconds
   };
 
   useEffect(() => {
@@ -107,6 +114,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
           >
             <FaCopy className="mr-2" /> Copy URL
           </button>
+          {copyFeedback && <p className="text-green-600 text-sm">{copyFeedback}</p>}
           <button
             onClick={() => window.open(cardUrl, '_blank')}
             className="bg-foreground text-background px-4 py-2 rounded flex items-center justify-center w-3/4"
@@ -142,6 +150,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
           >
             <FaDownload className="mr-2" /> Download
           </button>
+          {downloadFeedback && <p className="text-green-600 text-sm text-center mt-2">{downloadFeedback}</p>}
         </div>
         <button
           onClick={onClose}
