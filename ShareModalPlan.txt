@@ -1,0 +1,15 @@
+Each card on grid should now have share button. Again this button will only be located on cards that you view from the dashboard.
+
+Once share button is clicked, it should open a modal that should be mobile friendly. The modal will have a qr code at the top pointing to the url of the card.
+
+At the top of the qr code should be 'Digital Business Card' in a standard font.
+
+The modal should have a close button on the bottom right.
+
+Under the qr code, there should be a section that displays the url of the card along with a button to copy the url to the clipboard. 
+
+The modal should have a download button on the bottom right to be able to download the qr code. There should be the option to download it as a jpeg, png, or svg, with png being the default. There should also be a transparent background option for each file type.
+
+under the copy url button should be a button to "preview in browser"
+
+When this modal pops up, everything in the background should be grayed out, as if the page is transitioning to this modal.

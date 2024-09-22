@@ -9,6 +9,7 @@ export interface BusinessCard {
   company?: string;
   isPrimary: boolean;
   cardSlug: string;
+  username: string; // Add this line if it's not already present
   profilePictureUrl?: string | null;
   facebookUrl?: string;
   instagramUrl?: string;

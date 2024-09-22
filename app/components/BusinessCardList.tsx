@@ -13,7 +13,7 @@ interface BusinessCardListProps {
 export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) => {
   const [cards, setCards] = useState<BusinessCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [username, setUsername] = useState('');
+  const [username] = useState('');
   const [selectedCard, setSelectedCard] = useState<BusinessCard | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -25,15 +25,14 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
 
       // Fetch the user document to get the username
       const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
-        setUsername(userDoc.data().username || '');
-      }
+      const username = userDoc.exists() ? userDoc.data().username : '';
 
       const q = query(collection(db, 'users', userId, 'businessCards'));
       const querySnapshot = await getDocs(q);
       const fetchedCards: BusinessCard[] = querySnapshot.docs.map((docSnap) => ({
         id: docSnap.id,
-        ...docSnap.data()
+        ...docSnap.data(),
+        username // Add username to each card
       })) as BusinessCard[];
       setCards(fetchedCards);
       setIsLoading(false);

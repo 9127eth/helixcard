@@ -78,7 +78,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
         </div>
         <div className="w-1/3">
           <h2 className="text-xl font-semibold mb-4">Preview</h2>
-          {cardData && <BusinessCardDisplay card={cardData as BusinessCard} />}
+          {cardData && <BusinessCardDisplay card={cardData as unknown as BusinessCard} />}
         </div>
       </div>
     </Layout>

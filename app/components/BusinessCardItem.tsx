@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { FaStar } from 'react-icons/fa';
+import { FaStar, FaShare } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { deleteBusinessCard } from '../lib/firebaseOperations';
+import { ShareModal } from './ShareModal';
 
 interface BusinessCardItemProps {
   card: BusinessCard;
@@ -14,6 +15,7 @@ interface BusinessCardItemProps {
 export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView }) => {
   const { user } = useAuth();
   const router = useRouter();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!user) {
@@ -54,8 +56,12 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
           <Link href={`/edit-card/${card.id}`} className="text-sm text-indigo-600 hover:text-indigo-800 mr-3">
             Edit
           </Link>
-          <button onClick={onView} className="text-sm text-indigo-600 hover:text-indigo-800">
+          <button onClick={onView} className="text-sm text-indigo-600 hover:text-indigo-800 mr-3">
             Preview
+          </button>
+          <button onClick={() => setIsShareModalOpen(true)} className="text-sm text-indigo-600 hover:text-indigo-800">
+            <FaShare className="inline mr-1" />
+            Share
           </button>
         </div>
         <button
@@ -65,6 +71,11 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
           Delete
         </button>
       </div>
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        businessCard={card}
+      />
     </div>
   );
 };
