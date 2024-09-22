@@ -161,89 +161,149 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       <div className="space-y-4">
         <h3 className="font-semibold">Basic Information</h3>
         <div className="grid grid-cols-3 gap-4">
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            placeholder="First Name"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            required
-          />
-          <input
-            type="text"
-            name="middleName"
-            value={formData.middleName}
-            onChange={handleChange}
-            placeholder="Middle Name"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            placeholder="Last Name"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            required
-          />
+          <div>
+            <label htmlFor="firstName" className="block text-xs mb-1 font-bold text-gray-400">First Name</label>
+            <input
+              id="firstName"
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              placeholder="First Name"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="middleName" className="block text-xs mb-1 font-bold text-gray-400">Middle Name</label>
+            <input
+              id="middleName"
+              type="text"
+              name="middleName"
+              value={formData.middleName}
+              onChange={handleChange}
+              placeholder="Middle Name"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-xs mb-1 font-bold text-gray-400">Last Name</label>
+            <input
+              id="lastName"
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              placeholder="Last Name"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              required
+            />
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="jobTitle"
-            value={formData.jobTitle}
+          <div>
+            <label htmlFor="jobTitle" className="block text-xs mb-1 font-bold text-gray-400">Job Title</label>
+            <input
+              id="jobTitle"
+              type="text"
+              name="jobTitle"
+              value={formData.jobTitle}
+              onChange={handleChange}
+              placeholder="Job Title"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="company" className="block text-xs mb-1 font-bold text-gray-400">Company</label>
+            <input
+              id="company"
+              type="text"
+              name="company"
+              value={formData.company}
+              onChange={handleChange}
+              placeholder="Company"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="pronouns" className="block text-xs mb-1 font-bold text-gray-400">Pronouns</label>
+            <input
+              id="pronouns"
+              type="text"
+              name="pronouns"
+              value={formData.pronouns}
+              onChange={handleChange}
+              placeholder="Pronouns"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="prefix" className="block text-xs mb-1 font-bold text-gray-400">Prefix</label>
+            <input
+              id="prefix"
+              type="text"
+              name="prefix"
+              value={formData.prefix}
+              onChange={handleChange}
+              placeholder="Prefix"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="credentials" className="block text-xs mb-1 font-bold text-gray-400">Credentials</label>
+            <input
+              id="credentials"
+              type="text"
+              name="credentials"
+              value={formData.credentials}
+              onChange={handleChange}
+              placeholder="Credentials"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="aboutMe" className="block text-xs mb-1 font-bold text-gray-400">About Me</label>
+          <textarea
+            id="aboutMe"
+            name="aboutMe"
+            value={formData.aboutMe}
             onChange={handleChange}
-            placeholder="Job Title"
+            placeholder="About Me"
             className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
-          <input
-            type="text"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            placeholder="Company"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
-          <input
-            type="text"
-            name="pronouns"
-            value={formData.pronouns}
-            onChange={handleChange}
-            placeholder="Pronouns"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            rows={3}
           />
         </div>
-        <textarea
-          name="aboutMe"
-          value={formData.aboutMe}
-          onChange={handleChange}
-          placeholder="About Me"
-          className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          rows={3}
-        />
       </div>
 
       <div className="space-y-4">
         <h3 className="font-semibold">Contact Information</h3>
         <div className="grid grid-cols-2 gap-4">
-          <input
-            type="tel"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            placeholder="Phone Number"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            required
-          />
+          <div>
+            <label htmlFor="phoneNumber" className="block text-xs mb-1 font-bold text-gray-400">Phone Number</label>
+            <input
+              id="phoneNumber"
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              placeholder="Phone Number"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="email" className="block text-xs mb-1 font-bold text-gray-400">Email</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Email"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              required
+            />
+          </div>
         </div>
       </div>
 
@@ -287,16 +347,20 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
       <div className="space-y-4">
         <h3 className="font-semibold">Additional Information</h3>
-        <textarea
-          name="customMessage"
-          value={formData.customMessage}
-          onChange={handleChange}
-          placeholder="Custom Message"
-          className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          rows={2}
-        />
+        <div>
+          <label htmlFor="customMessage" className="block text-xs mb-1 font-bold text-gray-400">Custom Message</label>
+          <textarea
+            id="customMessage"
+            name="customMessage"
+            value={formData.customMessage}
+            onChange={handleChange}
+            placeholder="Custom Message"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            rows={2}
+          />
+        </div>
         <div className="space-y-2">
-          <label htmlFor="profilePicture" className="block text-xs font-medium text-gray-700">
+          <label htmlFor="profilePicture" className="block text-xs mb-1 font-bold text-gray-400">
             Profile Image
           </label>
           <input
@@ -310,7 +374,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
         {isPro && (
           <div className="space-y-2">
-            <label htmlFor="cv" className="block text-xs font-medium text-gray-700">
+            <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
               CV Upload (Pro feature)
             </label>
             <input
