@@ -70,10 +70,7 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
   };
 
   return (
-    <div>
-      <h2>Create New Business Card</h2>
-      <BusinessCardForm onSuccess={handleCreateCard} />
-    </div>
+    <BusinessCardForm onSuccess={handleCreateCard} />
   );
 };
 

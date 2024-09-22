@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp } from 'react-icons/fa';
 import { deleteBusinessCard } from '../lib/firebaseOperations';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -107,6 +107,41 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
         {card.twitter && (
           <a href={card.twitter} target="_blank" rel="noopener noreferrer">
             <FaTwitter size={24} />
+          </a>
+        )}
+        {card.tiktokUrl && (
+          <a href={card.tiktokUrl} target="_blank" rel="noopener noreferrer">
+            <FaTiktok size={24} />
+          </a>
+        )}
+        {card.youtubeUrl && (
+          <a href={card.youtubeUrl} target="_blank" rel="noopener noreferrer">
+            <FaYoutube size={24} />
+          </a>
+        )}
+        {card.discordUrl && (
+          <a href={card.discordUrl} target="_blank" rel="noopener noreferrer">
+            <FaDiscord size={24} />
+          </a>
+        )}
+        {card.twitchUrl && (
+          <a href={card.twitchUrl} target="_blank" rel="noopener noreferrer">
+            <FaTwitch size={24} />
+          </a>
+        )}
+        {card.snapchatUrl && (
+          <a href={card.snapchatUrl} target="_blank" rel="noopener noreferrer">
+            <FaSnapchat size={24} />
+          </a>
+        )}
+        {card.telegramUrl && (
+          <a href={card.telegramUrl} target="_blank" rel="noopener noreferrer">
+            <FaTelegram size={24} />
+          </a>
+        )}
+        {card.whatsappUrl && (
+          <a href={card.whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <FaWhatsapp size={24} />
           </a>
         )}
       </div>

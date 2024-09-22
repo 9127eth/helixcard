@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: import('../types').BusinessCardData) => void;
@@ -11,8 +13,8 @@ interface BusinessCardFormProps {
 
 export interface BusinessCardData {
   firstName: string;
-middleName?: string;
-lastName: string;
+  middleName?: string;
+  lastName: string;
   jobTitle: string;
   company: string;
   phoneNumber: string;
@@ -33,6 +35,13 @@ lastName: string;
   isPrimary: boolean;
   id?: string;
   description: string;
+  tiktokUrl?: string;
+  youtubeUrl?: string;
+  discordUrl?: string;
+  twitchUrl?: string;
+  snapchatUrl?: string;
+  telegramUrl?: string;
+  whatsappUrl?: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -59,6 +68,13 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     cardSlug: initialData?.cardSlug || '',
     isPrimary: initialData?.isPrimary || false,
     description: initialData?.description || '',
+    tiktokUrl: initialData?.tiktokUrl || '',
+    youtubeUrl: initialData?.youtubeUrl || '',
+    discordUrl: initialData?.discordUrl || '',
+    twitchUrl: initialData?.twitchUrl || '',
+    snapchatUrl: initialData?.snapchatUrl || '',
+    telegramUrl: initialData?.telegramUrl || '',
+    whatsappUrl: initialData?.whatsappUrl || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -309,39 +325,128 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
       <div className="space-y-4">
         <h3 className="font-semibold">Social Links</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            type="url"
-            name="linkedIn"
-            value={formData.linkedIn}
-            onChange={handleChange}
-            placeholder="LinkedIn URL"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
-          <input
-            type="text"
-            name="twitter"
-            value={formData.twitter}
-            onChange={handleChange}
-            placeholder="Twitter Handle"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
-          <input
-            type="url"
-            name="facebookUrl"
-            value={formData.facebookUrl}
-            onChange={handleChange}
-            placeholder="Facebook URL"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
-          <input
-            type="url"
-            name="instagramUrl"
-            value={formData.instagramUrl}
-            onChange={handleChange}
-            placeholder="Instagram URL"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faLinkedin} className="w-6 h-6" />
+            <input
+              type="url"
+              name="linkedIn"
+              value={formData.linkedIn}
+              onChange={handleChange}
+              placeholder="LinkedIn URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faTwitter} className="w-6 h-6" />
+            <input
+              type="text"
+              name="twitter"
+              value={formData.twitter}
+              onChange={handleChange}
+              placeholder="Twitter Handle"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faFacebook} className="w-6 h-6" />
+            <input
+              type="url"
+              name="facebookUrl"
+              value={formData.facebookUrl}
+              onChange={handleChange}
+              placeholder="Facebook URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faInstagram} className="w-6 h-6" />
+            <input
+              type="url"
+              name="instagramUrl"
+              value={formData.instagramUrl}
+              onChange={handleChange}
+              placeholder="Instagram URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faTiktok} className="w-6 h-6" />
+            <input
+              type="url"
+              name="tiktokUrl"
+              value={formData.tiktokUrl}
+              onChange={handleChange}
+              placeholder="TikTok URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faYoutube} className="w-6 h-6" />
+            <input
+              type="url"
+              name="youtubeUrl"
+              value={formData.youtubeUrl}
+              onChange={handleChange}
+              placeholder="YouTube URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faDiscord} className="w-6 h-6" />
+            <input
+              type="url"
+              name="discordUrl"
+              value={formData.discordUrl}
+              onChange={handleChange}
+              placeholder="Discord URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faTwitch} className="w-6 h-6" />
+            <input
+              type="url"
+              name="twitchUrl"
+              value={formData.twitchUrl}
+              onChange={handleChange}
+              placeholder="Twitch URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faSnapchat} className="w-6 h-6" />
+            <input
+              type="url"
+              name="snapchatUrl"
+              value={formData.snapchatUrl}
+              onChange={handleChange}
+              placeholder="Snapchat URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faTelegram} className="w-6 h-6" />
+            <input
+              type="url"
+              name="telegramUrl"
+              value={formData.telegramUrl}
+              onChange={handleChange}
+              placeholder="Telegram URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon icon={faWhatsapp} className="w-6 h-6" />
+            <input
+              type="url"
+              name="whatsappUrl"
+              value={formData.whatsappUrl}
+              onChange={handleChange}
+              placeholder="WhatsApp URL"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
         </div>
       </div>
 

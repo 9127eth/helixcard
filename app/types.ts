@@ -19,6 +19,13 @@ export interface BusinessCard {
   twitter?: string;
   aboutMe?: string;
   customMessage?: string;
+  tiktokUrl?: string;
+  youtubeUrl?: string;
+  discordUrl?: string;
+  twitchUrl?: string;
+  snapchatUrl?: string;
+  telegramUrl?: string;
+  whatsappUrl?: string;
 }
 
 export interface BusinessCardData {
@@ -45,6 +52,13 @@ export interface BusinessCardData {
   cv?: File;
   cardSlug: string;
   isPrimary: boolean;
+  tiktokUrl?: string;
+  youtubeUrl?: string;
+  discordUrl?: string;
+  twitchUrl?: string;
+  snapchatUrl?: string;
+  telegramUrl?: string;
+  whatsappUrl?: string;
 }
 
 
