@@ -25,11 +25,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
       : `${baseUrl}/c/${username}/${businessCard.cardSlug}`
   ) : '';
 
-  const qrCodeData = JSON.stringify({
-    ...businessCard,
-    webLinks: businessCard.webLinks,
-  });
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(cardUrl);
     setCopyFeedback('Copied!');
@@ -92,7 +87,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
           {qrCodeFormat === 'svg' ? (
             <QRCodeSVG
               id="qr-code-svg"
-              value={qrCodeData}
+              value={cardUrl}
               size={qrCodeSize}
               bgColor={isTransparent ? "transparent" : "#ffffff"}
               fgColor="#000000"
@@ -102,7 +97,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
           ) : (
             <QRCodeCanvas
               id="qr-code"
-              value={qrCodeData}
+              value={cardUrl}
               size={qrCodeSize}
               bgColor={isTransparent ? "transparent" : "#ffffff"}
               fgColor="#000000"
