@@ -3,7 +3,18 @@ import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import { 
+  faFacebook, 
+  faInstagram, 
+  faTiktok, 
+  faYoutube, 
+  faDiscord, 
+  faTwitch, 
+  faSnapchat, 
+  faTelegram, 
+  faWhatsapp 
+} from '@fortawesome/free-brands-svg-icons';
+import { faPlus, faLink } from '@fortawesome/free-solid-svg-icons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: import('../types').BusinessCardData) => void;
@@ -76,8 +87,13 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     telegramUrl: initialData?.telegramUrl || '',
     whatsappUrl: initialData?.whatsappUrl || '',
   });
+
+  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
+  const [dropdownHeight, setDropdownHeight] = useState(0);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchUserStatus = async () => {
@@ -95,6 +111,14 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
     fetchUserStatus();
   }, [user]);
+
+  useEffect(() => {
+    if (showSocialLinkDropdown && dropdownRef.current) {
+      setDropdownHeight(dropdownRef.current.scrollHeight);
+    } else {
+      setDropdownHeight(0);
+    }
+  }, [showSocialLinkDropdown]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -146,6 +170,23 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         }
       }
     }
+  };
+
+  const availableSocialLinks = [
+    { name: 'facebookUrl', label: 'Facebook', icon: faFacebook },
+    { name: 'instagramUrl', label: 'Instagram', icon: faInstagram },
+    { name: 'tiktokUrl', label: 'TikTok', icon: faTiktok },
+    { name: 'youtubeUrl', label: 'YouTube', icon: faYoutube },
+    { name: 'discordUrl', label: 'Discord', icon: faDiscord },
+    { name: 'twitchUrl', label: 'Twitch', icon: faTwitch },
+    { name: 'snapchatUrl', label: 'Snapchat', icon: faSnapchat },
+    { name: 'telegramUrl', label: 'Telegram', icon: faTelegram },
+    { name: 'whatsappUrl', label: 'WhatsApp', icon: faWhatsapp },
+  ];
+
+  const handleAddSocialLink = (linkName: string) => {
+    setAdditionalSocialLinks([...additionalSocialLinks, linkName]);
+    setShowSocialLinkDropdown(false);
   };
 
   if (!user) {
@@ -327,7 +368,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         <h3 className="font-semibold">Social Links</h3>
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faLinkedin} className="w-6 h-6" />
+            <FontAwesomeIcon icon={['fab', 'linkedin']} className="w-6 h-6" />
             <input
               type="url"
               name="linkedIn"
@@ -338,7 +379,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             />
           </div>
           <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faTwitter} className="w-6 h-6" />
+            <FontAwesomeIcon icon={['fab', 'twitter']} className="w-6 h-6" />
             <input
               type="text"
               name="twitter"
@@ -348,104 +389,51 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faFacebook} className="w-6 h-6" />
-            <input
-              type="url"
-              name="facebookUrl"
-              value={formData.facebookUrl}
-              onChange={handleChange}
-              placeholder="Facebook URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faInstagram} className="w-6 h-6" />
-            <input
-              type="url"
-              name="instagramUrl"
-              value={formData.instagramUrl}
-              onChange={handleChange}
-              placeholder="Instagram URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faTiktok} className="w-6 h-6" />
-            <input
-              type="url"
-              name="tiktokUrl"
-              value={formData.tiktokUrl}
-              onChange={handleChange}
-              placeholder="TikTok URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faYoutube} className="w-6 h-6" />
-            <input
-              type="url"
-              name="youtubeUrl"
-              value={formData.youtubeUrl}
-              onChange={handleChange}
-              placeholder="YouTube URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faDiscord} className="w-6 h-6" />
-            <input
-              type="url"
-              name="discordUrl"
-              value={formData.discordUrl}
-              onChange={handleChange}
-              placeholder="Discord URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faTwitch} className="w-6 h-6" />
-            <input
-              type="url"
-              name="twitchUrl"
-              value={formData.twitchUrl}
-              onChange={handleChange}
-              placeholder="Twitch URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faSnapchat} className="w-6 h-6" />
-            <input
-              type="url"
-              name="snapchatUrl"
-              value={formData.snapchatUrl}
-              onChange={handleChange}
-              placeholder="Snapchat URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faTelegram} className="w-6 h-6" />
-            <input
-              type="url"
-              name="telegramUrl"
-              value={formData.telegramUrl}
-              onChange={handleChange}
-              placeholder="Telegram URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faWhatsapp} className="w-6 h-6" />
-            <input
-              type="url"
-              name="whatsappUrl"
-              value={formData.whatsappUrl}
-              onChange={handleChange}
-              placeholder="WhatsApp URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
+          {additionalSocialLinks.map((link) => {
+            const socialLink = availableSocialLinks.find(sl => sl.name === link);
+            return (
+              <div key={link} className="flex items-center space-x-2">
+                <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-6 h-6" />
+                <input
+                  type="url"
+                  name={link}
+                  value={formData[link as keyof BusinessCardData] as string}
+                  onChange={handleChange}
+                  placeholder={`${socialLink?.label || 'Social'} URL`}
+                  className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+            );
+          })}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowSocialLinkDropdown(!showSocialLinkDropdown)}
+              className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center"
+            >
+              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              Add Social Link
+            </button>
+            <div 
+              className="absolute z-10 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out"
+              style={{ maxHeight: `${dropdownHeight}px` }}
+            >
+              <div ref={dropdownRef} className="grid grid-cols-2 gap-1 p-2">
+                {availableSocialLinks
+                  .filter(link => !additionalSocialLinks.includes(link.name))
+                  .map(link => (
+                    <button
+                      key={link.name}
+                      type="button"
+                      onClick={() => handleAddSocialLink(link.name)}
+                      className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded flex items-center text-sm"
+                    >
+                      <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4" />
+                      <span className="truncate">{link.label}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
