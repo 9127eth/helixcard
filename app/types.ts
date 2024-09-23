@@ -26,6 +26,7 @@ export interface BusinessCard {
   snapchatUrl?: string;
   telegramUrl?: string;
   whatsappUrl?: string;
+  webLinks?: { url: string; displayText: string }[];
 }
 
 export interface BusinessCardData {
@@ -59,6 +60,7 @@ export interface BusinessCardData {
   snapchatUrl?: string;
   telegramUrl?: string;
   whatsappUrl?: string;
+  webLinks: { url: string; displayText: string }[];
 }
 
 

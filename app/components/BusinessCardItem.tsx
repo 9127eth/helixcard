@@ -53,6 +53,11 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         </h3>
         <p className="text-sm text-gray-600">{card.jobTitle}</p>
         <p className="text-sm text-gray-600">{card.company}</p>
+        {card.webLinks && card.webLinks.length > 0 && (
+          <div className="mt-2">
+            <p className="text-sm text-gray-600">Web Links: {card.webLinks.length}</p>
+          </div>
+        )}
       </div>
       <div className="flex justify-between items-center mt-4">
         <div>

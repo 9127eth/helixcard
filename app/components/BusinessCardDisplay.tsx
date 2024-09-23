@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink } from 'react-icons/fa';
 import { deleteBusinessCard } from '../lib/firebaseOperations';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -145,6 +145,23 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
           </a>
         )}
       </div>
+      {card.webLinks && card.webLinks.length > 0 && (
+        <div className="flex flex-col space-y-2 mb-4">
+          <h4 className="font-semibold">Web Links</h4>
+          {card.webLinks.map((link, index) => (
+            <a
+              key={index}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 text-blue-600 hover:underline"
+            >
+              <FaLink size={16} />
+              <span>{link.displayText || link.url}</span>
+            </a>
+          ))}
+        </div>
+      )}
       {/* Removed primary card indicator */}
       <button
         onClick={handleDelete}

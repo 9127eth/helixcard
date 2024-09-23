@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: import('../types').BusinessCardData) => void;
@@ -43,6 +43,7 @@ export interface BusinessCardData {
   snapchatUrl?: string;
   telegramUrl?: string;
   whatsappUrl?: string;
+  webLinks: { url: string; displayText: string }[];
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -76,6 +77,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     snapchatUrl: initialData?.snapchatUrl || '',
     telegramUrl: initialData?.telegramUrl || '',
     whatsappUrl: initialData?.whatsappUrl || '',
+    webLinks: initialData?.webLinks || [{ url: '', displayText: '' }],
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
@@ -167,6 +169,21 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   const handleAddSocialLink = (linkName: string) => {
     setAdditionalSocialLinks([...additionalSocialLinks, linkName]);
     setShowSocialLinkDropdown(false);
+  };
+
+  const handleWebLinkChange = (index: number, field: 'url' | 'displayText', value: string) => {
+    setFormData((prevState) => {
+      const newWebLinks = [...prevState.webLinks];
+      newWebLinks[index] = { ...newWebLinks[index], [field]: value };
+      return { ...prevState, webLinks: newWebLinks };
+    });
+  };
+
+  const addWebLink = () => {
+    setFormData((prevState) => ({
+      ...prevState,
+      webLinks: [...prevState.webLinks, { url: '', displayText: '' }],
+    }));
   };
 
   if (!user) {
@@ -418,7 +435,40 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-semibold">Additional Information</h3>
+        <h3 className="font-semibold">Web Links</h3>
+        <div className="space-y-4">
+          {formData.webLinks.map((link, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <FontAwesomeIcon icon={faLink} className="w-6 h-6" />
+              <input
+                type="url"
+                value={link.url}
+                onChange={(e) => handleWebLinkChange(index, 'url', e.target.value)}
+                placeholder="URL"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+              <input
+                type="text"
+                value={link.displayText}
+                onChange={(e) => handleWebLinkChange(index, 'displayText', e.target.value)}
+                placeholder="Display Text"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addWebLink}
+            className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center"
+          >
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            Add Web Link
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">More Options</h3>
         <div>
           <label htmlFor="customMessage" className="block text-xs mb-1 font-bold text-gray-400">Custom Message</label>
           <textarea
