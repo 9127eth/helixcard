@@ -3,18 +3,8 @@ import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faFacebook, 
-  faInstagram, 
-  faTiktok, 
-  faYoutube, 
-  faDiscord, 
-  faTwitch, 
-  faSnapchat, 
-  faTelegram, 
-  faWhatsapp 
-} from '@fortawesome/free-brands-svg-icons';
-import { faPlus, faLink } from '@fortawesome/free-solid-svg-icons';
+import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: import('../types').BusinessCardData) => void;
@@ -92,8 +82,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
-  const [dropdownHeight, setDropdownHeight] = useState(0);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchUserStatus = async () => {
@@ -111,14 +99,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
     fetchUserStatus();
   }, [user]);
-
-  useEffect(() => {
-    if (showSocialLinkDropdown && dropdownRef.current) {
-      setDropdownHeight(dropdownRef.current.scrollHeight);
-    } else {
-      setDropdownHeight(0);
-    }
-  }, [showSocialLinkDropdown]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -368,7 +348,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         <h3 className="font-semibold">Social Links</h3>
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={['fab', 'linkedin']} className="w-6 h-6" />
+            <FontAwesomeIcon icon={faLinkedin} className="w-6 h-6" />
             <input
               type="url"
               name="linkedIn"
@@ -379,7 +359,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             />
           </div>
           <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={['fab', 'twitter']} className="w-6 h-6" />
+            <FontAwesomeIcon icon={faTwitter} className="w-6 h-6" />
             <input
               type="text"
               name="twitter"
@@ -393,7 +373,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             const socialLink = availableSocialLinks.find(sl => sl.name === link);
             return (
               <div key={link} className="flex items-center space-x-2">
-                <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-6 h-6" />
+                <FontAwesomeIcon icon={socialLink?.icon || 'link'} className="w-6 h-6" />
                 <input
                   type="url"
                   name={link}
@@ -414,26 +394,25 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
               <FontAwesomeIcon icon={faPlus} className="mr-2" />
               Add Social Link
             </button>
-            <div 
-              className="absolute z-10 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out"
-              style={{ maxHeight: `${dropdownHeight}px` }}
-            >
-              <div ref={dropdownRef} className="grid grid-cols-2 gap-1 p-2">
-                {availableSocialLinks
-                  .filter(link => !additionalSocialLinks.includes(link.name))
-                  .map(link => (
-                    <button
-                      key={link.name}
-                      type="button"
-                      onClick={() => handleAddSocialLink(link.name)}
-                      className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded flex items-center text-sm"
-                    >
-                      <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4" />
-                      <span className="truncate">{link.label}</span>
-                    </button>
-                  ))}
+            {showSocialLinkDropdown && (
+              <div className="absolute z-10 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg">
+                <div className="grid grid-cols-2 gap-1 p-2">
+                  {availableSocialLinks
+                    .filter(link => !additionalSocialLinks.includes(link.name))
+                    .map(link => (
+                      <button
+                        key={link.name}
+                        type="button"
+                        onClick={() => handleAddSocialLink(link.name)}
+                        className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded flex items-center text-sm"
+                      >
+                        <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4" />
+                        <span className="truncate">{link.label}</span>
+                      </button>
+                    ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
