@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faLink, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: import('../types').BusinessCardData) => void;
@@ -80,7 +80,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     webLinks: initialData?.webLinks || [{ url: '', displayText: '' }],
   });
 
-  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
+  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>(
+    ['linkedIn', 'twitter'] // Initialize with LinkedIn and Twitter
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
@@ -102,11 +104,25 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     fetchUserStatus();
   }, [user]);
 
+  const addProtocolToUrl = (url: string): string => {
+    if (url && !/^https?:\/\//i.test(url) && url !== 'https://') {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    let updatedValue = value;
+
+    // Add protocol to URL fields if necessary
+    if (name.toLowerCase().includes('url') || name === 'linkedIn') {
+      updatedValue = addProtocolToUrl(value);
+    }
+
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: updatedValue,
     }));
   };
 
@@ -155,6 +171,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   };
 
   const availableSocialLinks = [
+    { name: 'linkedIn', label: 'LinkedIn', icon: faLinkedin },
+    { name: 'twitter', label: 'Twitter', icon: faTwitter },
     { name: 'facebookUrl', label: 'Facebook', icon: faFacebook },
     { name: 'instagramUrl', label: 'Instagram', icon: faInstagram },
     { name: 'tiktokUrl', label: 'TikTok', icon: faTiktok },
@@ -174,6 +192,15 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   const handleWebLinkChange = (index: number, field: 'url' | 'displayText', value: string) => {
     setFormData((prevState) => {
       const newWebLinks = [...prevState.webLinks];
+      if (field === 'url') {
+        // Remove protocol if the user has cleared the input
+        if (value === '' || value === 'http://' || value === 'https://') {
+          value = '';
+        } else if (!value.match(/^https?:\/\//i)) {
+          // Add protocol only if it's not already there
+          value = addProtocolToUrl(value);
+        }
+      }
       newWebLinks[index] = { ...newWebLinks[index], [field]: value };
       return { ...prevState, webLinks: newWebLinks };
     });
@@ -184,6 +211,25 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       ...prevState,
       webLinks: [...prevState.webLinks, { url: '', displayText: '' }],
     }));
+  };
+
+  const removeSocialLink = (linkName: string) => {
+    if (confirm(`Are you sure you want to remove this ${linkName} link?`)) {
+      setAdditionalSocialLinks(additionalSocialLinks.filter(link => link !== linkName));
+      setFormData(prevState => ({
+        ...prevState,
+        [linkName]: '',
+      }));
+    }
+  };
+
+  const removeWebLink = (index: number) => {
+    if (confirm('Are you sure you want to remove this web link?')) {
+      setFormData(prevState => ({
+        ...prevState,
+        webLinks: prevState.webLinks.filter((_, i) => i !== index),
+      }));
+    }
   };
 
   if (!user) {
@@ -364,41 +410,26 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       <div className="space-y-4">
         <h3 className="font-semibold">Social Links</h3>
         <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faLinkedin} className="w-6 h-6" />
-            <input
-              type="url"
-              name="linkedIn"
-              value={formData.linkedIn}
-              onChange={handleChange}
-              placeholder="LinkedIn URL"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <FontAwesomeIcon icon={faTwitter} className="w-6 h-6" />
-            <input
-              type="text"
-              name="twitter"
-              value={formData.twitter}
-              onChange={handleChange}
-              placeholder="Twitter Handle"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
           {additionalSocialLinks.map((link) => {
             const socialLink = availableSocialLinks.find(sl => sl.name === link);
             return (
               <div key={link} className="flex items-center space-x-2">
-                <FontAwesomeIcon icon={socialLink?.icon || 'link'} className="w-6 h-6" />
+                <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-6 h-6" />
                 <input
-                  type="url"
+                  type={link === 'twitter' ? 'text' : 'url'}
                   name={link}
                   value={formData[link as keyof BusinessCardData] as string}
                   onChange={handleChange}
-                  placeholder={`${socialLink?.label || 'Social'} URL`}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                  placeholder={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'Handle' : 'URL'}`}
+                  className="w-1/2 px-2 py-1 border border-gray-300 rounded-md text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => removeSocialLink(link)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
               </div>
             );
           })}
@@ -454,6 +485,13 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
                 placeholder="Display Text"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
               />
+              <button
+                type="button"
+                onClick={() => removeWebLink(index)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
             </div>
           ))}
           <button
