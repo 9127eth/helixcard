@@ -19,10 +19,19 @@ const config: Config = {
         'light-pink': '#F1DBD9',
         'off-white': '#F5FDFD',
       },
+      fontFamily: {
+        sans: ['var(--font-inter)'],
+      },
+      letterSpacing: {
+        tighter: '-0.05em',
+        tight: '-0.025em',
+        normal: '0',
+      },
     },
   },
   plugins: [],
   darkMode: 'class',
 };
+
 export default config;
 
