@@ -94,33 +94,37 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
 
   return (
     <Layout title="Edit Business Card - HelixCard">
-      <div className="flex flex-col">
-        <div className="w-full pr-8">
-          <h1 className="text-2xl font-bold mb-4">Edit Your Business Card</h1>
+      <div className="flex">
+        <div className="w-3/5 pr-8">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Edit Your Business Card</h1>
+            <button
+              onClick={handlePreviewToggle}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm"
+            >
+              Preview
+            </button>
+          </div>
           <BusinessCardForm 
             initialData={cardData} 
             onSuccess={handleSuccess} 
-            onDelete={handleDelete} 
+            onDelete={handleDelete}
           />
-          <button
-            onClick={handlePreviewToggle}
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-          >
-            {isPreviewOpen ? 'Close Preview' : 'Open Preview'}
-          </button>
         </div>
-        {cardData && cardUrl && (
-          <PreviewModal
-            isOpen={isPreviewOpen}
-            onClose={handlePreviewToggle}
-            card={{
-              ...cardData,
-              isPrimary: cardData.isPrimary || false,
-              cardSlug: cardData.cardSlug || '',
-            } as BusinessCard}
-            username={username || ''}
-          />
-        )}
+        <div className="w-2/5">
+          {cardData && cardUrl && (
+            <PreviewModal
+              isOpen={isPreviewOpen}
+              onClose={handlePreviewToggle}
+              card={{
+                ...cardData,
+                isPrimary: cardData.isPrimary || false,
+                cardSlug: cardData.cardSlug || '',
+              } as BusinessCard}
+              username={username || ''}
+            />
+          )}
+        </div>
       </div>
     </Layout>
   );
