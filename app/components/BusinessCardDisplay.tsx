@@ -19,12 +19,22 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">
                 {card.prefix} {card.firstName} {card.middleName} {card.lastName}
-                {card.credentials && <span className="text-lg ml-2 text-gray-400">{card.credentials}</span>}
+                {(card.credentials || card.pronouns) && (
+                  <span className="text-lg ml-2 text-gray-400">
+                    {card.credentials}
+                    {card.credentials && card.pronouns && " "}
+                    {card.pronouns && (
+                      <span className="text-sm italic text-gray-400">
+                        ({card.pronouns})
+                      </span>
+                    )}
+                  </span>
+                )}
               </h1>
               <p className="text-lg sm:text-xl">
                 {card.jobTitle} {card.company && <span className="text-gray-400">| {card.company}</span>}
               </p>
-              {card.pronouns && <p className="text-sm italic text-gray-400">{card.pronouns}</p>}
+              {/* Remove the separate pronouns line */}
             </div>
           </div>
         </div>
