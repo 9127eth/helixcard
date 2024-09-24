@@ -27,6 +27,8 @@ export interface BusinessCard {
   telegramUrl?: string;
   whatsappUrl?: string;
   webLinks?: { url: string; displayText: string }[];
+  email?: string;
+  phoneNumber?: string;
 }
 
 export interface BusinessCardData {

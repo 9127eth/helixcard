@@ -52,123 +52,144 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
   };
 
   return (
-    <div className="business-card max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
-      {card.profilePictureUrl && (
-        <Image
-          src={card.profilePictureUrl}
-          alt={`${card.firstName} ${card.middleName ? card.middleName + ' ' : ''}${card.lastName}'s profile picture`}
-          width={100}
-          height={100}
-          className="rounded-full mb-4 mx-auto"
-        />
-      )}
-      {/* Removed description */}
-      <h1 className="text-2xl font-bold mb-2">
-        {card.prefix ? `${card.prefix} ` : ''}
-        {card.firstName}
-        {card.middleName ? ` ${card.middleName} ` : ' '}
-        {card.lastName}
-        {card.credentials ? `, ${card.credentials}` : ''}
-      </h1>
-      {card.pronouns && <p className="text-sm text-gray-500 mb-2">{card.pronouns}</p>}
-      <p className="text-xl text-gray-700 mb-1">{card.jobTitle}</p>
-      <p className="text-lg text-gray-600 mb-4">{card.company}</p>
-      
-      {card.aboutMe && (
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-2">About Me</h2>
-          <p className="text-gray-700">{card.aboutMe}</p>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-gray-900 text-white py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">
+                {card.firstName} {card.middleName} {card.lastName}
+              </h1>
+              <p className="text-xl">{card.jobTitle}</p>
+              <p className="text-gray-400">{card.company}</p>
+            </div>
+            <div className="mt-4 md:mt-0 space-x-2">
+              <button className="bg-blue-500 text-white px-4 py-2 rounded">
+                Send a Text
+              </button>
+              <button className="bg-green-500 text-white px-4 py-2 rounded">
+                Save Contact
+              </button>
+            </div>
+          </div>
         </div>
-      )}
-      
-      {card.customMessage && (
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-2">Custom Message</h2>
-          <p className="text-gray-700">{card.customMessage}</p>
-        </div>
-      )}
+      </header>
 
-      <div className="flex justify-center space-x-4 mb-4">
-        {card.facebookUrl && (
-          <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer">
-            <FaFacebook size={24} />
-          </a>
-        )}
-        {card.instagramUrl && (
-          <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer">
-            <FaInstagram size={24} />
-          </a>
-        )}
-        {card.linkedIn && (
-          <a href={card.linkedIn} target="_blank" rel="noopener noreferrer">
-            <FaLinkedin size={24} />
-          </a>
-        )}
-        {card.twitter && (
-          <a href={card.twitter} target="_blank" rel="noopener noreferrer">
-            <FaTwitter size={24} />
-          </a>
-        )}
-        {card.tiktokUrl && (
-          <a href={card.tiktokUrl} target="_blank" rel="noopener noreferrer">
-            <FaTiktok size={24} />
-          </a>
-        )}
-        {card.youtubeUrl && (
-          <a href={card.youtubeUrl} target="_blank" rel="noopener noreferrer">
-            <FaYoutube size={24} />
-          </a>
-        )}
-        {card.discordUrl && (
-          <a href={card.discordUrl} target="_blank" rel="noopener noreferrer">
-            <FaDiscord size={24} />
-          </a>
-        )}
-        {card.twitchUrl && (
-          <a href={card.twitchUrl} target="_blank" rel="noopener noreferrer">
-            <FaTwitch size={24} />
-          </a>
-        )}
-        {card.snapchatUrl && (
-          <a href={card.snapchatUrl} target="_blank" rel="noopener noreferrer">
-            <FaSnapchat size={24} />
-          </a>
-        )}
-        {card.telegramUrl && (
-          <a href={card.telegramUrl} target="_blank" rel="noopener noreferrer">
-            <FaTelegram size={24} />
-          </a>
-        )}
-        {card.whatsappUrl && (
-          <a href={card.whatsappUrl} target="_blank" rel="noopener noreferrer">
-            <FaWhatsapp size={24} />
-          </a>
-        )}
-      </div>
-      {card.webLinks && card.webLinks.length > 0 && (
-        <div className="flex flex-col space-y-2 mb-4">
-          <h4 className="font-semibold">Web Links</h4>
-          {card.webLinks.map((link, index) => (
-            <a
-              key={index}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 text-blue-600 hover:underline"
-            >
-              <FaLink size={16} />
-              <span>{link.displayText || link.url}</span>
-            </a>
-          ))}
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Social Links */}
+          <div className="md:col-span-2">
+            <h2 className="text-2xl font-bold mb-4">Social</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {card.linkedIn && (
+                <a href={card.linkedIn} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaLinkedin size={24} className="mr-2" />
+                  <span>LinkedIn</span>
+                </a>
+              )}
+              {card.twitter && (
+                <a href={card.twitter} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaTwitter size={24} className="mr-2" />
+                  <span>Twitter</span>
+                </a>
+              )}
+              {card.facebookUrl && (
+                <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaFacebook size={24} className="mr-2" />
+                  <span>Facebook</span>
+                </a>
+              )}
+              {card.instagramUrl && (
+                <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaInstagram size={24} className="mr-2" />
+                  <span>Instagram</span>
+                </a>
+              )}
+              {card.tiktokUrl && (
+                <a href={card.tiktokUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaTiktok size={24} className="mr-2" />
+                  <span>TikTok</span>
+                </a>
+              )}
+              {card.youtubeUrl && (
+                <a href={card.youtubeUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaYoutube size={24} className="mr-2" />
+                  <span>YouTube</span>
+                </a>
+              )}
+              {card.discordUrl && (
+                <a href={card.discordUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaDiscord size={24} className="mr-2" />
+                  <span>Discord</span>
+                </a>
+              )}
+              {card.twitchUrl && (
+                <a href={card.twitchUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaTwitch size={24} className="mr-2" />
+                  <span>Twitch</span>
+                </a>
+              )}
+              {card.snapchatUrl && (
+                <a href={card.snapchatUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaSnapchat size={24} className="mr-2" />
+                  <span>Snapchat</span>
+                </a>
+              )}
+              {card.telegramUrl && (
+                <a href={card.telegramUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaTelegram size={24} className="mr-2" />
+                  <span>Telegram</span>
+                </a>
+              )}
+              {card.whatsappUrl && (
+                <a href={card.whatsappUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded flex items-center justify-center">
+                  <FaWhatsapp size={24} className="mr-2" />
+                  <span>WhatsApp</span>
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* About Me */}
+          <div>
+            <h2 className="text-2xl font-bold mb-4">About Me</h2>
+            <p>{card.aboutMe}</p>
+          </div>
         </div>
-      )}
-      {/* Removed primary card indicator */}
-      <button
-        onClick={handleDelete}
-        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-      >
-        Delete Card
-      </button>
+
+        {/* Custom Links */}
+        {card.webLinks && card.webLinks.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">Quick Links</h2>
+            <div className="flex flex-wrap gap-4">
+              {card.webLinks.map((link, index) => (
+                <a
+                  key={index}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gray-200 px-4 py-2 rounded"
+                >
+                  {link.displayText || link.url}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Contact Information */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Contact</h2>
+          <p>{card.email}</p>
+          <p>{card.phoneNumber}</p>
+        </div>
+      </main>
+
+      <footer className="bg-gray-900 text-white py-4 mt-8">
+        <div className="container mx-auto px-4 text-center">
+          <p>&copy; 2024 {card.firstName} {card.lastName}. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 };
