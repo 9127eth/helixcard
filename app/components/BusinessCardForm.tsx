@@ -7,8 +7,8 @@ import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, fa
 import { faLink, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 interface BusinessCardFormProps {
-  onSuccess: (cardData: import('../types').BusinessCardData) => void;
-  initialData?: Partial<import('../types').BusinessCardData>;
+  onSuccess: (cardData: BusinessCardData) => void;
+  initialData?: Partial<BusinessCardData>;
   onDelete?: () => void;
 }
 
@@ -44,6 +44,7 @@ export interface BusinessCardData {
   telegramUrl?: string;
   whatsappUrl?: string;
   webLinks: { url: string; displayText: string }[];
+  customMessageHeader: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -78,6 +79,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     telegramUrl: initialData?.telegramUrl || '',
     whatsappUrl: initialData?.whatsappUrl || '',
     webLinks: initialData?.webLinks || [{ url: '', displayText: '' }],
+    customMessageHeader: initialData?.customMessageHeader || '',
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>(
@@ -506,7 +508,18 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-semibold">More Options</h3>
+        <h3 className="font-semibold">Custom Message</h3>
+        <div>
+          <label htmlFor="customMessageHeader" className="block text-xs mb-1 font-bold text-gray-400">Custom Message Header</label>
+          <input
+            id="customMessageHeader"
+            name="customMessageHeader"
+            value={formData.customMessageHeader}
+            onChange={handleChange}
+            placeholder="Custom Message Header (optional)"
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          />
+        </div>
         <div>
           <label htmlFor="customMessage" className="block text-xs mb-1 font-bold text-gray-400">Custom Message</label>
           <textarea

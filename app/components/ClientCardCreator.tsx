@@ -68,9 +68,8 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
-
   return (
-    <BusinessCardForm onSuccess={handleCreateCard} />
+    <BusinessCardForm onSuccess={(cardData) => handleCreateCard(cardData)} />
   );
 };
 

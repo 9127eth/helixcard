@@ -29,6 +29,7 @@ export interface BusinessCard {
   webLinks?: { url: string; displayText: string }[];
   email?: string;
   phoneNumber?: string;
+  customMessageHeader?: string;
 }
 
 export interface BusinessCardData {
