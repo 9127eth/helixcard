@@ -150,7 +150,12 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
         <div className="container mx-auto px-4 text-center">
           <h3 className="text-lg font-semibold mb-2">Get Your Own Business Card</h3>
           <p className="text-sm mb-4">Create a modern, digital business card like this one for free. Get started now!</p>
-          <Link href="/" className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded text-xs transition duration-300 mb-4">
+          <Link 
+            href="/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded text-xs transition duration-300 mb-4"
+          >
             Get Your Card
           </Link>
           <p className="text-xs">&copy; 2024 HelixCard. All rights reserved.</p>
