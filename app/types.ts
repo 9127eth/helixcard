@@ -30,6 +30,7 @@ export interface BusinessCard {
   email?: string;
   phoneNumber?: string;
   customMessageHeader?: string;
+  threadsUrl?: string;
 }
 
 export interface BusinessCardData {
@@ -64,6 +65,7 @@ export interface BusinessCardData {
   telegramUrl?: string;
   whatsappUrl?: string;
   webLinks: { url: string; displayText: string }[];
+  threadsUrl?: string;
 }
 
 

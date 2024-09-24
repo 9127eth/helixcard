@@ -2,7 +2,7 @@
 
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload, FaAt } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
 import Link from 'next/link';
 
@@ -78,7 +78,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
               )}
 
               {/* Social Links */}
-              {(card.linkedIn || card.twitter || card.facebookUrl || card.instagramUrl) && (
+              {(card.linkedIn || card.twitter || card.facebookUrl || card.instagramUrl || card.threadsUrl) && (
                 <div>
                   <h2 className="text-2xl font-bold mb-4">Social</h2>
                   <div className="grid grid-cols-2 gap-4">
@@ -104,6 +104,12 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                       <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
                         <FaInstagram size={29} className="mb-2" />
                         <span>Instagram</span>
+                      </a>
+                    )}
+                    {card.threadsUrl && (
+                      <a href={card.threadsUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
+                        <FaAt size={29} className="mb-2" />
+                        <span>Threads</span>
                       </a>
                     )}
                   </div>

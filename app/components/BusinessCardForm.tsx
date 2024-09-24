@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faLink, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus, faTrash, faAt } from '@fortawesome/free-solid-svg-icons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => void;
@@ -45,6 +45,7 @@ export interface BusinessCardData {
   whatsappUrl?: string;
   webLinks: { url: string; displayText: string }[];
   customMessageHeader: string;
+  threadsUrl?: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -80,14 +81,37 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     whatsappUrl: initialData?.whatsappUrl || '',
     webLinks: initialData?.webLinks || [{ url: '', displayText: '' }],
     customMessageHeader: initialData?.customMessageHeader || '',
+    threadsUrl: initialData?.threadsUrl || '',
   });
 
-  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>(
-    ['linkedIn', 'twitter'] // Initialize with LinkedIn and Twitter
-  );
+  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
+
+  useEffect(() => {
+    console.log('Initial data:', initialData);
+    if (initialData) {
+      setFormData(prevData => ({
+        ...prevData,
+        ...initialData
+      }));
+
+      const socialLinks = [
+        'linkedIn', 'twitter', 'facebookUrl', 'instagramUrl', 'threadsUrl',
+        'tiktokUrl', 'youtubeUrl', 'discordUrl', 'twitchUrl', 'snapchatUrl',
+        'telegramUrl', 'whatsappUrl'
+      ];
+      const existingSocialLinks = socialLinks.filter(link => initialData[link as keyof BusinessCardData]);
+      console.log('Existing social links:', existingSocialLinks);
+      setAdditionalSocialLinks(existingSocialLinks);
+    }
+  }, [initialData]);
+
+  useEffect(() => {
+    console.log('Form data:', formData);
+    console.log('Additional social links:', additionalSocialLinks);
+  }, [formData, additionalSocialLinks]);
 
   useEffect(() => {
     const fetchUserStatus = async () => {
@@ -184,6 +208,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     { name: 'snapchatUrl', label: 'Snapchat', icon: faSnapchat },
     { name: 'telegramUrl', label: 'Telegram', icon: faTelegram },
     { name: 'whatsappUrl', label: 'WhatsApp', icon: faWhatsapp },
+    { name: 'threadsUrl', label: 'Threads', icon: faAt },
   ];
 
   const handleAddSocialLink = (linkName: string) => {
