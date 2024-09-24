@@ -21,8 +21,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                 {card.prefix} {card.firstName} {card.middleName} {card.lastName}
                 {card.credentials && <span className="text-lg ml-2 text-gray-400">{card.credentials}</span>}
               </h1>
-              <p className="text-xl">{card.jobTitle}</p>
-              <p className="text-gray-400">{card.company}</p>
+              <p className="text-xl">
+                {card.jobTitle} {card.company && <span className="text-gray-400">| {card.company}</span>}
+              </p>
               {card.pronouns && <p className="text-sm italic text-gray-400">{card.pronouns}</p>}
             </div>
           </div>
@@ -31,11 +32,11 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
 
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-center space-x-4">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded flex items-center">
+          <button className="bg-black text-white px-5 py-2 rounded-full flex items-center hover:bg-gray-800 transition duration-300 text-sm">
             <FaPaperPlane className="mr-2" />
             Send a Text
           </button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded flex items-center">
+          <button className="bg-white text-black px-5 py-2 rounded-full flex items-center border border-black hover:bg-gray-100 transition duration-300 text-sm">
             <FaDownload className="mr-2" />
             Save Contact
           </button>
@@ -43,40 +44,70 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
       </div>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Social Links */}
-          <div className="md:col-span-2">
-            <h2 className="text-2xl font-bold mb-4">Social</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {card.linkedIn && (
-                <a href={card.linkedIn} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                  <FaLinkedin size={29} className="mb-2" />
-                  <span>LinkedIn</span>
-                </a>
-              )}
-              {card.twitter && (
-                <a href={card.twitter} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                  <FaTwitter size={29} className="mb-2" />
-                  <span>Twitter</span>
-                </a>
-              )}
-              {card.facebookUrl && (
-                <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                  <FaFacebook size={29} className="mb-2" />
-                  <span>Facebook</span>
-                </a>
-              )}
-              {card.instagramUrl && (
-                <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                  <FaInstagram size={29} className="mb-2" />
-                  <span>Instagram</span>
-                </a>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Social Links and Contact Info */}
+          <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-2">
+              {/* Contact Information (moved to the left for desktop) */}
+              <div className="order-1 md:order-none">
+                <h2 className="text-2xl font-bold mb-4">Contact</h2>
+                <p className="flex items-center mb-2">
+                  <FaEnvelope className="mr-2" />
+                  {card.email}
+                </p>
+                <p className="flex items-center">
+                  <FaPhone className="mr-2" />
+                  {card.phoneNumber}
+                </p>
+              </div>
+
+              {/* Social Links */}
+              <div>
+                <h2 className="text-2xl font-bold mb-4">Social</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {card.linkedIn && (
+                    <a href={card.linkedIn} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
+                      <FaLinkedin size={29} className="mb-2" />
+                      <span>LinkedIn</span>
+                    </a>
+                  )}
+                  {card.twitter && (
+                    <a href={card.twitter} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
+                      <FaTwitter size={29} className="mb-2" />
+                      <span>Twitter</span>
+                    </a>
+                  )}
+                  {card.facebookUrl && (
+                    <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
+                      <FaFacebook size={29} className="mb-2" />
+                      <span>Facebook</span>
+                    </a>
+                  )}
+                  {card.instagramUrl && (
+                    <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-gray-200 p-4 rounded-xl flex flex-col items-center justify-center h-28">
+                      <FaInstagram size={29} className="mb-2" />
+                      <span>Instagram</span>
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Links Section */}
-          <div>
+          {/* About Me (moved to the right for desktop) */}
+          <div className="lg:row-span-2">
+            <h2 className="text-2xl font-bold mb-4">About Me</h2>
+            <p>{card.aboutMe}</p>
+            {card.customMessage && (
+              <div className="mt-4">
+                <h3 className="text-xl font-semibold mb-2">Custom Message</h3>
+                <p>{card.customMessage}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Links Section (moved under Contact and Social for desktop) */}
+          <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold mb-4">Links</h2>
             {card.webLinks && card.webLinks.length > 0 && (
               <div className="flex flex-col space-y-2">
@@ -95,31 +126,6 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
               </div>
             )}
           </div>
-        </div>
-
-        {/* About Me */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">About Me</h2>
-          <p>{card.aboutMe}</p>
-          {card.customMessage && (
-            <div className="mt-4">
-              <h3 className="text-xl font-semibold mb-2">Custom Message</h3>
-              <p>{card.customMessage}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Contact Information */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Contact</h2>
-          <p className="flex items-center mb-2">
-            <FaEnvelope className="mr-2" />
-            {card.email}
-          </p>
-          <p className="flex items-center">
-            <FaPhone className="mr-2" />
-            {card.phoneNumber}
-          </p>
         </div>
       </main>
 
