@@ -24,7 +24,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                     {card.credentials}
                     {card.credentials && card.pronouns && " "}
                     {card.pronouns && (
-                      <span className="text-sm italic text-gray-400">
+                      <span className="text-sm italic text-gray-400 pronouns-spacing">
                         ({card.pronouns})
                       </span>
                     )}

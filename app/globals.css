@@ -48,6 +48,18 @@ body {
   background-color: #dc2626 !important; /* red-600 */
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3 {
   letter-spacing: theme('letterSpacing.tighter');
+}
+
+h4, h5, h6 {
+  letter-spacing: theme('letterSpacing.normal');
+}
+
+h1 .pronouns-spacing {
+  letter-spacing: theme('letterSpacing.normal');
+}
+
+h3 .business-card-form {
+  letter-spacing: theme('letterSpacing.normal');
 }
