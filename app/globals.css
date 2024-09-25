@@ -6,17 +6,19 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #221122;
-  --primary: #3B82F6;  /* Blue-500 in Tailwind */
-  --primary-text: #FFFFFF;
+  --background: #efefef;
+  --foreground: #000000;
+  --primary: #93DBD6;  /* Blue-500 in Tailwind */
+  --primary-text: #000000;
+  --card-header-bg: #000000;  /* Add this line */
+  --card-footer-bg: #000000;  /* Add this line */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #1F2937;  /* Gray-800 in Tailwind */
     --foreground: #F3F4F6;  /* Gray-100 in Tailwind */
-    --primary: #3B82F6;
+    --primary: #93DBD6;
     --primary-text: #FFFFFF;
   }
 }
@@ -40,12 +42,12 @@ body {
 }
 
 .delete-button {
-  background-color: #ef4444 !important; /* red-500 */
+  background-color: #FF6A42 !important; /* red-500 */
   color: white !important;
 }
 
 .delete-button:hover {
-  background-color: #dc2626 !important; /* red-600 */
+  background-color: #FF6A42 !important; /* red-600 */
 }
 
 h1, h2, h3 {

@@ -18,6 +18,8 @@ const config: Config = {
         'dark-pink': '#FECAB9',
         'light-pink': '#F1DBD9',
         'off-white': '#F5FDFD',
+        'card-header': 'var(--card-header-bg)',
+        'card-footer': 'var(--card-footer-bg)',
       },
       fontFamily: {
         sans: ['var(--font-inter)'],

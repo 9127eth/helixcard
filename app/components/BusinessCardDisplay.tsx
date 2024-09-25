@@ -13,7 +13,7 @@ interface BusinessCardDisplayProps {
 const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
   return (
     <div className="bg-white shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col">
-      <header className="bg-gray-900 text-white py-4 sm:py-6 lg:py-8 flex-shrink-0">
+      <header className="bg-card-header text-white py-4 sm:py-6 lg:py-8 flex-shrink-0">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
@@ -24,7 +24,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                     {card.credentials}
                     {card.credentials && card.pronouns && " "}
                     {card.pronouns && (
-                      <span className="text-sm italic text-gray-400 pronouns-spacing">
+                      <span className="text-sm italic text-gray-400">
                         ({card.pronouns})
                       </span>
                     )}
@@ -162,7 +162,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
         </div>
       </main>
 
-      <footer className="bg-gray-900 text-white py-4 sm:py-6 lg:py-8 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
+      <footer className="bg-card-footer text-white py-4 sm:py-6 lg:py-8 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
         <div className="container mx-auto px-4 text-center">
           <h3 className="text-lg font-semibold mb-2">Get Your Own Business Card</h3>
           <p className="text-sm mb-4">Create a modern, digital business card like this one for free. Get started now!</p>
