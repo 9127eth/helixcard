@@ -1,44 +1,20 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FaStar, FaShare } from 'react-icons/fa';
+import { FaStar, FaEdit, FaEye, FaQrcode } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
-import { useAuth } from '../hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { deleteBusinessCard } from '../lib/firebaseOperations';
 import { ShareModal } from './ShareModal';
 
 interface BusinessCardItemProps {
   card: BusinessCard;
   onView: () => void;
-  username: string | null; // Add this line
+  username: string | null;
 }
 
 export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username }) => {
-  const { user } = useAuth();
-  const router = useRouter();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  const handleDelete = async () => {
-    if (!user) {
-      alert('You must be logged in to delete a card.');
-      return;
-    }
-
-    const confirmDelete = confirm('Are you sure you want to delete this business card?');
-    if (!confirmDelete) return;
-
-    try {
-      await deleteBusinessCard(user, card.cardSlug);
-      alert('Business card deleted successfully.');
-      router.refresh();
-    } catch (error: unknown) {
-      console.error('Error deleting business card:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
-
   return (
-    <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative h-48 flex flex-col justify-between">
+    <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative h-48 flex flex-col justify-between bg-card-grid-background">
       {card.isPrimary && (
         <div className="absolute top-2 right-2 group">
           <FaStar className="h-3 w-3 text-black" />
@@ -55,30 +31,23 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <p className="text-sm text-gray-600">{card.company}</p>
       </div>
       <div className="flex justify-between items-center mt-4">
-        <div>
-          <Link href={`/edit-card/${card.id}`} className="text-sm text-indigo-600 hover:text-indigo-800 mr-3">
-            Edit
+        <div className="flex space-x-2">
+          <Link href={`/edit-card/${card.id}`} className="card-grid-icon-button">
+            <FaEdit />
           </Link>
-          <button onClick={onView} className="text-sm text-indigo-600 hover:text-indigo-800 mr-3">
-            Preview
-          </button>
-          <button onClick={() => setIsShareModalOpen(true)} className="text-sm text-indigo-600 hover:text-indigo-800">
-            <FaShare className="inline mr-1" />
-            Share
+          <button onClick={onView} className="card-grid-icon-button">
+            <FaEye />
           </button>
         </div>
-        <button
-          onClick={handleDelete}
-          className="delete-button bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition-colors"
-        >
-          Delete
+        <button onClick={() => setIsShareModalOpen(true)} className="card-grid-action-button">
+          <FaQrcode style={{ fontSize: '2em' }} /> Share
         </button>
       </div>
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         businessCard={card}
-        username={username} // Pass username here
+        username={username}
       />
     </div>
   );

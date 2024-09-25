@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faLink, faPlus, faTrash, faAt } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus, faTimes, faAt } from '@fortawesome/free-solid-svg-icons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => void;
@@ -453,9 +453,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
                 <button
                   type="button"
                   onClick={() => removeSocialLink(link)}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-gray-400 hover:text-[#FF6A42] transition-colors"
                 >
-                  <FontAwesomeIcon icon={faTrash} />
+                  <FontAwesomeIcon icon={faTimes} />
                 </button>
               </div>
             );
@@ -515,9 +515,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
               <button
                 type="button"
                 onClick={() => removeWebLink(index)}
-                className="text-red-500 hover:text-red-700"
+                className="text-gray-400 hover:text-[#FF6A42] transition-colors"
               >
-                <FontAwesomeIcon icon={faTrash} />
+                <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
           ))}

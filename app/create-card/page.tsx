@@ -15,7 +15,7 @@ const CreateCardPage: React.FC = () => {
           <h1 className="text-2xl font-bold mb-4">Create Your Business Card</h1>
           <ClientCardCreator user={user} />
         </div>
-        <div className="w-2/5 bg-white"></div>
+        <div className="w-2/5 bg-background"></div>
       </div>
     </Layout>
   );

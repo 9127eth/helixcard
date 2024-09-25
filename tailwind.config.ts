@@ -29,6 +29,9 @@ const config: Config = {
         tight: '-0.025em',
         normal: '0',
       },
+      backgroundColor: {
+        'card-grid-background': 'var(--card-grid-background)',
+      },
     },
   },
   plugins: [],

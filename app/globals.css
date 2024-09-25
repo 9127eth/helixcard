@@ -12,6 +12,7 @@
   --primary-text: #000000;
   --card-header-bg: #000000;  /* Add this line */
   --card-footer-bg: #000000;  /* Add this line */
+  --card-grid-background: #FFFFFF;  /* Add this line */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -64,4 +65,45 @@ h1 .pronouns-spacing {
 
 h3 .business-card-form {
   letter-spacing: theme('letterSpacing.normal');
+}
+
+.card-grid-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.54rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  background-color: #93DBD6;
+  border: 2px solid #93DBD6;
+  transition: all 0.2s ease-in-out;
+}
+
+.card-grid-action-button:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.card-grid-action-button svg {
+  margin-right: 0.5rem;
+}
+
+.card-grid-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  font-size: 1rem;
+  color: var(--foreground);
+  background-color: #93DBD6;
+  border: 2px solid #93DBD6;
+  transition: all 0.2s ease-in-out;
+}
+
+.card-grid-icon-button:hover {
+  background-color: #ffffff;
+  color: #000000;
 }

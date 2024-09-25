@@ -2,6 +2,8 @@ import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
+import { FaQuestionCircle, FaAddressBook, FaShoppingCart } from 'react-icons/fa';
+import { RiCarLine } from 'react-icons/ri';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -41,8 +43,30 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                 <div className="h-full flex flex-col justify-between p-4">
                   <nav>
                     <ul className="space-y-2">
-                      <li><Link href="/dashboard" className="block py-2 px-4 rounded hover:bg-gray-200">Dashboard</Link></li>
-                      <li><Link href="/create-card" className="block py-2 px-4 rounded hover:bg-gray-200">Create Card</Link></li>
+                      <li>
+                        <Link href="/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                          <RiCarLine className="text-xl" />
+                          <span>Dashboard</span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/how-it-works" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                          <FaQuestionCircle className="text-xl" />
+                          <span>How It Works</span>
+                        </Link>
+                      </li>
+                      <li className="opacity-50 cursor-not-allowed">
+                        <div className="flex items-center space-x-2 p-2 rounded">
+                          <FaAddressBook className="text-xl" />
+                          <span>Contacts (Coming Soon)</span>
+                        </div>
+                      </li>
+                      <li>
+                        <Link href="/shop" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                          <FaShoppingCart className="text-xl" />
+                          <span>Shop</span>
+                        </Link>
+                      </li>
                     </ul>
                   </nav>
                   <div className="mt-8">
