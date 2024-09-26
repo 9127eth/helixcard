@@ -94,8 +94,8 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
 
   return (
     <Layout title="Edit Business Card - HelixCard">
-      <div className="flex">
-        <div className="w-3/5 pr-8">
+      <div className="flex flex-col md:flex-row">
+        <div className="w-full md:w-3/5 md:pr-8">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">Edit Your Business Card</h1>
             <button
@@ -111,7 +111,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
             onDelete={handleDelete}
           />
         </div>
-        <div className="w-2/5">
+        <div className="hidden md:block md:w-2/5">
           {cardData && cardUrl && (
             <PreviewModal
               isOpen={isPreviewOpen}

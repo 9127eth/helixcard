@@ -10,12 +10,12 @@ const CreateCardPage: React.FC = () => {
 
   return (
     <Layout title="Create Business Card - HelixCard">
-      <div className="flex">
-        <div className="w-3/5 pr-8">
+      <div className="flex flex-col md:flex-row">
+        <div className="w-full md:w-3/5 md:pr-8">
           <h1 className="text-2xl font-bold mb-4">Create Your Business Card</h1>
           <ClientCardCreator user={user} />
         </div>
-        <div className="w-2/5 bg-background"></div>
+        <div className="hidden md:block md:w-2/5 bg-background"></div>
       </div>
     </Layout>
   );
