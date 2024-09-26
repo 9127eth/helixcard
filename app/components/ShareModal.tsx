@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
-import { QRCodeSVG } from 'qrcode.react'; // Keep this import
+import { QRCodeSVG } from 'qrcode.react';
 import { BusinessCard } from '@/app/types';
 import { FaCopy, FaExternalLinkAlt, FaDownload } from 'react-icons/fa';
 
