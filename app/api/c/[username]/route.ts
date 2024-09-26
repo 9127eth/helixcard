@@ -35,7 +35,7 @@ export async function GET(
 
     const cardData = { id: cardDoc.id, ...cardDoc.data() } as BusinessCard;
 
-    return NextResponse.json({ card: cardData });
+    return NextResponse.json({ card: cardData }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Error fetching primary business card:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

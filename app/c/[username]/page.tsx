@@ -17,7 +17,7 @@ interface ApiResponse {
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
   const { username } = params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
-  const res = await fetch(`${baseUrl}/api/c/${username}`, { next: { revalidate: 60 } });
+  const res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
 
   if (!res.ok) {
     return {
@@ -51,7 +51,7 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
 
   try {
-    const res = await fetch(`${baseUrl}/api/c/${username}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
 
     if (!res.ok) {
       const errorText = await res.text();
