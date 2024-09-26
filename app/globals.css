@@ -29,6 +29,7 @@
   --link-icon-color: #FF6A42;  /* New variable for link icons */
   --link-text-color: #333333;  /* New variable for link text */
   --end-card-header-secondary-text-color: #666666;  /* You can set any default color you prefer */
+  --share-modal-bg: #efefef; /* Default to white, but you can change this */
 }
 
 @media (prefers-color-scheme: dark) {

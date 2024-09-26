@@ -209,11 +209,11 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded text-xs transition duration-300 mb-4"
+            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-sm transition duration-300 mb-6"
           >
             Get Your Card
           </Link>
-          <p className="text-xs text-[var(--header-footer-secondary-text)]">&copy; 2024 HelixCard. All rights reserved.</p>
+          <p className="text-xs text-[var(--header-footer-secondary-text)] pb-4">&copy; 2024 HelixCard. All rights reserved.</p>
         </div>
       </footer>
     </div>
