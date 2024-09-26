@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { RegisterForm } from './RegisterForm';
 import { LoginForm } from './LoginForm';
 import { useAuth } from '../hooks/useAuth';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
@@ -31,13 +31,23 @@ export const AuthModal: React.FC = () => {
     try {
       const provider = new GoogleAuthProvider();
       if (!auth) {
-        console.error('Auth instance is not initialized');
         throw new Error('Auth instance is not initialized');
       }
-      console.log('Attempting Google Sign-In...');
-      const result = await signInWithPopup(auth, provider);
-      console.log('Google Sign-In successful:', result.user.uid);
-      handleSuccess();
+
+      // Check if the device is mobile
+      const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent);
+
+      if (isMobileDevice) {
+        // Use signInWithRedirect for mobile devices
+        console.log('Attempting Google Sign-In with Redirect...');
+        await signInWithRedirect(auth, provider);
+      } else {
+        // Use signInWithPopup for desktops
+        console.log('Attempting Google Sign-In with Popup...');
+        const result = await signInWithPopup(auth, provider);
+        console.log('Google Sign-In successful:', result.user.uid);
+        handleSuccess();
+      }
     } catch (error) {
       console.error('Google Sign-In Error:', error);
       if (error instanceof Error) {

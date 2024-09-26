@@ -111,7 +111,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
             onDelete={handleDelete}
           />
         </div>
-        <div className="hidden md:block md:w-2/5 relative">
+        <div className="hidden md:block md:w-2/5">
           {cardData && cardUrl && (
             <PreviewModal
               isOpen={isPreviewOpen}
@@ -125,23 +125,6 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
             />
           )}
         </div>
-        {/* Mobile preview modal */}
-        {cardData && cardUrl && (
-          <div className={`md:hidden fixed inset-0 z-50 ${isPreviewOpen ? 'flex' : 'hidden'} items-center justify-center`}>
-            <div className="bg-white w-full h-full max-w-md mx-auto rounded-lg shadow-lg overflow-hidden">
-              <PreviewModal
-                isOpen={isPreviewOpen}
-                onClose={handlePreviewToggle}
-                card={{
-                  ...cardData,
-                  isPrimary: cardData.isPrimary || false,
-                  cardSlug: cardData.cardSlug || '',
-                } as BusinessCard}
-                username={username || ''}
-              />
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );
