@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, onAuthStateChanged, signOut, getRedirectResult } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
 import { useRouter } from 'next/navigation';
@@ -26,30 +26,8 @@ export function useAuth() {
       }
     });
 
-    // Handle the redirect result after Google Sign-In on mobile devices
-    const handleRedirectResult = async () => {
-      if (!auth) {
-        console.error('Authentication is not initialized.');
-        return;
-      }
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          console.log('Google Sign-In successful:', result.user.uid);
-          // Create user document if needed
-          await createUserDocument(result.user);
-          // Redirect to the homepage/dashboard
-          router.push('/dashboard');
-        }
-      } catch (error) {
-        console.error('Error handling redirect result:', error);
-      }
-    };
-
-    handleRedirectResult();
-
     return () => unsubscribe();
-  }, [router]); // Add router to the dependency array
+  }, [router]);
 
   const logout = async () => {
     if (!auth) {
