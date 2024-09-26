@@ -15,7 +15,7 @@ const HowItWorksPage: React.FC = () => {
           </section>
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">2. Share Your Card</h2>
-            <p className="mb-4">Each of your business cards will get a unique QR code. Have the person you're connecting with scan it with their camera to go directly to your card. You can also share your card's unique link via text or email.</p>
+            <p className="mb-4">Each of your business cards will get a unique QR code. Have the person you are connecting with scan it with their camera to go directly to your card. You can also share your unique link via text or email.</p>
           </section>
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">3. Update Anytime</h2>
