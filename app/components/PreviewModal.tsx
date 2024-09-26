@@ -34,15 +34,19 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
 
   return (
     <div 
-      className={`fixed top-0 right-0 w-1/3 h-full bg-white shadow-lg transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 right-0 w-full md:w-1/3 h-full z-50 transition-all duration-300 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
-      <div className="h-full flex flex-col overflow-hidden">
+      <div className="bg-white h-full shadow-lg overflow-hidden flex flex-col">
         <div className="p-4 relative">
-          <button onClick={onClose} className="absolute top-2 right-2 text-xs text-gray-500 hover:text-gray-700">
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 px-2 py-1"
+          >
             Close Preview
           </button>
+          <h2 className="text-xl font-semibold mb-4">Card Preview</h2>
         </div>
         <div className="flex-grow overflow-hidden">
           <iframe
@@ -53,20 +57,20 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
           />
         </div>
         <div className="p-4">
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-4">
             <a 
               href={cardUrl} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs flex items-center"
+              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-sm flex items-center"
             >
               View in Browser
               <FaExternalLinkAlt className="ml-1" size={10} />
             </a>
           </div>
-          <div className="mt-4 text-center">
-            <div className="flex items-center justify-center">
-              <span className="text-xs font-semibold">Card URL</span>
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <span className="text-sm font-semibold">Card URL</span>
               <button onClick={handleCopyUrl} className="ml-2 relative">
                 <FaCopy className="text-gray-500 hover:text-gray-700" />
                 {copied && (
@@ -76,7 +80,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-600 mt-1 break-all">{cardUrl}</p>
+            <p className="text-xs text-gray-600 break-all">{cardUrl}</p>
           </div>
         </div>
       </div>
