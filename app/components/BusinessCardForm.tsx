@@ -287,7 +287,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
       <div className="space-y-4">
         <h3 className="font-semibold">Basic Information</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="firstName" className="block text-xs mb-1 font-bold text-gray-400">First Name</label>
             <input
@@ -327,7 +327,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="jobTitle" className="block text-xs mb-1 font-bold text-gray-400">Job Title</label>
             <input
@@ -405,7 +405,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
 
       <div className="space-y-4">
         <h3 className="font-semibold">Contact Information</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="phoneNumber" className="block text-xs mb-1 font-bold text-gray-400">Phone Number</label>
             <input

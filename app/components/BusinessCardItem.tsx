@@ -14,7 +14,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   return (
-    <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative h-48 flex flex-col justify-between bg-card-grid-background">
+    <div className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative h-auto flex flex-col justify-between bg-card-grid-background">
       {card.isPrimary && (
         <div className="absolute top-2 right-2 group">
           <FaStar className="h-3 w-3 text-black" />
@@ -30,7 +30,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <p className="text-sm text-gray-600">{card.jobTitle}</p>
         <p className="text-sm text-gray-600">{card.company}</p>
       </div>
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-4 space-y-4 md:space-y-0">
         <div className="flex space-x-2">
           <Link href={`/edit-card/${card.id}`} className="card-grid-icon-button">
             <FaEdit />
@@ -39,8 +39,8 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
             <FaEye />
           </button>
         </div>
-        <button onClick={() => setIsShareModalOpen(true)} className="card-grid-action-button">
-          <FaQrcode style={{ fontSize: '2em' }} /> Share
+        <button onClick={() => setIsShareModalOpen(true)} className="card-grid-action-button w-full md:w-40">
+          <FaQrcode style={{ fontSize: '1.5em' }} /> Share
         </button>
       </div>
       <ShareModal

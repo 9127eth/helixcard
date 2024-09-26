@@ -10,9 +10,25 @@
   --foreground: #000000;
   --primary: #93DBD6;  /* Blue-500 in Tailwind */
   --primary-text: #000000;
-  --card-header-bg: #000000;  /* Add this line */
-  --card-footer-bg: #000000;  /* Add this line */
+  --card-header-bg: #F5FDFD;  /*this is end-card-bg*/
+  --card-footer-bg: #FECAB9;  /* Add this line */
   --card-grid-background: #FFFFFF;  /* Add this line */
+  --end-card-bg: #efefef;  /* New variable for main card background */
+  
+  /* New variables */
+  --social-tile-bg: #ffffff;
+  --social-icon-color: #000000;
+  --social-text-color: #000000;
+  --body-primary-text: #333333;
+  --header-footer-primary-text: #000000;
+  --header-footer-secondary-text: #000000;
+  --send-text-button-bg: #93DBD6;
+  --send-text-button-text: #000000;
+  --save-contact-button-bg: #B9E4FE;
+  --save-contact-button-text: #000000;
+  --link-icon-color: #FF6A42;  /* New variable for link icons */
+  --link-text-color: #333333;  /* New variable for link text */
+  --end-card-header-secondary-text-color: #666666;  /* You can set any default color you prefer */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +37,22 @@
     --foreground: #F3F4F6;  /* Gray-100 in Tailwind */
     --primary: #93DBD6;
     --primary-text: #FFFFFF;
+    --end-card-bg: #2C3E50;  /* Dark mode main card background */
+    
+    /* New variables for dark mode */
+    --social-tile-bg: #2C3E50;
+    --social-icon-color: #FFFFFF;
+    --social-text-color: #FFFFFF;
+    --body-primary-text: #F3F4F6;
+    --header-footer-primary-text: #FFFFFF;
+    --header-footer-secondary-text: #A0AEC0;
+    --send-text-button-bg: #FFFFFF;
+    --send-text-button-text: #000000;
+    --save-contact-button-bg: #000000;
+    --save-contact-button-text: #FFFFFF;
+    --link-icon-color: #FFFFFF;  /* Dark mode link icon color */
+    --link-text-color: #F3F4F6;  /* Dark mode link text color */
+    --end-card-header-secondary-text-color: #A0AEC0;  /* Adjust for dark mode if needed */
   }
 }
 
@@ -106,4 +138,8 @@ h3 .business-card-form {
 .card-grid-icon-button:hover {
   background-color: #ffffff;
   color: #000000;
+}
+
+.pronouns-spacing {
+  letter-spacing: theme('letterSpacing.normal');
 }

@@ -1,9 +1,18 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
-import { FaQuestionCircle, FaAddressBook, FaShoppingCart } from 'react-icons/fa';
-import { RiCarLine } from 'react-icons/ri';
+import { FaQuestionCircle, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+
+// Custom BusinessCard icon component
+const BusinessCardIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+    <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+    <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" strokeWidth="2" />
+  </svg>
+);
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +22,8 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSidebar = true }) => {
   const { user, logout } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -22,6 +33,24 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
       console.error('Sign out error:', error);
     }
   };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024); // 1024px is the 'lg' breakpoint in Tailwind
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -33,11 +62,24 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
       <div className="flex flex-1">
         {user && showSidebar ? (
           <>
-            <div className="w-64 flex flex-col">
-              <header className="bg-off-white shadow-sm">
-                <div className="px-4 py-4">
-                  <Link href="/" className="text-2xl font-bold text-foreground">helixCard</Link>
-                </div>
+            <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col transition-all duration-300 ease-in-out`}>
+              <header className="bg-off-white shadow-sm flex items-center justify-between p-4">
+                {isSidebarOpen ? (
+                  <Link href="/" className="text-2xl font-bold text-foreground">Helix.</Link>
+                ) : (
+                  <span className="text-2xl font-bold">H</span>
+                )}
+                <button 
+                  onClick={toggleSidebar} 
+                  className={`transition-transform duration-300 ease-in-out ${isLargeScreen ? 'hidden' : ''}`}
+                  aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+                >
+                  {isSidebarOpen ? (
+                    <FaChevronLeft className="w-6 h-6 text-[#F1DBD9] stroke-[1.5]" />
+                  ) : (
+                    <FaChevronRight className="w-6 h-6 text-[#F1DBD9] stroke-[1.5]" />
+                  )}
+                </button>
               </header>
               <aside className="bg-off-white flex-1">
                 <div className="h-full flex flex-col justify-between p-4">
@@ -45,34 +87,36 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                     <ul className="space-y-2">
                       <li>
                         <Link href="/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
-                          <RiCarLine className="text-xl" />
-                          <span>Dashboard</span>
+                          <BusinessCardIcon />
+                          {isSidebarOpen && <span>My Cards</span>}
                         </Link>
                       </li>
                       <li>
                         <Link href="/how-it-works" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
                           <FaQuestionCircle className="text-xl" />
-                          <span>How It Works</span>
+                          {isSidebarOpen && <span>How It Works</span>}
                         </Link>
                       </li>
                       <li className="opacity-50 cursor-not-allowed">
                         <div className="flex items-center space-x-2 p-2 rounded">
                           <FaAddressBook className="text-xl" />
-                          <span>Contacts (Coming Soon)</span>
+                          {isSidebarOpen && <span>Contacts (Coming Soon)</span>}
                         </div>
                       </li>
                       <li>
                         <Link href="/shop" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
                           <FaShoppingCart className="text-xl" />
-                          <span>Shop</span>
+                          {isSidebarOpen && <span>Shop</span>}
                         </Link>
                       </li>
                     </ul>
                   </nav>
-                  <div className="mt-8">
-                    <p className="text-sm text-gray-600">Signed in as {user.email}</p>
-                    <button onClick={handleSignOut} className="text-foreground hover:text-gray-900 mt-2">Sign Out</button>
-                  </div>
+                  {isSidebarOpen && (
+                    <div className="mt-8">
+                      <p className="text-sm text-gray-600">Signed in as {user.email}</p>
+                      <button onClick={handleSignOut} className="text-foreground hover:text-gray-900 mt-2">Sign Out</button>
+                    </div>
+                  )}
                 </div>
               </aside>
             </div>
@@ -91,6 +135,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
       </div>
     </div>
   );
-};
+}
 
 export default Layout;
