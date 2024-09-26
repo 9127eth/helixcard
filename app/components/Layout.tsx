@@ -4,15 +4,16 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
-import { FaQuestionCircle, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaList, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaCreditCard } from 'react-icons/fa';
 
-// Custom BusinessCard icon component
-const BusinessCardIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-    <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
-    <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" strokeWidth="2" />
-  </svg>
-);
+// Remove the following component:
+// const BusinessCardIcon = () => (
+//   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+//     <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+//     <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" strokeWidth="2" />
+//   </svg>
+// );
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -87,13 +88,13 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                     <ul className="space-y-2">
                       <li>
                         <Link href="/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
-                          <BusinessCardIcon />
+                          <FaCreditCard className="text-xl" />
                           {isSidebarOpen && <span>My Cards</span>}
                         </Link>
                       </li>
                       <li>
                         <Link href="/how-it-works" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
-                          <FaQuestionCircle className="text-xl" />
+                          <FaList className="text-xl" />
                           {isSidebarOpen && <span>How It Works</span>}
                         </Link>
                       </li>
@@ -103,11 +104,11 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           {isSidebarOpen && <span>Contacts (Coming Soon)</span>}
                         </div>
                       </li>
-                      <li>
-                        <Link href="/shop" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                      <li className="opacity-50 cursor-not-allowed">
+                        <div className="flex items-center space-x-2 p-2 rounded">
                           <FaShoppingCart className="text-xl" />
-                          {isSidebarOpen && <span>Shop</span>}
-                        </Link>
+                          {isSidebarOpen && <span>Shop (Coming Soon)</span>}
+                        </div>
                       </li>
                     </ul>
                   </nav>

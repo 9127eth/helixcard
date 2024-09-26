@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FaStar, FaEdit, FaEye, FaQrcode } from 'react-icons/fa';
+import { FaStar, FaEdit, FaEye, FaShareAlt } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
 import { ShareModal } from './ShareModal';
 
@@ -32,16 +32,25 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
       </div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-4 space-y-4 md:space-y-0">
         <div className="flex space-x-2">
-          <Link href={`/edit-card/${card.id}`} className="card-grid-icon-button">
+          <Link href={`/edit-card/${card.id}`} className="card-grid-icon-button group relative">
             <FaEdit />
+            <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+              Edit
+            </span>
           </Link>
-          <button onClick={onView} className="card-grid-icon-button">
+          <button onClick={onView} className="card-grid-icon-button group relative">
             <FaEye />
+            <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+              Preview
+            </span>
+          </button>
+          <button onClick={() => setIsShareModalOpen(true)} className="card-grid-icon-button group relative">
+            <FaShareAlt />
+            <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+              Share this card
+            </span>
           </button>
         </div>
-        <button onClick={() => setIsShareModalOpen(true)} className="card-grid-action-button w-full md:w-40">
-          <FaQrcode style={{ fontSize: '1.5em' }} /> Share
-        </button>
       </div>
       <ShareModal
         isOpen={isShareModalOpen}

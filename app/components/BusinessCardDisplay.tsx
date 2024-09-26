@@ -11,6 +11,34 @@ interface BusinessCardDisplayProps {
 }
 
 const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
+  const generateVCard = (card: BusinessCard): string => {
+    let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
+    vCard += `FN:${card.firstName} ${card.lastName}\n`;
+    vCard += `ORG:${card.company}\n`;
+    vCard += `TITLE:${card.jobTitle}\n`;
+    if (card.phoneNumber) vCard += `TEL;TYPE=WORK,VOICE:${card.phoneNumber}\n`;
+    if (card.email) vCard += `EMAIL;TYPE=PREF,INTERNET:${card.email}\n`;
+    if (card.linkedIn) vCard += `URL;TYPE=LinkedIn:${card.linkedIn}\n`;
+    if (card.twitter) vCard += `URL;TYPE=Twitter:${card.twitter}\n`;
+    if (card.facebookUrl) vCard += `URL;TYPE=Facebook:${card.facebookUrl}\n`;
+    if (card.instagramUrl) vCard += `URL;TYPE=Instagram:${card.instagramUrl}\n`;
+    vCard += 'END:VCARD';
+    return vCard;
+  };
+
+  const handleSaveContact = () => {
+    const vCard = generateVCard(card);
+    const blob = new Blob([vCard], { type: 'text/vcard;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${card.firstName}_${card.lastName}.vcf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="bg-[var(--end-card-bg)] shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col">
       <header className="bg-card-header py-4 sm:py-6 lg:py-8 flex-shrink-0">
@@ -52,7 +80,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
             <FaPaperPlane className="mr-2" />
             Send a Text
           </button>
-          <button className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm">
+          <button 
+            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+            onClick={handleSaveContact}
+          >
             <FaDownload className="mr-2" />
             Save Contact
           </button>
