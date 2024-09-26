@@ -65,7 +65,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
             <BusinessCardItem
               card={card}
               onView={() => handleViewCard(card)}
-              username={username} // Pass username here
+              username={username}
             />
           </div>
         ))}

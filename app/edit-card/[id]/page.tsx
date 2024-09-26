@@ -94,25 +94,30 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
 
   return (
     <Layout title="Edit Business Card - HelixCard">
-      <div className="flex flex-col md:flex-row">
-        <div className="w-full md:w-3/5 md:pr-8">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Edit Your Business Card</h1>
-            <button
-              onClick={handlePreviewToggle}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm"
-            >
-              Preview
-            </button>
+      <div className="relative">
+        <div className="flex flex-col md:flex-row">
+          <div className="w-full md:w-3/5 md:pr-8">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold">Edit Your Business Card</h1>
+              <button
+                onClick={handlePreviewToggle}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm"
+              >
+                Preview
+              </button>
+            </div>
+            <BusinessCardForm 
+              initialData={cardData} 
+              onSuccess={handleSuccess} 
+              onDelete={handleDelete}
+            />
           </div>
-          <BusinessCardForm 
-            initialData={cardData} 
-            onSuccess={handleSuccess} 
-            onDelete={handleDelete}
-          />
+          <div className="hidden md:block md:w-2/5">
+            {/* This div is intentionally left empty for larger screens */}
+          </div>
         </div>
-        <div className="hidden md:block md:w-2/5">
-          {cardData && cardUrl && (
+        {cardData && cardUrl && (
+          <div className="md:hidden">
             <PreviewModal
               isOpen={isPreviewOpen}
               onClose={handlePreviewToggle}
@@ -123,8 +128,22 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
               } as BusinessCard}
               username={username || ''}
             />
-          )}
-        </div>
+          </div>
+        )}
+        {cardData && cardUrl && (
+          <div className="hidden md:block absolute top-0 right-0 h-full">
+            <PreviewModal
+              isOpen={isPreviewOpen}
+              onClose={handlePreviewToggle}
+              card={{
+                ...cardData,
+                isPrimary: cardData.isPrimary || false,
+                cardSlug: cardData.cardSlug || '',
+              } as BusinessCard}
+              username={username || ''}
+            />
+          </div>
+        )}
       </div>
     </Layout>
   );
