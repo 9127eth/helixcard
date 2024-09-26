@@ -3,7 +3,7 @@ import React from 'react';
 const WelcomeMessage: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
-      <h1 className="text-6xl font-bold mb-4 text-black">Helix.</h1>
+      <h1 className="text-6xl font-bold mb-4 text-black">Helix</h1>
       <p className="text-xl text-black">Helping people create memorable connections.</p>
     </div>
   );
