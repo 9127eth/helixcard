@@ -39,7 +39,16 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
 
       <div className="container mx-auto px-4 py-6 flex-shrink-0">
         <div className="flex justify-center space-x-4">
-          <button className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm">
+          <button
+            className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+            onClick={() => {
+              if (card.phoneNumber) {
+                window.location.href = `sms:${card.phoneNumber}`;
+              } else {
+                alert('No phone number available for this contact.');
+              }
+            }}
+          >
             <FaPaperPlane className="mr-2" />
             Send a Text
           </button>
