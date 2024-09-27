@@ -48,10 +48,14 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user }) => {
         ...cardData,
         cardSlug,
         isPrimary: isFirstCard || isPlaceholder,
-        name: `${cardData.firstName} ${cardData.lastName}`,
+        name: `${cardData.firstName}${cardData.lastName ? ' ' + cardData.lastName : ''}`.trim(),
+        lastName: cardData.lastName || '',
       };
 
-      const { cardSlug: returnedCardSlug } = await saveBusinessCard(user, updatedCardData);
+      const { cardSlug: returnedCardSlug } = await saveBusinessCard(user, {
+        ...updatedCardData,
+        email: cardData.email || '',
+      });
 
       // Update user document if this is the primary card
       if (isFirstCard || isPlaceholder) {

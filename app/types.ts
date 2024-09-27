@@ -3,7 +3,7 @@ export interface BusinessCard {
   description: string; // Add this line
   firstName: string;
   middleName?: string;
-  lastName: string;
+  lastName?: string; // Make lastName optional
   prefix?: string;
   credentials?: string;
   pronouns?: string;
@@ -27,7 +27,7 @@ export interface BusinessCard {
   telegramUrl?: string;
   whatsappUrl?: string;
   webLinks?: { url: string; displayText: string }[];
-  email?: string;
+  email?: string; // Make email optional
   phoneNumber?: string;
   customMessageHeader?: string;
   threadsUrl?: string;
@@ -38,11 +38,11 @@ export interface BusinessCardData {
   description: string;
   firstName: string;
   middleName?: string; // Make this optional
-  lastName: string;
+  lastName?: string; // Make lastName optional
   jobTitle: string;
   company: string;
   phoneNumber: string;
-  email: string;
+  email?: string; // Make email optional
   aboutMe: string;
   linkedIn: string;
   twitter: string;

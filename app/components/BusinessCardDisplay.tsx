@@ -13,7 +13,7 @@ interface BusinessCardDisplayProps {
 const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
-    vCard += `FN:${card.firstName} ${card.lastName}\n`;
+    vCard += `FN:${card.firstName}${card.lastName ? ' ' + card.lastName : ''}\n`;
     vCard += `ORG:${card.company}\n`;
     vCard += `TITLE:${card.jobTitle}\n`;
     if (card.phoneNumber) vCard += `TEL;TYPE=WORK,VOICE:${card.phoneNumber}\n`;
@@ -45,7 +45,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-col items-start">
             <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
-              {card.prefix} {card.firstName} {card.middleName} {card.lastName}
+              {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
               {(card.credentials || card.pronouns) && (
                 <span className="text-lg ml-2 text-[var(--end-card-header-secondary-text-color)]">
                   {card.credentials}

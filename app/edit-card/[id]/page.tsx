@@ -125,6 +125,8 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
                 ...cardData,
                 isPrimary: cardData.isPrimary || false,
                 cardSlug: cardData.cardSlug || '',
+                lastName: cardData.lastName || '',
+                email: cardData.email || '',
               } as BusinessCard}
               username={username || ''}
             />
@@ -139,6 +141,8 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
                 ...cardData,
                 isPrimary: cardData.isPrimary || false,
                 cardSlug: cardData.cardSlug || '',
+                lastName: cardData.lastName || '',
+                email: cardData.email || '',
               } as BusinessCard}
               username={username || ''}
             />

@@ -15,11 +15,11 @@ interface BusinessCardFormProps {
 export interface BusinessCardData {
   firstName: string;
   middleName?: string;
-  lastName: string;
+  lastName?: string;
   jobTitle: string;
   company: string;
   phoneNumber: string;
-  email: string;
+  email?: string;
   aboutMe: string;
   linkedIn: string;
   twitter: string;
@@ -174,6 +174,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     }
 
     try {
+      // Remove any specific validation for lastName and email
       await onSuccess(formData);
     } catch (error) {
       console.error('Error saving business card:', error);
@@ -323,7 +324,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
               onChange={handleChange}
               placeholder="Last Name"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-              required
             />
           </div>
         </div>
@@ -428,7 +428,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
               onChange={handleChange}
               placeholder="Email"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-              required
             />
           </div>
         </div>
