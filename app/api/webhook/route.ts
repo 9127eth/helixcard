@@ -58,11 +58,16 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     return;
   }
 
+  const isPro = status === 'active';
+
   await db.collection('users').doc(userRecord.uid).update({
-    isPro: status === 'active',
+    isPro,
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: customerId,
   });
+
+  // Update custom claims
+  await auth.setCustomUserClaims(userRecord.uid, { isPro });
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
@@ -74,5 +79,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     await db.collection('users').doc(firebaseUID).update({
       isPro: true,
     });
+
+    // Update custom claims
+    await auth.setCustomUserClaims(firebaseUID, { isPro: true });
   }
 }

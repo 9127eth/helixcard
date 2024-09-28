@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { auth } from '../../lib/firebase-admin';
+import { auth,db } from '../../lib/firebase-admin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -40,6 +40,16 @@ export async function POST(req: Request) {
 
     const invoice = subscription.latest_invoice as Stripe.Invoice;
     const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+
+    // Update Firebase user document with subscription details
+    await db.collection('users').doc(uid).update({
+      isPro: true,
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: customer.id,
+    });
+
+    // Update custom claims
+    await auth.setCustomUserClaims(uid, { isPro: true });
 
     return NextResponse.json({
       subscriptionId: subscription.id,
