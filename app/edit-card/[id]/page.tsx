@@ -94,7 +94,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
 
   return (
     <Layout title="Edit Business Card - HelixCard">
-      <div className="relative">
+      <div className="relative p-6 pb-12"> {/* Added padding here */}
         <div className="flex flex-col md:flex-row">
           <div className="w-full md:w-3/5 md:pr-8">
             <div className="flex justify-between items-center mb-4">
