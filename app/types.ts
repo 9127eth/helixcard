@@ -1,4 +1,7 @@
 export interface BusinessCard {
+  cvUrl: string;
+  cvHeader: string;
+  cvDescription: string;
   id: string;
   description: string; // Add this line
   firstName: string;
@@ -54,7 +57,6 @@ export interface BusinessCardData {
   facebookUrl: string;
   instagramUrl: string;
   profilePicture?: File;
-  cv?: File;
   cardSlug: string;
   isPrimary: boolean;
   tiktokUrl?: string;
@@ -66,6 +68,8 @@ export interface BusinessCardData {
   whatsappUrl?: string;
   webLinks: { url: string; displayText: string }[];
   threadsUrl?: string;
+  cvHeader?: string;
+  cvDescription?: string;
 }
 
 

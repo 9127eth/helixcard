@@ -1,16 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload, FaAt } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
 import Link from 'next/link';
+import { CvViewer } from './CvViewer';
 
 interface BusinessCardDisplayProps {
   card: BusinessCard;
 }
 
 const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
+  const [isCvViewerOpen, setIsCvViewerOpen] = useState(false);
+
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
     vCard += `FN:${card.firstName}${card.lastName ? ' ' + card.lastName : ''}\n`;
@@ -197,6 +200,19 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                 <p>{card.customMessage}</p>
               </div>
             )}
+
+            {card.cvUrl && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">{card.cvHeader || 'Curriculum Vitae'}</h2>
+                <p>{card.cvDescription || 'View my CV to learn more about my professional experience and qualifications.'}</p>
+                <button
+                  onClick={() => setIsCvViewerOpen(true)}
+                  className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                >
+                  View CV
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -216,6 +232,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
           <p className="text-xs text-[var(--header-footer-secondary-text)] pb-4">&copy; 2024 HelixCard. All rights reserved.</p>
         </div>
       </footer>
+
+      {isCvViewerOpen && card.cvUrl && (
+        <CvViewer cvUrl={card.cvUrl} onClose={() => setIsCvViewerOpen(false)} />
+      )}
     </div>
   );
 };

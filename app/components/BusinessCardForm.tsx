@@ -48,6 +48,8 @@ export interface BusinessCardData {
   customMessageHeader: string;
   threadsUrl?: string;
   cvUrl?: string;
+  cvHeader?: string;
+  cvDescription?: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -85,6 +87,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     customMessageHeader: initialData?.customMessageHeader || '',
     threadsUrl: initialData?.threadsUrl || '',
     cvUrl: initialData?.cvUrl || '',
+    cvHeader: initialData?.cvHeader || '',
+    cvDescription: initialData?.cvDescription || '',
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
@@ -594,31 +598,63 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
           />
         </div>
-        {isPro && (
-          <div className="space-y-2">
-            <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
-              CV Upload (Pro feature)
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="file"
-                id="cv"
-                name="cv"
-                onChange={handleCvUpload}
-                accept=".pdf"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
-              />
-              {(cvFile || formData.cvUrl) && (
-                <button
-                  type="button"
-                  onClick={handleCvDelete}
-                  className="bg-red-500 text-white px-2 py-1 rounded-md text-xs"
-                >
-                  Delete CV
-                </button>
-              )}
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">Add a Document</h3>
+        {isPro ? (
+          <>
+            <div className="space-y-2">
+              <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
+                Upload Document (Pro feature)
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="file"
+                  id="cv"
+                  name="cv"
+                  onChange={handleCvUpload}
+                  accept=".pdf"
+                  className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
+                />
+                {(cvFile || formData.cvUrl) && (
+                  <button
+                    type="button"
+                    onClick={handleCvDelete}
+                    className="bg-red-500 text-white px-2 py-1 rounded-md text-xs"
+                  >
+                    Delete Document
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 italic">Document must be a PDF.</p>
             </div>
-          </div>
+            <div>
+              <label htmlFor="cvHeader" className="block text-xs mb-1 font-bold text-gray-400">Document Header</label>
+              <input
+                id="cvHeader"
+                name="cvHeader"
+                value={formData.cvHeader}
+                onChange={handleChange}
+                placeholder="Doc Header (optional)"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="cvDescription" className="block text-xs mb-1 font-bold text-gray-400">Document Description</label>
+              <textarea
+                id="cvDescription"
+                name="cvDescription"
+                value={formData.cvDescription}
+                onChange={handleChange}
+                placeholder="Doc Description (optional)"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                rows={2}
+              />
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-gray-500">Document upload is a Pro feature. Upgrade to Pro to access this feature.</p>
         )}
       </div>
 
