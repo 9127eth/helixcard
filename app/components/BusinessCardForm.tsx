@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { faLink, faPlus, faTimes, faAt } from '@fortawesome/free-solid-svg-icons';
+import { deleteCv } from '../lib/firebaseOperations';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => void;
@@ -46,6 +47,7 @@ export interface BusinessCardData {
   webLinks: { url: string; displayText: string }[];
   customMessageHeader: string;
   threadsUrl?: string;
+  cvUrl?: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -82,12 +84,14 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     webLinks: initialData?.webLinks || [{ url: '', displayText: '' }],
     customMessageHeader: initialData?.customMessageHeader || '',
     threadsUrl: initialData?.threadsUrl || '',
+    cvUrl: initialData?.cvUrl || '',
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
+  const [cvFile, setCvFile] = useState<File | null>(null);
 
   useEffect(() => {
     console.log('Initial data:', initialData);
@@ -159,6 +163,13 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         ...prevState,
         [name]: files[0],
       }));
+    }
+  };
+
+  const handleCvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCvFile(file);
     }
   };
 
@@ -257,6 +268,20 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         ...prevState,
         webLinks: prevState.webLinks.filter((_, i) => i !== index),
       }));
+    }
+  };
+
+  const handleCvDelete = async () => {
+    if (!user || !formData.id) return;
+
+    try {
+      await deleteCv(user.uid, formData.id);
+      setCvFile(null);
+      setFormData(prevData => ({ ...prevData, cvUrl: undefined }));
+      // Show success message to user
+    } catch (error) {
+      console.error('Error deleting CV:', error);
+      // Show error message to user
     }
   };
 
@@ -574,14 +599,25 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
               CV Upload (Pro feature)
             </label>
-            <input
-              type="file"
-              id="cv"
-              name="cv"
-              onChange={handleFileChange}
-              accept=".pdf,.doc,.docx"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
-            />
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                id="cv"
+                name="cv"
+                onChange={handleCvUpload}
+                accept=".pdf"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
+              />
+              {(cvFile || formData.cvUrl) && (
+                <button
+                  type="button"
+                  onClick={handleCvDelete}
+                  className="bg-red-500 text-white px-2 py-1 rounded-md text-xs"
+                >
+                  Delete CV
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

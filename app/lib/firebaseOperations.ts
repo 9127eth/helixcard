@@ -13,6 +13,10 @@ import {
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { generateCardUrl, generateUniqueUsername, generateCardSlug } from './slugUtils';
+import { uploadCv } from './uploadUtils';
+import { ref, deleteObject } from 'firebase/storage'; // Removed getStorage as it's not used
+import { deleteField } from 'firebase/firestore';
+import { storage } from './firebase'; // Assuming you have a firebase.ts file with these exports
 
 // Added UserData interface
 interface UserData {
@@ -46,9 +50,10 @@ interface BusinessCardData {
   profilePicture?: File;
   cv?: File;
   isPrimary: boolean; 
+  cvUrl?: string;
 }
 
-export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
+export async function saveBusinessCard(user: User, cardData: BusinessCardData, cvFile?: File) {
   if (!user) throw new Error('User is not authenticated');
   if (!db) throw new Error('Firestore is not initialized');
 
@@ -69,6 +74,27 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
 
   const newCardRef = doc(businessCardsRef, cardSlug);
   const batch = writeBatch(db);
+
+  if (cvFile) {
+    // File type validation
+    if (cvFile.type !== 'application/pdf') {
+      throw new Error('Only PDF files are allowed for CV upload');
+    }
+
+    // File size validation (e.g., 5MB limit)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+    if (cvFile.size > MAX_FILE_SIZE) {
+      throw new Error('CV file size exceeds the 5MB limit');
+    }
+
+    try {
+      const cvUrl = await uploadCv(user.uid, cvFile);
+      cardData.cvUrl = cvUrl;
+    } catch (error) {
+      console.error('Error uploading CV:', error);
+      throw new Error('Failed to upload CV. Please try again.');
+    }
+  }
 
   batch.set(newCardRef, {
     ...cardData,
@@ -287,3 +313,29 @@ export const deleteBusinessCard = async (user: User, cardSlug: string) => {
 
   await batch.commit();
 };
+
+export async function deleteCv(userId: string, cardId: string) {
+  if (!db) throw new Error('Firestore is not initialized');
+  if (!storage) throw new Error('Firebase storage is not initialized');
+
+  const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
+  const cardDoc = await getDoc(cardRef);
+
+  if (!cardDoc.exists()) {
+    throw new Error('Business card not found');
+  }
+
+  const cardData = cardDoc.data() as BusinessCardData;
+
+  if (cardData.cvUrl) {
+    // Delete the CV file from storage
+    const cvRef = ref(storage, cardData.cvUrl);
+    await deleteObject(cvRef);
+
+    // Update the business card document to remove the CV URL
+    await updateDoc(cardRef, {
+      cvUrl: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  }
+}
