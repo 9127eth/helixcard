@@ -24,9 +24,12 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
-    case 'customer.subscription.deleted':
       const subscription = event.data.object as Stripe.Subscription;
       await handleSubscriptionChange(subscription);
+      break;
+    case 'customer.subscription.deleted':
+      const canceledSubscription = event.data.object as Stripe.Subscription;
+      await handleSubscriptionCancellation(canceledSubscription);
       break;
     case 'invoice.paid':
       const invoice = event.data.object as Stripe.Invoice;
@@ -103,8 +106,11 @@ async function handleSubscriptionCancellation(subscription: Stripe.Subscription)
   // Update the user's isPro status to false
   await db.collection('users').doc(userRecord.uid).update({
     isPro: false,
+    stripeSubscriptionId: null, // Remove the subscription ID
   });
 
   // Update custom claims
   await auth.setCustomUserClaims(userRecord.uid, { isPro: false });
+
+  console.log(`Subscription cancelled for user: ${userRecord.uid}`);
 }
