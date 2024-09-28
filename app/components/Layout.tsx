@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { FaList, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { FaCreditCard } from 'react-icons/fa';
 import { FaStar } from 'react-icons/fa';
+import { FaQuestionCircle, FaCog } from 'react-icons/fa';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -81,40 +82,52 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                     <ul className="space-y-2">
                       <li>
                         <Link href="/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
-                          <FaCreditCard className="text-xl" />
-                          {isSidebarOpen && <span>My Cards</span>}
+                          <FaCreditCard className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">My Cards</span>}
                         </Link>
                       </li>
                       <li>
                         <Link href="/how-it-works" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
-                          <FaList className="text-xl" />
-                          {isSidebarOpen && <span>How It Works</span>}
+                          <FaList className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">How It Works</span>}
                         </Link>
                       </li>
                       <li>
                         <Link href="/get-helix-pro" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
-                          <FaStar className="text-xl" />
-                          {isSidebarOpen && <span>Get Helix Pro</span>}
+                          <FaStar className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">Get Helix Pro</span>}
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/support" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                          <FaQuestionCircle className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">Support</span>}
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/settings" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                          <FaCog className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">Settings</span>}
                         </Link>
                       </li>
                       <li className="opacity-50 cursor-not-allowed">
                         <div className="flex items-center space-x-2 p-2 rounded">
-                          <FaAddressBook className="text-xl" />
-                          {isSidebarOpen && <span>Contacts (Coming Soon)</span>}
+                          <FaAddressBook className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">Contacts (Coming Soon)</span>}
                         </div>
                       </li>
                       <li className="opacity-50 cursor-not-allowed">
                         <div className="flex items-center space-x-2 p-2 rounded">
-                          <FaShoppingCart className="text-xl" />
-                          {isSidebarOpen && <span>Shop (Coming Soon)</span>}
+                          <FaShoppingCart className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">Shop (Coming Soon)</span>}
                         </div>
                       </li>
                     </ul>
                   </nav>
                   {isSidebarOpen && (
                     <div className="mt-8">
-                      <p className="text-sm text-gray-600">Signed in as {user.email}</p>
-                      <button onClick={handleSignOut} className="text-foreground hover:text-gray-900 mt-2">Sign Out</button>
+                      <p className="text-xs text-gray-600">Signed in as {user.email}</p>
+                      <button onClick={handleSignOut} className="text-sm text-foreground hover:text-gray-900 mt-2">Sign Out</button>
                     </div>
                   )}
                 </div>

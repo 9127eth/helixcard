@@ -53,35 +53,8 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData) {
   if (!db) throw new Error('Firestore is not initialized');
 
   const userRef = doc(db, 'users', user.uid);
-  let userDoc = await getDoc(userRef);
-
-  if (!userDoc.exists()) {
-    // Create user document if it doesn't exist
-    await createUserDocument(user);
-    userDoc = await getDoc(userRef);
-  }
-
-  let userData = userDoc.data() as UserData;
-
-  // Check for Stripe subscription if isPro is false
-  if (!userData.isPro) {
-    const idToken = await user.getIdToken();
-    const response = await fetch('/api/verify-subscription', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ idToken }),
-    });
-
-    const { success } = await response.json();
-
-    if (success) {
-      // Update user document with pro status
-      await updateDoc(userRef, { isPro: true });
-      userData.isPro = true;
-    }
-  }
+  const userDoc = await getDoc(userRef);
+  const userData = userDoc.data() as UserData;
 
   const businessCardsRef = collection(userRef, 'businessCards');
 
