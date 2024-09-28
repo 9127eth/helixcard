@@ -84,3 +84,27 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     await auth.setCustomUserClaims(firebaseUID, { isPro: true });
   }
 }
+
+async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
+  const customerId = subscription.customer as string;
+
+  // Find the Firebase user with the matching Stripe customer ID
+  const userRecord = await auth.listUsers().then(listUsersResult =>
+    listUsersResult.users.find(user =>
+      user.customClaims?.stripeCustomerId === customerId
+    )
+  );
+
+  if (!userRecord) {
+    console.error(`No user found for Stripe customer ID: ${customerId}`);
+    return;
+  }
+
+  // Update the user's isPro status to false
+  await db.collection('users').doc(userRecord.uid).update({
+    isPro: false,
+  });
+
+  // Update custom claims
+  await auth.setCustomUserClaims(userRecord.uid, { isPro: false });
+}

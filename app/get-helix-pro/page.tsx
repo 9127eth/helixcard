@@ -5,11 +5,40 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
 import StripePaymentForm from '../components/StripePaymentForm';
+import { useAuth } from '../hooks/useAuth';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const GetHelixProPage: React.FC = () => {
   const [isYearly, setIsYearly] = useState(false);
+  const { user } = useAuth();
+
+  const handleCancelSubscription = async () => {
+    if (!user) {
+      alert('You must be logged in to cancel your subscription.');
+      return;
+    }
+
+    try {
+      const idToken = await user.getIdToken();
+
+      const response = await fetch('/api/cancel-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel subscription');
+      }
+
+      alert('Subscription cancelled successfully. Your account will remain Pro until the end of the current billing period.');
+    } catch (error) {
+      alert('An error occurred. Please try again.');
+    }
+  };
 
   return (
     <Layout title="Get Helix Pro - HelixCard" showSidebar={true}>
@@ -40,7 +69,7 @@ const GetHelixProPage: React.FC = () => {
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center">
                     <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                    Up to 10 business cards
+                    1 free business card
                   </li>
                   <li className="flex items-center">
                     <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
@@ -56,7 +85,7 @@ const GetHelixProPage: React.FC = () => {
                   </li>
                   <li className="flex items-center text-gray-400">
                     <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    Analytics
+                    CV/Resume Upload
                   </li>
                 </ul>
               </div>
@@ -72,7 +101,7 @@ const GetHelixProPage: React.FC = () => {
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center">
                     <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                    Unlimited business cards
+                    Up to 5 business cards
                   </li>
                   <li className="flex items-center">
                     <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
@@ -88,13 +117,19 @@ const GetHelixProPage: React.FC = () => {
                   </li>
                   <li className="flex items-center">
                     <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                    Analytics
+                    CV/Resume Upload
                   </li>
                 </ul>
               </div>
               <StripePaymentForm isYearly={isYearly} />
             </div>
           </div>
+          <button
+            onClick={handleCancelSubscription}
+            className="mt-8 bg-red-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200"
+          >
+            Cancel Subscription
+          </button>
         </div>
       </Elements>
     </Layout>
