@@ -6,14 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import { FaList, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { FaCreditCard } from 'react-icons/fa';
-
-// Remove the following component:
-// const BusinessCardIcon = () => (
-//   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-//     <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
-//     <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" strokeWidth="2" />
-//   </svg>
-// );
+import { FaStar } from 'react-icons/fa';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -98,6 +91,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           {isSidebarOpen && <span>How It Works</span>}
                         </Link>
                       </li>
+                      <li>
+                        <Link href="/get-helix-pro" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                          <FaStar className="text-xl" />
+                          {isSidebarOpen && <span>Get Helix Pro</span>}
+                        </Link>
+                      </li>
                       <li className="opacity-50 cursor-not-allowed">
                         <div className="flex items-center space-x-2 p-2 rounded">
                           <FaAddressBook className="text-xl" />
@@ -127,7 +126,9 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                   {/* Add any content for the right side header here */}
                 </div>
               </header>
-              <main className="flex-1 bg-background p-4">{children}</main>
+              <main className="flex-grow">
+                {children}
+              </main>
             </div>
           </>
         ) : (
