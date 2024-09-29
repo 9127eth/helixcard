@@ -612,100 +612,103 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-semibold">Add a Document</h3>
-        {isPro ? (
-          <>
-            <div className="space-y-2">
-              <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
-                Upload Document (Pro feature)
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  id="cv"
-                  name="cv"
-                  onChange={handleCvUpload}
-                  accept=".pdf"
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
-                />
-              </div>
-              <p className="text-xs text-gray-500 italic">Document must be a PDF</p>
-            </div>
-            {(cvFile || formData.cvUrl) && (
-              <div className="flex items-center space-x-6 text-sm">
-                {formData.cvUrl && (
-                  <>
-                    <a
-                      href={formData.cvUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-black hover:underline flex items-center"
-                    >
-                      <FontAwesomeIcon icon={faEye} className="mr-2 w-4 h-4 text-gray-400" /> View Document
-                    </a>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={handleCopyUrl}
-                        className="text-black hover:underline flex items-center"
-                      >
-                        <FontAwesomeIcon icon={faCopy} className="mr-2 w-4 h-4 text-gray-400" /> Copy URL
-                      </button>
-                      {showCopyTooltip && (
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded">
-                          URL Copied!
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-                <button
-                  type="button"
-                  onClick={handleCvDelete}
-                  className="text-black hover:underline flex items-center"
+        <h3 className="font-semibold">
+          Add a Document 
+          {!isPro && <span className="text-xs text-gray-500 ml-2">(Upgrade to Pro to access this feature)</span>}
+        </h3>
+        <div className="space-y-2">
+          <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
+            Upload Document {!isPro && <span className="text-xs text-gray-500">(Pro feature)</span>}
+          </label>
+          <div className="flex items-center space-x-2">
+            <input
+              type="file"
+              id="cv"
+              name="cv"
+              onChange={handleCvUpload}
+              accept=".pdf"
+              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-xs ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              disabled={!isPro}
+            />
+          </div>
+          <p className="text-xs text-gray-500 italic">Document must be a PDF</p>
+        </div>
+        {(cvFile || formData.cvUrl) && (
+          <div className="flex items-center space-x-6 text-sm">
+            {formData.cvUrl && (
+              <>
+                <a
+                  href={formData.cvUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-black hover:underline flex items-center ${!isPro && 'pointer-events-none opacity-50'}`}
                 >
-                  <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4 text-gray-400" /> Delete Document
-                </button>
-              </div>
+                  <FontAwesomeIcon icon={faEye} className="mr-2 w-4 h-4 text-gray-400" /> View Document
+                </a>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={handleCopyUrl}
+                    className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                    disabled={!isPro}
+                  >
+                    <FontAwesomeIcon icon={faCopy} className="mr-2 w-4 h-4 text-gray-400" /> Copy URL
+                  </button>
+                  {showCopyTooltip && (
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded">
+                      URL Copied!
+                    </div>
+                  )}
+                </div>
+              </>
             )}
-            <div>
-              <label htmlFor="cvHeader" className="block text-xs mb-1 font-bold text-gray-400">Document Header</label>
-              <input
-                id="cvHeader"
-                name="cvHeader"
-                value={formData.cvHeader}
-                onChange={handleChange}
-                placeholder="Doc Header (optional)"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="cvDescription" className="block text-xs mb-1 font-bold text-gray-400">Document Description</label>
-              <textarea
-                id="cvDescription"
-                name="cvDescription"
-                value={formData.cvDescription}
-                onChange={handleChange}
-                placeholder="Doc Description (optional)"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                rows={2}
-              />
-            </div>
-            <div>
-              <label htmlFor="cvDisplayText" className="block text-xs mb-1 font-bold text-gray-400">Document Display Text</label>
-              <input
-                id="cvDisplayText"
-                name="cvDisplayText"
-                value={formData.cvDisplayText}
-                onChange={handleChange}
-                placeholder="Defaults to 'View Document' if left blank"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-              />
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-gray-500">Document upload is a Pro feature. Upgrade to Pro to access this feature.</p>
+            <button
+              type="button"
+              onClick={handleCvDelete}
+              className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              disabled={!isPro}
+            >
+              <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4 text-gray-400" /> Delete Document
+            </button>
+          </div>
         )}
+        <div>
+          <label htmlFor="cvHeader" className="block text-xs mb-1 font-bold text-gray-400">Document Header</label>
+          <input
+            id="cvHeader"
+            name="cvHeader"
+            value={formData.cvHeader}
+            onChange={handleChange}
+            placeholder="Doc Header (optional)"
+            className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+            disabled={!isPro}
+          />
+        </div>
+        <div>
+          <label htmlFor="cvDescription" className="block text-xs mb-1 font-bold text-gray-400">Document Description</label>
+          <textarea
+            id="cvDescription"
+            name="cvDescription"
+            value={formData.cvDescription}
+            onChange={handleChange}
+            placeholder="Doc Description (optional)"
+            className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+            rows={2}
+            disabled={!isPro}
+          />
+        </div>
+        <div>
+          <label htmlFor="cvDisplayText" className="block text-xs mb-1 font-bold text-gray-400">Document Display Text</label>
+          <input
+            id="cvDisplayText"
+            name="cvDisplayText"
+            value={formData.cvDisplayText}
+            onChange={handleChange}
+            placeholder="Defaults to 'View Document' if left blank"
+            className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+            disabled={!isPro}
+          />
+        </div>
       </div>
 
       <div className="flex justify-between items-center">
