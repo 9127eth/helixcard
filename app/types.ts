@@ -1,7 +1,8 @@
 export interface BusinessCard {
-  cvUrl: string;
-  cvHeader: string;
-  cvDescription: string;
+  cvUrl?: string;
+  cvHeader?: string;
+  cvDescription?: string;
+  cvDisplayText?: string;
   id: string;
   description: string; // Add this line
   firstName: string;

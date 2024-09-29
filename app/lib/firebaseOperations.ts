@@ -75,6 +75,8 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   const newCardRef = doc(businessCardsRef, cardSlug);
   const batch = writeBatch(db);
 
+  let cvUrl: string | undefined;
+
   if (cvFile) {
     // File type validation
     if (cvFile.type !== 'application/pdf') {
@@ -88,20 +90,23 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
     }
 
     try {
-      const cvUrl = await uploadCv(user.uid, cvFile);
-      cardData.cvUrl = cvUrl;
+      cvUrl = await uploadCv(user.uid, cvFile);
     } catch (error) {
       console.error('Error uploading CV:', error);
       throw new Error('Failed to upload CV. Please try again.');
     }
   }
 
+  // Remove the cv property from cardData
+  const { ...cardDataWithoutCv } = cardData;
+
   batch.set(newCardRef, {
-    ...cardData,
+    ...cardDataWithoutCv,
     cardSlug,
     isPrimary: isFirstCard || isPlaceholder,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    cvUrl: cvUrl, // Add the cvUrl if it exists
   });
 
   if (isFirstCard || isPlaceholder) {
@@ -280,8 +285,34 @@ export async function getBusinessCard(userId: string, cardId: string) {
 
 export async function updateBusinessCard(userId: string, cardId: string, cardData: Partial<BusinessCardData>) {
   if (!db) throw new Error('Firebase database is not initialized');
+  if (!storage) throw new Error('Firebase storage is not initialized');
+
   const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
-  await updateDoc(cardRef, cardData);
+
+  // Handle CV file upload
+  if (cardData.cv instanceof File) {
+    try {
+      const cvUrl = await uploadCv(userId, cardData.cv);
+      cardData.cvUrl = cvUrl;
+    } catch (error) {
+      console.error('Error uploading CV:', error);
+      throw new Error('Failed to upload CV. Please try again.');
+    }
+  }
+
+  // Remove the cv property from cardData
+  const { ...cardDataWithoutCv } = cardData;
+
+  // Remove undefined fields
+  const cleanedCardData = Object.entries(cardDataWithoutCv).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (acc as any)[key] = value;
+    }
+    return acc;
+  }, {} as Partial<BusinessCardData>);
+
+  await updateDoc(cardRef, cleanedCardData);
 }
 
 export const deleteBusinessCard = async (user: User, cardSlug: string) => {

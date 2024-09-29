@@ -504,3 +504,14 @@ E. Testing
 Implement unit tests for critical functions.
 Use testing frameworks compatible with each platform (e.g., Jest for React Native).
 Perform end-to-end testing before each release.
+
+1. Subscription Renewal:
+Stripe handles automatic renewals for subscriptions.
+You don't need to manually charge the customer; Stripe will attempt to charge the card on file.
+Cancellation:
+Implement a cancellation feature in your application.
+When a user cancels, you should call Stripe's API to cancel the subscription.
+Decide whether to end the subscription immediately or at the end of the current billing period.
+Failed Payments:
+Stripe will automatically retry failed payments according to a smart retry schedule.
+You should set up Stripe webhooks to be notified of events like payment failures or successful retries.

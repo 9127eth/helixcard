@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faLink, faPlus, faTimes, faAt } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { deleteCv } from '../lib/firebaseOperations';
 
 interface BusinessCardFormProps {
-  onSuccess: (cardData: BusinessCardData) => void;
+  onSuccess: (cardData: BusinessCardData, cvFile?: File) => void;
   initialData?: Partial<BusinessCardData>;
   onDelete?: () => void;
 }
@@ -50,6 +50,7 @@ export interface BusinessCardData {
   cvUrl?: string;
   cvHeader?: string;
   cvDescription?: string;
+  cvDisplayText?: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -89,6 +90,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     cvUrl: initialData?.cvUrl || '',
     cvHeader: initialData?.cvHeader || '',
     cvDescription: initialData?.cvDescription || '',
+    cvDisplayText: initialData?.cvDisplayText || '',
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
@@ -96,6 +98,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   const [error, setError] = useState<string | null>(null);
   const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [showCopyTooltip, setShowCopyTooltip] = useState(false);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     console.log('Initial data:', initialData);
@@ -187,10 +191,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       setIsSubmitting(false);
       return;
     }
-
     try {
-      // Remove any specific validation for lastName and email
-      await onSuccess(formData);
+      await onSuccess({ ...formData, cv: cvFile || undefined });
     } catch (error) {
       console.error('Error saving business card:', error);
       setError('Failed to save business card. Please try again.');
@@ -281,11 +283,20 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     try {
       await deleteCv(user.uid, formData.id);
       setCvFile(null);
-      setFormData(prevData => ({ ...prevData, cvUrl: undefined }));
+      setFormData(prevData => ({ ...prevData, cvUrl: '' }));
       // Show success message to user
     } catch (error) {
       console.error('Error deleting CV:', error);
       // Show error message to user
+    }
+  };
+
+  const handleCopyUrl = () => {
+    if (formData.cvUrl) {
+      navigator.clipboard.writeText(formData.cvUrl);
+      setShowCopyTooltip(true);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setShowCopyTooltip(false), 2000);
     }
   };
 
@@ -469,7 +480,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             const socialLink = availableSocialLinks.find(sl => sl.name === link);
             return (
               <div key={link} className="flex items-center space-x-2">
-                <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-6 h-6" />
+                <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-4 h-4 text-gray-400" />
                 <input
                   type={link === 'twitter' ? 'text' : 'url'}
                   name={link}
@@ -483,7 +494,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
                   onClick={() => removeSocialLink(link)}
                   className="text-gray-400 hover:text-[#FF6A42] transition-colors"
                 >
-                  <FontAwesomeIcon icon={faTimes} />
+                  <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
                 </button>
               </div>
             );
@@ -525,7 +536,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         <div className="space-y-4">
           {formData.webLinks.map((link, index) => (
             <div key={index} className="flex items-center space-x-2">
-              <FontAwesomeIcon icon={faLink} className="w-6 h-6" />
+              <FontAwesomeIcon icon={faLink} className="w-4 h-4 text-gray-400" />
               <input
                 type="url"
                 value={link.url}
@@ -545,7 +556,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
                 onClick={() => removeWebLink(index)}
                 className="text-gray-400 hover:text-[#FF6A42] transition-colors"
               >
-                <FontAwesomeIcon icon={faTimes} />
+                <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
               </button>
             </div>
           ))}
@@ -617,18 +628,46 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
                   accept=".pdf"
                   className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
                 />
-                {(cvFile || formData.cvUrl) && (
-                  <button
-                    type="button"
-                    onClick={handleCvDelete}
-                    className="bg-red-500 text-white px-2 py-1 rounded-md text-xs"
-                  >
-                    Delete Document
-                  </button>
-                )}
               </div>
-              <p className="text-xs text-gray-500 italic">Document must be a PDF.</p>
+              <p className="text-xs text-gray-500 italic">Document must be a PDF</p>
             </div>
+            {(cvFile || formData.cvUrl) && (
+              <div className="flex items-center space-x-6 text-sm">
+                {formData.cvUrl && (
+                  <>
+                    <a
+                      href={formData.cvUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline flex items-center"
+                    >
+                      <FontAwesomeIcon icon={faEye} className="mr-2 w-4 h-4 text-gray-400" /> View Document
+                    </a>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={handleCopyUrl}
+                        className="text-black hover:underline flex items-center"
+                      >
+                        <FontAwesomeIcon icon={faCopy} className="mr-2 w-4 h-4 text-gray-400" /> Copy URL
+                      </button>
+                      {showCopyTooltip && (
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded">
+                          URL Copied!
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={handleCvDelete}
+                  className="text-black hover:underline flex items-center"
+                >
+                  <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4 text-gray-400" /> Delete Document
+                </button>
+              </div>
+            )}
             <div>
               <label htmlFor="cvHeader" className="block text-xs mb-1 font-bold text-gray-400">Document Header</label>
               <input
@@ -650,6 +689,17 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
                 placeholder="Doc Description (optional)"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
                 rows={2}
+              />
+            </div>
+            <div>
+              <label htmlFor="cvDisplayText" className="block text-xs mb-1 font-bold text-gray-400">Document Display Text</label>
+              <input
+                id="cvDisplayText"
+                name="cvDisplayText"
+                value={formData.cvDisplayText}
+                onChange={handleChange}
+                placeholder="Defaults to 'View Document' if left blank"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
               />
             </div>
           </>
