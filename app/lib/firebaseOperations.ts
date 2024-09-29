@@ -314,7 +314,7 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
   }
 
   // Remove the cv property from cardData
-  const { ...cardDataWithoutCv } = cardData;
+  const { cv, ...cardDataWithoutCv } = cardData;
 
   // Remove undefined fields
   const cleanedCardData = Object.entries(cardDataWithoutCv).reduce((acc, [key, value]) => {
