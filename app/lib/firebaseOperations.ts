@@ -88,6 +88,16 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
       throw new Error('CV file size exceeds the 5MB limit');
     }
 
+    // Check if there's an existing CV and delete it
+    const existingCardDoc = await getDoc(newCardRef);
+    if (existingCardDoc.exists()) {
+      const existingCardData = existingCardDoc.data() as BusinessCardData;
+      if (existingCardData.cvUrl && storage) {
+        const oldCvRef = ref(storage, existingCardData.cvUrl);
+        await deleteObject(oldCvRef);
+      }
+    }
+
     try {
       cvUrl = await uploadCv(user.uid, cvFile);
     } catch (error) {
