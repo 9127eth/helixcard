@@ -16,7 +16,6 @@ export interface BusinessCard {
   isPrimary: boolean;
   cardSlug: string;
   username: string; // Add this line if it's not already present
-  profilePictureUrl?: string | null;
   facebookUrl?: string;
   instagramUrl?: string;
   linkedIn?: string;
@@ -57,7 +56,6 @@ export interface BusinessCardData {
   pronouns: string;
   facebookUrl: string;
   instagramUrl: string;
-  profilePicture?: File;
   cardSlug: string;
   isPrimary: boolean;
   tiktokUrl?: string;

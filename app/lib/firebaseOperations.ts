@@ -47,7 +47,6 @@ interface BusinessCardData {
   pronouns: string;
   facebookUrl: string;
   instagramUrl: string;
-  profilePicture?: File;
   cv?: File;
   isPrimary: boolean; 
   cvUrl?: string;

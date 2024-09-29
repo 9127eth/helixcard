@@ -31,7 +31,6 @@ export interface BusinessCardData {
   pronouns: string;
   facebookUrl: string;
   instagramUrl: string;
-  profilePicture?: File;
   cv?: File;
   cardSlug: string;
   isPrimary: boolean;
@@ -594,19 +593,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             placeholder="Custom Message"
             className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
             rows={2}
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="profilePicture" className="block text-xs mb-1 font-bold text-gray-400">
-            Profile Image
-          </label>
-          <input
-            type="file"
-            id="profilePicture"
-            name="profilePicture"
-            onChange={handleFileChange}
-            accept="image/*"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
           />
         </div>
       </div>
