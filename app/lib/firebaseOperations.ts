@@ -97,11 +97,13 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   }
 
   // Remove the cv property from cardData
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { cv, ...cardDataWithoutCv } = cardData;
 
   // Create a new object with only defined properties
   const cleanedCardData = Object.entries(cardDataWithoutCv).reduce((acc, [key, value]) => {
     if (value !== undefined) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (acc as any)[key] = value;
     }
     return acc;

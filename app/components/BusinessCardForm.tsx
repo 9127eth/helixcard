@@ -163,16 +163,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
-    if (files && files.length > 0) {
-      setFormData((prevState) => ({
-        ...prevState,
-        [name]: files[0],
-      }));
-    }
-  };
-
   const handleCvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
