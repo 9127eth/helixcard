@@ -97,15 +97,27 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   }
 
   // Remove the cv property from cardData
-  const { ...cardDataWithoutCv } = cardData;
+  const { cv, ...cardDataWithoutCv } = cardData;
+
+  // Create a new object with only defined properties
+  const cleanedCardData = Object.entries(cardDataWithoutCv).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      (acc as any)[key] = value;
+    }
+    return acc;
+  }, {} as Partial<BusinessCardData>);
+
+  // Add cvUrl only if it exists
+  if (cvUrl) {
+    cleanedCardData.cvUrl = cvUrl;
+  }
 
   batch.set(newCardRef, {
-    ...cardDataWithoutCv,
+    ...cleanedCardData,
     cardSlug,
     isPrimary: isFirstCard || isPlaceholder,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    cvUrl: cvUrl, // Add the cvUrl if it exists
   });
 
   if (isFirstCard || isPlaceholder) {
