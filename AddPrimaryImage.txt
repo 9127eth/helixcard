@@ -1,0 +1,29 @@
+Here are the requirements for adding a primary image to a business card:
+
+It will be available to both pro and non pro users
+Users should be able to upload an image from the card from. 
+If an image is uploaded, it will then be visible in the business card display aligned to the right of the business card header.
+The image should be circle, like a typical profile picture image from social media. 
+If someone deletes the image, it should also be removed from card display.
+
+
+The images will be stored in Firebase Storage. Below are the current rules so pay attention to the file naming. 
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /docs/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /images/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+
+A profile image should be able to be deleted from the form.
+If a new image is uploaded, the old image should be deleted from Firebase Storage.
+Make sure the code doesnt also try to save the image to the users collection in Firestore.
+
+In the form, you can place this section above the CV upload section. It should be titled "Primary Image Upload".

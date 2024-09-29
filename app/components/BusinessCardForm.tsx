@@ -6,6 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { deleteCv } from '../lib/firebaseOperations';
+import { uploadImage, deleteImage } from '../lib/uploadUtils';
+import Image from 'next/image';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData, cvFile?: File) => void;
@@ -50,6 +52,7 @@ export interface BusinessCardData {
   cvHeader?: string;
   cvDescription?: string;
   cvDisplayText?: string;
+  imageUrl?: string;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
@@ -90,6 +93,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     cvHeader: initialData?.cvHeader || '',
     cvDescription: initialData?.cvDescription || '',
     cvDisplayText: initialData?.cvDisplayText || '',
+    imageUrl: initialData?.imageUrl || '',
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
@@ -99,6 +103,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [showCopyTooltip, setShowCopyTooltip] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl || null);
 
   useEffect(() => {
     console.log('Initial data:', initialData);
@@ -181,7 +187,18 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
       return;
     }
     try {
-      await onSuccess({ ...formData, cv: cvFile || undefined });
+      const updatedCardData = { ...formData, cv: cvFile || undefined };
+      if (imageFile) {
+        if (formData.imageUrl) {
+          await deleteImage(user.uid, formData.imageUrl);
+        }
+        const uploadedImageUrl = await uploadImage(user.uid, imageFile);
+        updatedCardData.imageUrl = uploadedImageUrl;
+      } else if (formData.imageUrl && !imageUrl) {
+        await deleteImage(user.uid, formData.imageUrl);
+        updatedCardData.imageUrl = '';
+      }
+      await onSuccess(updatedCardData);
     } catch (error) {
       console.error('Error saving business card:', error);
       setError('Failed to save business card. Please try again.');
@@ -558,6 +575,61 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             Add Web Link
           </button>
         </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-semibold">Primary Image Upload</h3>
+        <div className="space-y-2">
+          <label htmlFor="image" className="block text-xs font-medium text-gray-400">
+            Upload Profile Image
+          </label>
+          <div className="flex items-center space-x-2">
+            <input
+              type="file"
+              id="image"
+              name="image"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    alert("File size must be less than 5MB");
+                    e.target.value = '';
+                    return;
+                  }
+                  setImageFile(file);
+                  setImageUrl(URL.createObjectURL(file));
+                }
+              }}
+              accept="image/jpeg,image/png,image/gif"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
+            />
+          </div>
+          <p className="text-xs text-gray-500 italic">Accepted formats: JPEG, PNG, GIF. Max size: 5MB</p>
+        </div>
+        {(imageFile || imageUrl) && (
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 rounded-full overflow-hidden">
+              <Image
+                src={imageUrl || formData.imageUrl || ''}
+                alt="Profile"
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setImageFile(null);
+                setImageUrl(null);
+                setFormData(prevData => ({ ...prevData, imageUrl: '' }));
+              }}
+              className="text-red-500 hover:text-red-700 transition-colors"
+            >
+              Remove Image
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">

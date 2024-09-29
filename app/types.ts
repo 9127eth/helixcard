@@ -34,6 +34,7 @@ export interface BusinessCard {
   phoneNumber?: string;
   customMessageHeader?: string;
   threadsUrl?: string;
+  imageUrl?: string; // Add this line
 }
 
 export interface BusinessCardData {
@@ -69,6 +70,7 @@ export interface BusinessCardData {
   threadsUrl?: string;
   cvHeader?: string;
   cvDescription?: string;
+  imageUrl?: string; // Add this line
 }
 
 

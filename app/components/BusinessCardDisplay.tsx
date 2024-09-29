@@ -5,6 +5,7 @@ import React from 'react';
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload, FaAt, FaFileAlt } from 'react-icons/fa';
 import { BusinessCard } from '@/app/types';
 import Link from 'next/link';
+import Image from 'next/image';
 
 
 interface BusinessCardDisplayProps {
@@ -45,24 +46,37 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
     <div className="bg-[var(--end-card-bg)] shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col">
       <header className="bg-card-header py-4 sm:py-6 lg:py-8 flex-shrink-0">
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="flex flex-col items-start">
-            <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
-              {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
-              {(card.credentials || card.pronouns) && (
-                <span className="text-lg ml-2 text-[var(--end-card-header-secondary-text-color)]">
-                  {card.credentials}
-                  {card.credentials && card.pronouns && " "}
-                  {card.pronouns && (
-                    <span className="text-sm italic pronouns-spacing">
-                      ({card.pronouns})
-                    </span>
-                  )}
-                </span>
-              )}
-            </h1>
-            <p className="text-lg sm:text-xl text-[var(--header-footer-primary-text)]">
-              {card.jobTitle} {card.company && <span className="text-[var(--end-card-header-secondary-text-color)]">| {card.company}</span>}
-            </p>
+          <div className="flex flex-row items-start justify-between">
+            <div className="flex flex-col items-start">
+              <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
+                {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
+                {(card.credentials || card.pronouns) && (
+                  <span className="text-lg ml-2 text-[var(--end-card-header-secondary-text-color)]">
+                    {card.credentials}
+                    {card.credentials && card.pronouns && " "}
+                    {card.pronouns && (
+                      <span className="text-sm italic pronouns-spacing">
+                        ({card.pronouns})
+                      </span>
+                    )}
+                  </span>
+                )}
+              </h1>
+              <p className="text-lg sm:text-xl text-[var(--header-footer-primary-text)]">
+                {card.jobTitle} {card.company && <span className="text-[var(--end-card-header-secondary-text-color)]">| {card.company}</span>}
+              </p>
+            </div>
+            {card.imageUrl && (
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden">
+                <Image
+                  src={card.imageUrl}
+                  alt={`${card.firstName} ${card.lastName}`}
+                  width={128}
+                  height={128}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
           </div>
         </div>
       </header>

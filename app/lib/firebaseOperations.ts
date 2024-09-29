@@ -324,6 +324,7 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
   }
 
   // Remove the cv property from cardData
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { cv, ...cardDataWithoutCv } = cardData;
 
   // Remove undefined fields
