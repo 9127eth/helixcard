@@ -114,25 +114,27 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
           <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-2">
               {/* Contact Information */}
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Contact</h2>
-                {card.phoneNumber && (
-                  <p className="flex items-center mb-2">
-                    <FaPhone className="mr-2 text-[var(--link-icon-color)]" />
-                    <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
-                      {card.phoneNumber}
-                    </a>
-                  </p>
-                )}
-                {card.email && (
-                  <p className="flex items-center mb-2">
-                    <FaEnvelope className="mr-2 text-[var(--link-icon-color)]" />
-                    <a href={`mailto:${card.email}`} className="text-[var(--link-text-color)] hover:underline">
-                      {card.email}
-                    </a>
-                  </p>
-                )}
-              </div>
+              {(card.phoneNumber || card.email) && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Contact</h2>
+                  {card.phoneNumber && (
+                    <p className="flex items-center mb-2">
+                      <FaPhone className="mr-2 text-[var(--link-icon-color)]" />
+                      <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
+                        {card.phoneNumber}
+                      </a>
+                    </p>
+                  )}
+                  {card.email && (
+                    <p className="flex items-center mb-2">
+                      <FaEnvelope className="mr-2 text-[var(--link-icon-color)]" />
+                      <a href={`mailto:${card.email}`} className="text-[var(--link-text-color)] hover:underline">
+                        {card.email}
+                      </a>
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Social Links */}
               {(card.linkedIn || card.twitter || card.facebookUrl || card.instagramUrl || card.threadsUrl) && (
@@ -175,11 +177,11 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
             </div>
 
             {/* Links Section */}
-            {card.webLinks && card.webLinks.length > 0 && (
+            {card.webLinks && card.webLinks.length > 0 && card.webLinks.some(link => link.url && link.url.trim() !== '') && (
               <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-4">Links</h2>
                 <div className="flex flex-col space-y-2">
-                  {card.webLinks.map((link, index) => (
+                  {card.webLinks.filter(link => link.url && link.url.trim() !== '').map((link, index) => (
                     <a
                       key={index}
                       href={link.url}
