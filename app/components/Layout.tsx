@@ -8,6 +8,7 @@ import { FaList, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight, F
 import { FaCreditCard } from 'react-icons/fa';
 import { FaStar } from 'react-icons/fa';
 import { FaQuestionCircle, FaCog } from 'react-icons/fa';
+import { useTheme } from 'next-themes';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     try {
@@ -35,29 +36,14 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
   };
 
   const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   useEffect(() => {
     const handleResize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024); // 1024px is the 'lg' breakpoint in Tailwind
+      setIsLargeScreen(window.innerWidth >= 1024);
       setIsSidebarOpen(window.innerWidth >= 1024);
     };
-
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(savedDarkMode);
-    if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
 
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -67,16 +53,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
     };
   }, []);
 
-  useEffect(() => {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
   return (
-    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen flex flex-col">
       <Head>
         <title>{title}</title>
         <meta name="description" content="Digital NFC Business Card App" />
@@ -85,12 +63,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
       <div className="flex flex-1">
         {user && showSidebar ? (
           <>
-            <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col transition-all duration-300 ease-in-out`}>
-              <header className="bg-off-white shadow-sm flex items-center justify-between p-4">
+            <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col transition-all duration-300 ease-in-out bg-sidebar-bg`}>
+              <header className="bg-sidebar-bg shadow-sm flex items-center justify-between p-4">
                 {isSidebarOpen ? (
-                  <Link href="/" className="text-2xl font-bold text-foreground">Helix.</Link>
+                  <Link href="/" className="text-2xl font-bold text-header-footer-primary-text">Helix.</Link>
                 ) : (
-                  <span className="text-2xl font-bold">H</span>
+                  <span className="text-2xl font-bold text-header-footer-primary-text">H</span>
                 )}
                 <button 
                   onClick={toggleSidebar} 
@@ -98,13 +76,13 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                   aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
                 >
                   {isSidebarOpen ? (
-                    <FaChevronLeft className="w-6 h-6 text-[#F1DBD9] stroke-[1.5]" />
+                    <FaChevronLeft className="w-6 h-6 text-header-footer-secondary-text stroke-[1.5]" />
                   ) : (
-                    <FaChevronRight className="w-6 h-6 text-[#F1DBD9] stroke-[1.5]" />
+                    <FaChevronRight className="w-6 h-6 text-header-footer-secondary-text stroke-[1.5]" />
                   )}
                 </button>
               </header>
-              <aside className="bg-off-white flex-1">
+              <aside className="bg-sidebar-bg flex-1">
                 <div className="h-full flex flex-col justify-between p-4">
                   <nav>
                     <ul className="space-y-2">
@@ -156,18 +134,18 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           {isSidebarOpen && <span className="text-sm">Sign Out</span>}
                         </button>
                       </li>
-                      <li className="mt-4">
-                        <div className="flex items-center justify-between p-2 rounded hover:bg-gray-200">
+                      <li>
+                        <div className="flex items-center justify-between p-2 rounded">
                           {isSidebarOpen && <span className="text-sm">Dark Mode</span>}
                           <button
                             onClick={toggleDarkMode}
                             className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out ${
-                              isDarkMode ? 'bg-blue-600' : 'bg-gray-300'
+                              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'
                             }`}
                           >
                             <div
                               className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
-                                isDarkMode ? 'transform translate-x-6' : ''
+                                theme === 'dark' ? 'transform translate-x-6' : ''
                               }`}
                             ></div>
                           </button>
@@ -175,11 +153,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                       </li>
                     </ul>
                   </nav>
-                  {isSidebarOpen && (
-                    <div className="mt-4">
-                      <p className="text-xs text-gray-600">Signed in as {user.email}</p>
-                    </div>
-                  )}
                 </div>
               </aside>
             </div>
@@ -200,6 +173,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
       </div>
     </div>
   );
-}
+};
 
 export default Layout;

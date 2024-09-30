@@ -333,7 +333,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               value={formData.description}
               onChange={handleChange}
               placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               required
             />
             <p className="text-xs text-gray-500 italic">
@@ -356,7 +356,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.firstName}
                 onChange={handleChange}
                 placeholder="First Name"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
@@ -369,7 +369,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.middleName}
                 onChange={handleChange}
                 placeholder="Middle Name"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
@@ -381,7 +381,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.lastName}
                 onChange={handleChange}
                 placeholder="Last Name"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
@@ -395,7 +395,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.jobTitle}
                 onChange={handleChange}
                 placeholder="Job Title"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
@@ -407,7 +407,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.company}
                 onChange={handleChange}
                 placeholder="Company"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
@@ -419,7 +419,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.pronouns}
                 onChange={handleChange}
                 placeholder="Pronouns"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
@@ -431,7 +431,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.prefix}
                 onChange={handleChange}
                 placeholder="Prefix"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
@@ -443,7 +443,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.credentials}
                 onChange={handleChange}
                 placeholder="Credentials"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
@@ -455,7 +455,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               value={formData.aboutMe}
               onChange={handleChange}
               placeholder="About Me"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               rows={3}
             />
           </div>
@@ -475,7 +475,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 placeholder="Phone Number"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
@@ -487,7 +487,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
@@ -508,7 +508,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                     value={formData[link as keyof BusinessCardData] as string}
                     onChange={handleChange}
                     placeholder={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'Handle' : 'URL'}`}
-                    className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm"
+                    className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                   <button
                     type="button"
@@ -590,14 +590,14 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   value={link.url}
                   onChange={(e) => handleWebLinkChange(index, 'url', e.target.value)}
                   placeholder="URL"
-                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm"
+                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
                 <input
                   type="text"
                   value={link.displayText}
                   onChange={(e) => handleWebLinkChange(index, 'displayText', e.target.value)}
                   placeholder="Display Text"
-                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm"
+                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
                 <button
                   type="button"
@@ -689,7 +689,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               value={formData.customMessageHeader}
               onChange={handleChange}
               placeholder="Custom Message Header (optional)"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
           <div>
@@ -700,7 +700,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               value={formData.customMessage}
               onChange={handleChange}
               placeholder="Custom Message"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               rows={2}
             />
           </div>
@@ -773,7 +773,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               value={formData.cvHeader}
               onChange={handleChange}
               placeholder="Defaults to 'Documents' if left blank"
-              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               disabled={!isPro}
             />
           </div>
@@ -785,7 +785,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               value={formData.cvDescription}
               onChange={handleChange}
               placeholder="Doc Description (optional)"
-              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               rows={2}
               disabled={!isPro}
             />
@@ -798,7 +798,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               value={formData.cvDisplayText}
               onChange={handleChange}
               placeholder="Defaults to 'View Document' if left blank"
-              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               disabled={!isPro}
             />
           </div>

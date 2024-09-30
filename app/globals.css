@@ -33,26 +33,31 @@
 }
 
 .dark {
-  --background: #1F2937;
-  --foreground: #F3F4F6;
-  --primary: #93DBD6;
-  --primary-text: #FFFFFF;
-  --end-card-bg: #2C3E50;
+  --background: #323338;
+  --foreground: #dddee3;
+  --primary: #7289da;
+  --primary-text: #dddee3;
+  --card-header-bg: #2f3136;
+  --card-footer-bg: #2f3136;
+  --card-grid-background: #2f3136;
+  --end-card-bg: #323338;
+  --sidebar-bg: #2c2d31;
+  --input-bg: #1e1f23;
   
-  --social-tile-bg: #2C3E50;
-  --social-icon-color: #FFFFFF;
-  --social-text-color: #FFFFFF;
-  --body-primary-text: #F3F4F6;
-  --header-footer-primary-text: #FFFFFF;
-  --header-footer-secondary-text: #A0AEC0;
-  --send-text-button-bg: #FFFFFF;
-  --send-text-button-text: #000000;
-  --save-contact-button-bg: #000000;
-  --save-contact-button-text: #FFFFFF;
-  --link-icon-color: #FFFFFF;
-  --link-text-color: #F3F4F6;
-  --end-card-header-secondary-text-color: #A0AEC0;
-  --share-modal-bg: #2C3E50;
+  --social-tile-bg: #40444b;
+  --social-icon-color: #ffffff;
+  --social-text-color: #dcddde;
+  --body-primary-text: #dcddde;
+  --header-footer-primary-text: #dddee3;
+  --header-footer-secondary-text: #b9bbbe;
+  --send-text-button-bg: #7289da;
+  --send-text-button-text: #dddee3;
+  --save-contact-button-bg: #43b581;
+  --save-contact-button-text: #dddee3;
+  --link-icon-color: #7289da;
+  --link-text-color: #dcddde;
+  --end-card-header-secondary-text-color: #b9bbbe;
+  --share-modal-bg: #2f3136;
 }
 
 body {

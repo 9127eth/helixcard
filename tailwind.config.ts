@@ -11,15 +11,28 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        black: '#221122',
-        red: '#FF6A42',
-        blue: '#B9E4FE',
-        teal: '#93DBD6',
-        'dark-pink': '#FECAB9',
-        'light-pink': '#F1DBD9',
-        'off-white': '#F5FDFD',
-        'card-header': 'var(--card-header-bg)',
-        'card-footer': 'var(--card-footer-bg)',
+        primary: "var(--primary)",
+        "primary-text": "var(--primary-text)",
+        "card-header": "var(--card-header-bg)",
+        "card-footer": "var(--card-footer-bg)",
+        "card-grid-background": "var(--card-grid-background)",
+        "end-card-bg": "var(--end-card-bg)",
+        "sidebar-bg": "var(--sidebar-bg)",
+        "input-bg": "var(--input-bg)",
+        "social-tile-bg": "var(--social-tile-bg)",
+        "social-icon-color": "var(--social-icon-color)",
+        "social-text-color": "var(--social-text-color)",
+        "body-primary-text": "var(--body-primary-text)",
+        "header-footer-primary-text": "var(--header-footer-primary-text)",
+        "header-footer-secondary-text": "var(--header-footer-secondary-text)",
+        "send-text-button-bg": "var(--send-text-button-bg)",
+        "send-text-button-text": "var(--send-text-button-text)",
+        "save-contact-button-bg": "var(--save-contact-button-bg)",
+        "save-contact-button-text": "var(--save-contact-button-text)",
+        "link-icon-color": "var(--link-icon-color)",
+        "link-text-color": "var(--link-text-color)",
+        "end-card-header-secondary-text-color": "var(--end-card-header-secondary-text-color)",
+        "share-modal-bg": "var(--share-modal-bg)",
       },
       fontFamily: {
         sans: ['var(--font-inter)'],
@@ -39,4 +52,3 @@ const config: Config = {
 };
 
 export default config;
-
