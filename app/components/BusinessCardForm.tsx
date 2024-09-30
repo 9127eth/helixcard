@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { deleteCv } from '../lib/firebaseOperations';
 import { uploadImage, deleteImage } from '../lib/uploadUtils';
 import Image from 'next/image';
@@ -496,34 +496,36 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       <CollapsibleSection title="Social Links" isOpen={isEditing}>
         <div className="space-y-4">
-          {additionalSocialLinks.map((link) => {
-            const socialLink = availableSocialLinks.find(sl => sl.name === link);
-            return (
-              <div key={link} className="flex items-center space-x-2">
-                <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-4 h-4 text-gray-400" />
-                <input
-                  type={link === 'twitter' ? 'text' : 'url'}
-                  name={link}
-                  value={formData[link as keyof BusinessCardData] as string}
-                  onChange={handleChange}
-                  placeholder={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'Handle' : 'URL'}`}
-                  className="w-1/2 px-2 py-1 border border-gray-300 rounded-md text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeSocialLink(link)}
-                  className="text-gray-400 hover:text-[#FF6A42] transition-colors"
-                >
-                  <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
-                </button>
-              </div>
-            );
-          })}
+          <div className="max-h-60 overflow-y-auto pr-2">
+            {additionalSocialLinks.map((link) => {
+              const socialLink = availableSocialLinks.find(sl => sl.name === link);
+              return (
+                <div key={link} className="flex items-center space-x-2 mb-2">
+                  <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-4 h-4 text-gray-400" />
+                  <input
+                    type={link === 'twitter' ? 'text' : 'url'}
+                    name={link}
+                    value={formData[link as keyof BusinessCardData] as string}
+                    onChange={handleChange}
+                    placeholder={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'Handle' : 'URL'}`}
+                    className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSocialLink(link)}
+                    className="text-gray-400 hover:text-[#FF6A42] transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowSocialLinkDropdown(!showSocialLinkDropdown)}
-              className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center mt-4"
+              className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center mt-2"
             >
               <FontAwesomeIcon icon={faPlus} className="mr-2" />
               Add Social Link
@@ -579,36 +581,38 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       <CollapsibleSection title="Web Links" isOpen={isEditing}>
         <div className="space-y-4">
-          {formData.webLinks.map((link, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <FontAwesomeIcon icon={faLink} className="w-4 h-4 text-gray-400" />
-              <input
-                type="url"
-                value={link.url}
-                onChange={(e) => handleWebLinkChange(index, 'url', e.target.value)}
-                placeholder="URL"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-              />
-              <input
-                type="text"
-                value={link.displayText}
-                onChange={(e) => handleWebLinkChange(index, 'displayText', e.target.value)}
-                placeholder="Display Text"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => removeWebLink(index)}
-                className="text-gray-400 hover:text-[#FF6A42] transition-colors"
-              >
-                <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+          <div className="max-h-60 overflow-y-auto pr-2">
+            {formData.webLinks.map((link, index) => (
+              <div key={index} className="flex items-center space-x-2 mb-2">
+                <FontAwesomeIcon icon={faLink} className="w-4 h-4 text-gray-400" />
+                <input
+                  type="url"
+                  value={link.url}
+                  onChange={(e) => handleWebLinkChange(index, 'url', e.target.value)}
+                  placeholder="URL"
+                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm"
+                />
+                <input
+                  type="text"
+                  value={link.displayText}
+                  onChange={(e) => handleWebLinkChange(index, 'displayText', e.target.value)}
+                  placeholder="Display Text"
+                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeWebLink(index)}
+                  className="text-gray-400 hover:text-[#FF6A42] transition-colors"
+                >
+                  <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
           <button
             type="button"
             onClick={addWebLink}
-            className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center"
+            className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center mt-2"
           >
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Add Web Link
