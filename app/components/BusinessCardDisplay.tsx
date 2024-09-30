@@ -67,13 +67,15 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
               </p>
             </div>
             {card.imageUrl && (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden relative">
                 <Image
                   src={card.imageUrl}
                   alt={`${card.firstName} ${card.lastName}`}
-                  width={128}
-                  height={128}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  quality={100}
+                  priority
+                  sizes="(min-width: 640px) 128px, 96px"
                 />
               </div>
             )}
