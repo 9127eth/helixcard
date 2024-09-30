@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -6,12 +6,17 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, isOpen = false, children }) => {
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, isOpen }) => {
+  console.log(`Section "${title}" isOpen:`, isOpen);  // Add this line
   const [open, setOpen] = useState(isOpen);
 
   const toggleSection = () => {
     setOpen(!open);
   };
+
+  useEffect(() => {
+    setOpen(isOpen);
+  }, [isOpen]);
 
   return (
     <div className="border-b border-gray-300">

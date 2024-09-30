@@ -9,11 +9,13 @@ import { deleteCv } from '../lib/firebaseOperations';
 import { uploadImage, deleteImage } from '../lib/uploadUtils';
 import Image from 'next/image';
 import CollapsibleSection from './CollapsibleSection';
+import { User } from 'firebase/auth';
 
 interface BusinessCardFormProps {
-  onSuccess: (cardData: BusinessCardData, cvFile?: File) => void;
+  onSuccess: (cardData: BusinessCardData) => Promise<void>;
   initialData?: Partial<BusinessCardData>;
   onDelete?: () => void;
+  isEditing?: boolean;
 }
 
 export interface BusinessCardData {
@@ -56,7 +58,12 @@ export interface BusinessCardData {
   imageUrl?: string;
 }
 
-export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, initialData, onDelete }) => {
+export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
+  onSuccess,
+  initialData,
+  onDelete,
+  isEditing = false,
+}) => {
   const { user } = useAuth();
   const [isPro, setIsPro] = useState(false);
   const [formData, setFormData] = useState<BusinessCardData>({
@@ -317,6 +324,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     <form onSubmit={handleSubmit} className="space-y-6 text-sm">
       {error && <p className="text-red-500 text-xs">{error}</p>}
 
+      {/* First Section - Always Open */}
       <CollapsibleSection title="Card Description" isOpen={true}>
         <div className="space-y-4">
           <div className="space-y-1">
@@ -336,6 +344,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
       </CollapsibleSection>
 
+      {/* Second Section - Always Open */}
       <CollapsibleSection title="Basic Information" isOpen={true}>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -454,7 +463,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Contact Information">
+      {/* Remaining Sections - Open if editing, closed if creating */}
+      <CollapsibleSection title="Contact Information" isOpen={isEditing}>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -485,7 +495,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Social Links">
+      <CollapsibleSection title="Social Links" isOpen={isEditing}>
         <div className="space-y-4">
           {additionalSocialLinks.map((link) => {
             const socialLink = availableSocialLinks.find(sl => sl.name === link);
@@ -568,7 +578,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
       )}
 
-      <CollapsibleSection title="Web Links">
+      <CollapsibleSection title="Web Links" isOpen={isEditing}>
         <div className="space-y-4">
           {formData.webLinks.map((link, index) => (
             <div key={index} className="flex items-center space-x-2">
@@ -607,7 +617,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Primary Image Upload">
+      <CollapsibleSection title="Primary Image Upload" isOpen={isEditing}>
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="image" className="block text-xs font-medium text-gray-400">
@@ -666,7 +676,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Custom Message">
+      <CollapsibleSection title="Custom Message" isOpen={isEditing}>
         <div className="space-y-4">
           <div>
             <label htmlFor="customMessageHeader" className="block text-xs mb-1 font-bold text-gray-400">Custom Message Header</label>
@@ -694,7 +704,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Add a Document">
+      <CollapsibleSection title="Add a Document" isOpen={isEditing}>
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="cv" className="block text-xs font-medium text-gray-400">

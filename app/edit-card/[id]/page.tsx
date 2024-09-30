@@ -110,6 +110,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
               initialData={cardData} 
               onSuccess={handleSuccess} 
               onDelete={handleDelete}
+              isEditing={true} // Add this line
             />
           </div>
           <div className="hidden md:block md:w-2/5">
