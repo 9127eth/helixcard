@@ -13,6 +13,10 @@ interface BusinessCardItemProps {
 export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
+  const handleShareClick = () => {
+    setIsShareModalOpen(true);
+  };
+
   return (
     <div className="w-full bg-card-grid-background border rounded-lg shadow-sm hover:shadow-md transition-shadow relative flex flex-col p-4 h-[180px]">
       {card.isPrimary && (
@@ -23,7 +27,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
           </span>
         </div>
       )}
-      <div className="flex-grow overflow-hidden">
+      <div className="flex-grow overflow-hidden cursor-pointer" onClick={handleShareClick}>
         <h3 className="text-3xl font-semibold mb-2 line-clamp-1 overflow-hidden">
           {card.description}
         </h3>
@@ -44,7 +48,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
               Preview
             </span>
           </button>
-          <button onClick={() => setIsShareModalOpen(true)} className="card-grid-icon-button group relative">
+          <button onClick={handleShareClick} className="card-grid-icon-button group relative">
             <FaShareAlt />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Share this card
