@@ -105,6 +105,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl || null);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('Initial data:', initialData);
@@ -194,11 +195,12 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         }
         const uploadedImageUrl = await uploadImage(user.uid, imageFile);
         updatedCardData.imageUrl = uploadedImageUrl;
-      } else if (formData.imageUrl && !imageUrl) {
-        await deleteImage(user.uid, formData.imageUrl);
+      } else if (imageToDelete) {
+        await deleteImage(user.uid, imageToDelete);
         updatedCardData.imageUrl = '';
       }
       await onSuccess(updatedCardData);
+      setImageToDelete(null); // Reset the imageToDelete state
     } catch (error) {
       console.error('Error saving business card:', error);
       setError('Failed to save business card. Please try again.');
@@ -620,6 +622,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             <button
               type="button"
               onClick={() => {
+                if (formData.imageUrl) {
+                  setImageToDelete(formData.imageUrl);
+                }
                 setImageFile(null);
                 setImageUrl(null);
                 setFormData(prevData => ({ ...prevData, imageUrl: '' }));
