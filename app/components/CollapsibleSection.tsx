@@ -28,7 +28,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
         contentRef.current.style.maxHeight = '0';
       }
     }
-  }, [open]);
+  }, [open, children]);
 
   return (
     <div className="border-b border-gray-300">
@@ -46,7 +46,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
       <div
         ref={contentRef}
         className="overflow-hidden transition-all duration-500 ease-in-out"
-        style={{ maxHeight: isOpen ? 'none' : '0' }}
+        style={{ maxHeight: open ? `${contentRef.current?.scrollHeight}px` : '0' }}
       >
         <div className={`py-4 px-4 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}>
           {children}

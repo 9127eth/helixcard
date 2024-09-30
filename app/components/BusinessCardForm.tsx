@@ -496,7 +496,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       <CollapsibleSection title="Social Links" isOpen={isEditing}>
         <div className="space-y-4">
-          <div className="max-h-60 overflow-y-auto pr-2">
+          <div className="overflow-y-auto">
             {additionalSocialLinks.map((link) => {
               const socialLink = availableSocialLinks.find(sl => sl.name === link);
               return (
@@ -581,7 +581,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       <CollapsibleSection title="Web Links" isOpen={isEditing}>
         <div className="space-y-4">
-          <div className="max-h-60 overflow-y-auto pr-2">
+          <div className="overflow-y-auto">
             {formData.webLinks.map((link, index) => (
               <div key={index} className="flex items-center space-x-2 mb-2">
                 <FontAwesomeIcon icon={faLink} className="w-4 h-4 text-gray-400" />
