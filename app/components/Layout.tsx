@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
@@ -19,6 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = async () => {
     try {
@@ -35,17 +36,31 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
 
   useEffect(() => {
     const handleResize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024); // 1024px is the 'lg' breakpoint in Tailwind
-      setIsSidebarOpen(window.innerWidth >= 1024);
+      const isLarge = window.innerWidth >= 1024;
+      setIsLargeScreen(isLarge);
+      setIsSidebarOpen(isLarge);
     };
 
-    handleResize(); // Initial check
+    handleResize();
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node) && !isLargeScreen) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLargeScreen]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -57,7 +72,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
       <div className="flex flex-1">
         {user && showSidebar ? (
           <>
-            <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col transition-all duration-300 ease-in-out`}>
+            <div
+              ref={sidebarRef}
+              className={`${
+                isSidebarOpen ? 'w-64' : 'w-0 md:w-16'
+              } flex flex-col transition-all duration-300 ease-in-out fixed md:relative h-full z-50 overflow-y-auto`}
+            >
               <header className="bg-off-white shadow-sm flex items-center justify-between p-4">
                 {isSidebarOpen ? (
                   <Link href="/" className="text-2xl font-bold text-foreground">Helix.</Link>
@@ -133,7 +153,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                 </div>
               </aside>
             </div>
-            <div className="flex-1 flex flex-col">
+            <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'}`}>
               <header className="bg-background shadow-sm">
                 <div className="px-4 py-4">
                   {/* Add any content for the right side header here */}
