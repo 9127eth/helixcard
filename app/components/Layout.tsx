@@ -19,6 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -33,13 +34,32 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   useEffect(() => {
     const handleResize = () => {
       setIsLargeScreen(window.innerWidth >= 1024); // 1024px is the 'lg' breakpoint in Tailwind
       setIsSidebarOpen(window.innerWidth >= 1024);
     };
 
-    handleResize(); // Initial check
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    handleResize();
     window.addEventListener('resize', handleResize);
 
     return () => {
@@ -47,8 +67,16 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
     };
   }, []);
 
+  useEffect(() => {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'dark' : ''}`}>
       <Head>
         <title>{title}</title>
         <meta name="description" content="Digital NFC Business Card App" />
@@ -127,6 +155,23 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           <FaSignOutAlt className="text-xs" />
                           {isSidebarOpen && <span className="text-sm">Sign Out</span>}
                         </button>
+                      </li>
+                      <li className="mt-4">
+                        <div className="flex items-center justify-between p-2 rounded hover:bg-gray-200">
+                          {isSidebarOpen && <span className="text-sm">Dark Mode</span>}
+                          <button
+                            onClick={toggleDarkMode}
+                            className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out ${
+                              isDarkMode ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                          >
+                            <div
+                              className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
+                                isDarkMode ? 'transform translate-x-6' : ''
+                              }`}
+                            ></div>
+                          </button>
+                        </div>
                       </li>
                     </ul>
                   </nav>

@@ -32,29 +32,27 @@
   --share-modal-bg: #efefef; /* Default to white, but you can change this */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1F2937;  /* Gray-800 in Tailwind */
-    --foreground: #F3F4F6;  /* Gray-100 in Tailwind */
-    --primary: #93DBD6;
-    --primary-text: #FFFFFF;
-    --end-card-bg: #2C3E50;  /* Dark mode main card background */
-    
-    /* New variables for dark mode */
-    --social-tile-bg: #2C3E50;
-    --social-icon-color: #FFFFFF;
-    --social-text-color: #FFFFFF;
-    --body-primary-text: #F3F4F6;
-    --header-footer-primary-text: #FFFFFF;
-    --header-footer-secondary-text: #A0AEC0;
-    --send-text-button-bg: #FFFFFF;
-    --send-text-button-text: #000000;
-    --save-contact-button-bg: #000000;
-    --save-contact-button-text: #FFFFFF;
-    --link-icon-color: #FFFFFF;  /* Dark mode link icon color */
-    --link-text-color: #F3F4F6;  /* Dark mode link text color */
-    --end-card-header-secondary-text-color: #A0AEC0;  /* Adjust for dark mode if needed */
-  }
+.dark {
+  --background: #1F2937;
+  --foreground: #F3F4F6;
+  --primary: #93DBD6;
+  --primary-text: #FFFFFF;
+  --end-card-bg: #2C3E50;
+  
+  --social-tile-bg: #2C3E50;
+  --social-icon-color: #FFFFFF;
+  --social-text-color: #FFFFFF;
+  --body-primary-text: #F3F4F6;
+  --header-footer-primary-text: #FFFFFF;
+  --header-footer-secondary-text: #A0AEC0;
+  --send-text-button-bg: #FFFFFF;
+  --send-text-button-text: #000000;
+  --save-contact-button-bg: #000000;
+  --save-contact-button-text: #FFFFFF;
+  --link-icon-color: #FFFFFF;
+  --link-text-color: #F3F4F6;
+  --end-card-header-secondary-text-color: #A0AEC0;
+  --share-modal-bg: #2C3E50;
 }
 
 body {
