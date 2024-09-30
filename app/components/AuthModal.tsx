@@ -8,6 +8,7 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
+import { createUserDocument } from '../lib/firebaseOperations';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -37,6 +38,10 @@ export const AuthModal: React.FC = () => {
       console.log('Attempting Google Sign-In with Popup...');
       const result = await signInWithPopup(auth, provider);
       console.log('Google Sign-In successful:', result.user.uid);
+
+      // Call createUserDocument to create the user document in Firestore
+      await createUserDocument(result.user);
+
       handleSuccess();
     } catch (error) {
       console.error('Google Sign-In Error:', error);
