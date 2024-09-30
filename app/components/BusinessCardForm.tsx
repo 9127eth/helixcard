@@ -583,7 +583,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
         <h3 className="font-semibold">Primary Image Upload</h3>
         <div className="space-y-2">
           <label htmlFor="image" className="block text-xs font-medium text-gray-400">
-            Upload Profile Image
+            Upload Image
           </label>
           <div className="flex items-center space-x-2">
             <input
@@ -732,7 +732,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             name="cvHeader"
             value={formData.cvHeader}
             onChange={handleChange}
-            placeholder="Doc Header (optional)"
+            placeholder="Defaults to 'Documents' if left blank"
             className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
             disabled={!isPro}
           />

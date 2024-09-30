@@ -220,8 +220,8 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
 
             {card.cvUrl && (
               <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">{card.cvHeader || 'Curriculum Vitae'}</h2>
-                <p>{card.cvDescription || 'View my CV to learn more about my professional experience and qualifications.'}</p>
+                <h2 className="text-2xl font-bold mb-4">{card.cvHeader || 'Documents'}</h2>
+                {card.cvDescription && <p>{card.cvDescription}</p>}
                 <a
                   href={card.cvUrl}
                   target="_blank"
