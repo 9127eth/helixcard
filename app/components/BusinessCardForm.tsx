@@ -8,6 +8,7 @@ import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash } from '@fortawes
 import { deleteCv } from '../lib/firebaseOperations';
 import { uploadImage, deleteImage } from '../lib/uploadUtils';
 import Image from 'next/image';
+import CollapsibleSection from './CollapsibleSection';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData, cvFile?: File) => void;
@@ -316,173 +317,175 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
     <form onSubmit={handleSubmit} className="space-y-6 text-sm">
       {error && <p className="text-red-500 text-xs">{error}</p>}
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">Card Description</h3>
-        <div className="space-y-1">
-          <input
-            type="text"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            required
-          />
-          <p className="text-xs text-gray-500 italic">
-            Note: This is for your reference only and will not be visible on your digital business card.
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="font-semibold">Basic Information</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="firstName" className="block text-xs mb-1 font-bold text-gray-400">First Name</label>
+      <CollapsibleSection title="Card Description" isOpen={true}>
+        <div className="space-y-4">
+          <div className="space-y-1">
             <input
-              id="firstName"
               type="text"
-              name="firstName"
-              value={formData.firstName}
+              name="description"
+              value={formData.description}
               onChange={handleChange}
-              placeholder="First Name"
+              placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
               required
             />
-          </div>
-          <div>
-            <label htmlFor="middleName" className="block text-xs mb-1 font-bold text-gray-400">Middle Name</label>
-            <input
-              id="middleName"
-              type="text"
-              name="middleName"
-              value={formData.middleName}
-              onChange={handleChange}
-              placeholder="Middle Name"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="lastName" className="block text-xs mb-1 font-bold text-gray-400">Last Name</label>
-            <input
-              id="lastName"
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Last Name"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
+            <p className="text-xs text-gray-500 italic">
+              Note: This is for your reference only and will not be visible on your digital business card.
+            </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="jobTitle" className="block text-xs mb-1 font-bold text-gray-400">Job Title</label>
-            <input
-              id="jobTitle"
-              type="text"
-              name="jobTitle"
-              value={formData.jobTitle}
-              onChange={handleChange}
-              placeholder="Job Title"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="company" className="block text-xs mb-1 font-bold text-gray-400">Company</label>
-            <input
-              id="company"
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              placeholder="Company"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="pronouns" className="block text-xs mb-1 font-bold text-gray-400">Pronouns</label>
-            <input
-              id="pronouns"
-              type="text"
-              name="pronouns"
-              value={formData.pronouns}
-              onChange={handleChange}
-              placeholder="Pronouns"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="prefix" className="block text-xs mb-1 font-bold text-gray-400">Prefix</label>
-            <input
-              id="prefix"
-              type="text"
-              name="prefix"
-              value={formData.prefix}
-              onChange={handleChange}
-              placeholder="Prefix"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="credentials" className="block text-xs mb-1 font-bold text-gray-400">Credentials</label>
-            <input
-              id="credentials"
-              type="text"
-              name="credentials"
-              value={formData.credentials}
-              onChange={handleChange}
-              placeholder="Credentials"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="aboutMe" className="block text-xs mb-1 font-bold text-gray-400">About Me</label>
-          <textarea
-            id="aboutMe"
-            name="aboutMe"
-            value={formData.aboutMe}
-            onChange={handleChange}
-            placeholder="About Me"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            rows={3}
-          />
-        </div>
-      </div>
+      </CollapsibleSection>
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">Contact Information</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="phoneNumber" className="block text-xs mb-1 font-bold text-gray-400">Phone Number</label>
-            <input
-              id="phoneNumber"
-              type="tel"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="Phone Number"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
+      <CollapsibleSection title="Basic Information" isOpen={true}>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-xs mb-1 font-bold text-gray-400">First Name</label>
+              <input
+                id="firstName"
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="First Name"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="middleName" className="block text-xs mb-1 font-bold text-gray-400">Middle Name</label>
+              <input
+                id="middleName"
+                type="text"
+                name="middleName"
+                value={formData.middleName}
+                onChange={handleChange}
+                placeholder="Middle Name"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-xs mb-1 font-bold text-gray-400">Last Name</label>
+              <input
+                id="lastName"
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Last Name"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="jobTitle" className="block text-xs mb-1 font-bold text-gray-400">Job Title</label>
+              <input
+                id="jobTitle"
+                type="text"
+                name="jobTitle"
+                value={formData.jobTitle}
+                onChange={handleChange}
+                placeholder="Job Title"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="company" className="block text-xs mb-1 font-bold text-gray-400">Company</label>
+              <input
+                id="company"
+                type="text"
+                name="company"
+                value={formData.company}
+                onChange={handleChange}
+                placeholder="Company"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="pronouns" className="block text-xs mb-1 font-bold text-gray-400">Pronouns</label>
+              <input
+                id="pronouns"
+                type="text"
+                name="pronouns"
+                value={formData.pronouns}
+                onChange={handleChange}
+                placeholder="Pronouns"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="prefix" className="block text-xs mb-1 font-bold text-gray-400">Prefix</label>
+              <input
+                id="prefix"
+                type="text"
+                name="prefix"
+                value={formData.prefix}
+                onChange={handleChange}
+                placeholder="Prefix"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="credentials" className="block text-xs mb-1 font-bold text-gray-400">Credentials</label>
+              <input
+                id="credentials"
+                type="text"
+                name="credentials"
+                value={formData.credentials}
+                onChange={handleChange}
+                placeholder="Credentials"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
           </div>
           <div>
-            <label htmlFor="email" className="block text-xs mb-1 font-bold text-gray-400">Email</label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={formData.email}
+            <label htmlFor="aboutMe" className="block text-xs mb-1 font-bold text-gray-400">About Me</label>
+            <textarea
+              id="aboutMe"
+              name="aboutMe"
+              value={formData.aboutMe}
               onChange={handleChange}
-              placeholder="Email"
+              placeholder="About Me"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              rows={3}
             />
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">Social Links</h3>
+      <CollapsibleSection title="Contact Information">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="phoneNumber" className="block text-xs mb-1 font-bold text-gray-400">Phone Number</label>
+              <input
+                id="phoneNumber"
+                type="tel"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                placeholder="Phone Number"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-xs mb-1 font-bold text-gray-400">Email</label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Social Links">
         <div className="space-y-4">
           {additionalSocialLinks.map((link) => {
             const socialLink = availableSocialLinks.find(sl => sl.name === link);
@@ -511,36 +514,61 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             <button
               type="button"
               onClick={() => setShowSocialLinkDropdown(!showSocialLinkDropdown)}
-              className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center"
+              className="bg-blue-500 text-white px-2 py-1 rounded-md text-sm flex items-center mt-4"
             >
               <FontAwesomeIcon icon={faPlus} className="mr-2" />
               Add Social Link
             </button>
-            {showSocialLinkDropdown && (
-              <div className="absolute z-10 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg">
-                <div className="grid grid-cols-2 gap-1 p-2">
-                  {availableSocialLinks
-                    .filter(link => !additionalSocialLinks.includes(link.name))
-                    .map(link => (
-                      <button
-                        key={link.name}
-                        type="button"
-                        onClick={() => handleAddSocialLink(link.name)}
-                        className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded flex items-center text-sm"
-                      >
-                        <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4" />
-                        <span className="truncate">{link.label}</span>
-                      </button>
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">Web Links</h3>
+      {/* Move the dropdown outside of the CollapsibleSection */}
+      {showSocialLinkDropdown && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setShowSocialLinkDropdown(false)}></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+                <button
+                  onClick={() => setShowSocialLinkDropdown(false)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
+                </button>
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                      Add Social Link
+                    </h3>
+                    <div className="mt-2">
+                      {availableSocialLinks
+                        .filter((link) => !additionalSocialLinks.includes(link.name))
+                        .map((link) => (
+                          <button
+                            key={link.name}
+                            type="button"
+                            onClick={() => {
+                              handleAddSocialLink(link.name);
+                              setShowSocialLinkDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-sm"
+                          >
+                            <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4" />
+                            <span className="truncate">{link.label}</span>
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <CollapsibleSection title="Web Links">
         <div className="space-y-4">
           {formData.webLinks.map((link, index) => (
             <div key={index} className="flex items-center space-x-2">
@@ -577,192 +605,192 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({ onSuccess, i
             Add Web Link
           </button>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">Primary Image Upload</h3>
-        <div className="space-y-2">
-          <label htmlFor="image" className="block text-xs font-medium text-gray-400">
-            Upload Image
-          </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="file"
-              id="image"
-              name="image"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  if (file.size > 5 * 1024 * 1024) {
-                    alert("File size must be less than 5MB");
-                    e.target.value = '';
-                    return;
+      <CollapsibleSection title="Primary Image Upload">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="image" className="block text-xs font-medium text-gray-400">
+              Upload Image
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                id="image"
+                name="image"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                      alert("File size must be less than 5MB");
+                      e.target.value = '';
+                      return;
+                    }
+                    setImageFile(file);
+                    setImageUrl(URL.createObjectURL(file));
                   }
-                  setImageFile(file);
-                  setImageUrl(URL.createObjectURL(file));
-                }
-              }}
-              accept="image/jpeg,image/png,image/gif"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
-            />
-          </div>
-          <p className="text-xs text-gray-500 italic">Accepted formats: JPEG, PNG, GIF. Max size: 5MB</p>
-        </div>
-        {(imageFile || imageUrl) && (
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-full overflow-hidden">
-              <Image
-                src={imageUrl || formData.imageUrl || ''}
-                alt="Profile"
-                width={64}
-                height={64}
-                className="w-full h-full object-cover"
+                }}
+                accept="image/jpeg,image/png,image/gif"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
               />
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (formData.imageUrl) {
-                  setImageToDelete(formData.imageUrl);
-                }
-                setImageFile(null);
-                setImageUrl(null);
-                setFormData(prevData => ({ ...prevData, imageUrl: '' }));
-              }}
-              className="text-red-500 hover:text-red-700 transition-colors"
-            >
-              Remove Image
-            </button>
+            <p className="text-xs text-gray-500 italic">Accepted formats: JPEG, PNG, GIF. Max size: 5MB</p>
           </div>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="font-semibold">Custom Message</h3>
-        <div>
-          <label htmlFor="customMessageHeader" className="block text-xs mb-1 font-bold text-gray-400">Custom Message Header</label>
-          <input
-            id="customMessageHeader"
-            name="customMessageHeader"
-            value={formData.customMessageHeader}
-            onChange={handleChange}
-            placeholder="Custom Message Header (optional)"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-          />
+          {(imageFile || imageUrl) && (
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-full overflow-hidden">
+                <Image
+                  src={imageUrl || formData.imageUrl || ''}
+                  alt="Profile"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (formData.imageUrl) {
+                    setImageToDelete(formData.imageUrl);
+                  }
+                  setImageFile(null);
+                  setImageUrl(null);
+                  setFormData(prevData => ({ ...prevData, imageUrl: '' }));
+                }}
+                className="text-red-500 hover:text-red-700 transition-colors"
+              >
+                Remove Image
+              </button>
+            </div>
+          )}
         </div>
-        <div>
-          <label htmlFor="customMessage" className="block text-xs mb-1 font-bold text-gray-400">Custom Message</label>
-          <textarea
-            id="customMessage"
-            name="customMessage"
-            value={formData.customMessage}
-            onChange={handleChange}
-            placeholder="Custom Message"
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            rows={2}
-          />
-        </div>
-      </div>
+      </CollapsibleSection>
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">
-          Add a Document 
-          {!isPro && <span className="text-xs text-gray-500 ml-2">(Upgrade to Pro to access this feature)</span>}
-        </h3>
-        <div className="space-y-2">
-          <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
-            Upload Document {!isPro && <span className="text-xs text-gray-500">(Pro feature)</span>}
-          </label>
-          <div className="flex items-center space-x-2">
+      <CollapsibleSection title="Custom Message">
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="customMessageHeader" className="block text-xs mb-1 font-bold text-gray-400">Custom Message Header</label>
             <input
-              type="file"
-              id="cv"
-              name="cv"
-              onChange={handleCvUpload}
-              accept=".pdf"
-              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-xs ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              id="customMessageHeader"
+              name="customMessageHeader"
+              value={formData.customMessageHeader}
+              onChange={handleChange}
+              placeholder="Custom Message Header (optional)"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="customMessage" className="block text-xs mb-1 font-bold text-gray-400">Custom Message</label>
+            <textarea
+              id="customMessage"
+              name="customMessage"
+              value={formData.customMessage}
+              onChange={handleChange}
+              placeholder="Custom Message"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+              rows={2}
+            />
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Add a Document">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
+              Upload Document {!isPro && <span className="text-xs text-gray-500">(Pro feature)</span>}
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                id="cv"
+                name="cv"
+                onChange={handleCvUpload}
+                accept=".pdf"
+                className={`w-full px-2 py-1 border border-gray-300 rounded-md text-xs ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                disabled={!isPro}
+              />
+            </div>
+            <p className="text-xs text-gray-500 italic">Document must be a PDF</p>
+          </div>
+          {(cvFile || formData.cvUrl) && (
+            <div className="flex items-center space-x-6 text-sm">
+              {formData.cvUrl && (
+                <>
+                  <a
+                    href={formData.cvUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`text-black hover:underline flex items-center ${!isPro && 'pointer-events-none opacity-50'}`}
+                  >
+                    <FontAwesomeIcon icon={faEye} className="mr-2 w-4 h-4 text-gray-400" /> View Document
+                  </a>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={handleCopyUrl}
+                      className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                      disabled={!isPro}
+                    >
+                      <FontAwesomeIcon icon={faCopy} className="mr-2 w-4 h-4 text-gray-400" /> Copy URL
+                    </button>
+                    {showCopyTooltip && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded">
+                        URL Copied!
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={handleCvDelete}
+                className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                disabled={!isPro}
+              >
+                <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4 text-gray-400" /> Delete Document
+              </button>
+            </div>
+          )}
+          <div>
+            <label htmlFor="cvHeader" className="block text-xs mb-1 font-bold text-gray-400">Document Header</label>
+            <input
+              id="cvHeader"
+              name="cvHeader"
+              value={formData.cvHeader}
+              onChange={handleChange}
+              placeholder="Defaults to 'Documents' if left blank"
+              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               disabled={!isPro}
             />
           </div>
-          <p className="text-xs text-gray-500 italic">Document must be a PDF</p>
-        </div>
-        {(cvFile || formData.cvUrl) && (
-          <div className="flex items-center space-x-6 text-sm">
-            {formData.cvUrl && (
-              <>
-                <a
-                  href={formData.cvUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`text-black hover:underline flex items-center ${!isPro && 'pointer-events-none opacity-50'}`}
-                >
-                  <FontAwesomeIcon icon={faEye} className="mr-2 w-4 h-4 text-gray-400" /> View Document
-                </a>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={handleCopyUrl}
-                    className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-                    disabled={!isPro}
-                  >
-                    <FontAwesomeIcon icon={faCopy} className="mr-2 w-4 h-4 text-gray-400" /> Copy URL
-                  </button>
-                  {showCopyTooltip && (
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded">
-                      URL Copied!
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={handleCvDelete}
-              className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+          <div>
+            <label htmlFor="cvDescription" className="block text-xs mb-1 font-bold text-gray-400">Document Description</label>
+            <textarea
+              id="cvDescription"
+              name="cvDescription"
+              value={formData.cvDescription}
+              onChange={handleChange}
+              placeholder="Doc Description (optional)"
+              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              rows={2}
               disabled={!isPro}
-            >
-              <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4 text-gray-400" /> Delete Document
-            </button>
+            />
           </div>
-        )}
-        <div>
-          <label htmlFor="cvHeader" className="block text-xs mb-1 font-bold text-gray-400">Document Header</label>
-          <input
-            id="cvHeader"
-            name="cvHeader"
-            value={formData.cvHeader}
-            onChange={handleChange}
-            placeholder="Defaults to 'Documents' if left blank"
-            className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-            disabled={!isPro}
-          />
+          <div>
+            <label htmlFor="cvDisplayText" className="block text-xs mb-1 font-bold text-gray-400">Document Display Text</label>
+            <input
+              id="cvDisplayText"
+              name="cvDisplayText"
+              value={formData.cvDisplayText}
+              onChange={handleChange}
+              placeholder="Defaults to 'View Document' if left blank"
+              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              disabled={!isPro}
+            />
+          </div>
         </div>
-        <div>
-          <label htmlFor="cvDescription" className="block text-xs mb-1 font-bold text-gray-400">Document Description</label>
-          <textarea
-            id="cvDescription"
-            name="cvDescription"
-            value={formData.cvDescription}
-            onChange={handleChange}
-            placeholder="Doc Description (optional)"
-            className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-            rows={2}
-            disabled={!isPro}
-          />
-        </div>
-        <div>
-          <label htmlFor="cvDisplayText" className="block text-xs mb-1 font-bold text-gray-400">Document Display Text</label>
-          <input
-            id="cvDisplayText"
-            name="cvDisplayText"
-            value={formData.cvDisplayText}
-            onChange={handleChange}
-            placeholder="Defaults to 'View Document' if left blank"
-            className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-            disabled={!isPro}
-          />
-        </div>
-      </div>
+      </CollapsibleSection>
 
       <div className="flex justify-between items-center">
         <button
