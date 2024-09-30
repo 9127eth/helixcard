@@ -4,7 +4,8 @@ import React from 'react';
 import Layout from '../components/Layout';
 import ClientCardCreator from '../components/ClientCardCreator';
 import { useAuth } from '../hooks/useAuth';
-import { BusinessCardForm } from '../components/BusinessCardForm';
+// Remove or comment out the following line:
+// import { BusinessCardForm } from '../components/BusinessCardForm';
 
 const CreateCardPage: React.FC = () => {
   const { user } = useAuth();

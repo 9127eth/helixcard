@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -26,12 +28,10 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
         className="w-full flex justify-between items-center py-4"
       >
         <h3 className="font-semibold text-lg">{title}</h3>
-        <svg
-          className={`w-6 h-6 transform transition-transform duration-200 ${open ? 'rotate-180' : 'rotate-0'}`}
-          viewBox="0 0 20 20"
-        >
-          <path d="M10 12l-6-6h12z" />
-        </svg>
+        <FontAwesomeIcon
+          icon={open ? faChevronUp : faChevronDown}
+          className="w-4 h-4 text-gray-400 transition-transform duration-200"
+        />
       </button>
       <div
         className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-screen' : 'max-h-0'}`}

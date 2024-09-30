@@ -4,12 +4,11 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { deleteCv } from '../lib/firebaseOperations';
 import { uploadImage, deleteImage } from '../lib/uploadUtils';
 import Image from 'next/image';
 import CollapsibleSection from './CollapsibleSection';
-import { User } from 'firebase/auth';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
