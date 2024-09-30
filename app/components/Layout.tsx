@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
-import { FaList, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaList, FaAddressBook, FaShoppingCart, FaChevronLeft, FaChevronRight, FaSignOutAlt } from 'react-icons/fa';
 import { FaCreditCard } from 'react-icons/fa';
 import { FaStar } from 'react-icons/fa';
 import { FaQuestionCircle, FaCog } from 'react-icons/fa';
@@ -19,7 +19,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = async () => {
     try {
@@ -36,31 +35,17 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
 
   useEffect(() => {
     const handleResize = () => {
-      const isLarge = window.innerWidth >= 1024;
-      setIsLargeScreen(isLarge);
-      setIsSidebarOpen(isLarge);
+      setIsLargeScreen(window.innerWidth >= 1024); // 1024px is the 'lg' breakpoint in Tailwind
+      setIsSidebarOpen(window.innerWidth >= 1024);
     };
 
-    handleResize();
+    handleResize(); // Initial check
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node) && !isLargeScreen) {
-        setIsSidebarOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isLargeScreen]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -72,12 +57,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
       <div className="flex flex-1">
         {user && showSidebar ? (
           <>
-            <div
-              ref={sidebarRef}
-              className={`${
-                isSidebarOpen ? 'w-64' : 'w-0 md:w-16'
-              } flex flex-col transition-all duration-300 ease-in-out fixed md:relative h-full z-50 overflow-y-auto`}
-            >
+            <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col transition-all duration-300 ease-in-out`}>
               <header className="bg-off-white shadow-sm flex items-center justify-between p-4">
                 {isSidebarOpen ? (
                   <Link href="/" className="text-2xl font-bold text-foreground">Helix.</Link>
@@ -142,18 +122,23 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           {isSidebarOpen && <span className="text-sm">Shop (Coming Soon)</span>}
                         </div>
                       </li>
+                      <li className="mt-4">
+                        <button onClick={handleSignOut} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 w-full text-left">
+                          <FaSignOutAlt className="text-xs" />
+                          {isSidebarOpen && <span className="text-sm">Sign Out</span>}
+                        </button>
+                      </li>
                     </ul>
                   </nav>
                   {isSidebarOpen && (
-                    <div className="mt-8">
+                    <div className="mt-4">
                       <p className="text-xs text-gray-600">Signed in as {user.email}</p>
-                      <button onClick={handleSignOut} className="text-sm text-foreground hover:text-gray-900 mt-2">Sign Out</button>
                     </div>
                   )}
                 </div>
               </aside>
             </div>
-            <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'}`}>
+            <div className="flex-1 flex flex-col">
               <header className="bg-background shadow-sm">
                 <div className="px-4 py-4">
                   {/* Add any content for the right side header here */}
