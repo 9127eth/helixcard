@@ -347,18 +347,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     }
   };
 
-  // Function to handle phone number changes
-  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    const asYouType = new AsYouType(); // No country code specified for international formatting
-    const formattedValue = asYouType.input(value);
-
-    setFormData((prevState) => ({
-      ...prevState,
-      phoneNumber: formattedValue,
-    }));
-  };
-
   const validatePhoneNumber = () => {
     const { phoneNumber } = formData;
 
