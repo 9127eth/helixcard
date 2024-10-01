@@ -31,10 +31,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
   };
 
   const downloadQRCode = () => {
+    const svgElement = document.getElementById('qr-code-svg') as unknown as SVGSVGElement;
+    const bgColor = isTransparent ? 'transparent' : 'white';
+    
     if (qrCodeFormat === 'svg') {
-      const svgElement = document.getElementById('qr-code-svg') as unknown as SVGSVGElement;
+      // For SVG, we can directly modify the SVG string
       const svgData = new XMLSerializer().serializeToString(svgElement);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const modifiedSvgData = svgData.replace('<svg', `<svg style="background-color: ${bgColor}"`);
+      const svgBlob = new Blob([modifiedSvgData], { type: 'image/svg+xml;charset=utf-8' });
       const downloadUrl = URL.createObjectURL(svgBlob);
       const downloadLink = document.createElement('a');
       downloadLink.href = downloadUrl;
@@ -44,19 +48,33 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
       document.body.removeChild(downloadLink);
       URL.revokeObjectURL(downloadUrl);
     } else {
-      const canvas = document.getElementById('qr-code') as HTMLCanvasElement;
-      const downloadUrl = canvas.toDataURL(`image/${qrCodeFormat}`);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = `qr-code.${qrCodeFormat}`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        if (ctx) {
+          // Fill the background
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          // Draw the QR code
+          ctx.drawImage(img, 0, 0);
+        }
+        const downloadUrl = canvas.toDataURL(`image/${qrCodeFormat}`);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = downloadUrl;
+        downloadLink.download = `qr-code.${qrCodeFormat}`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      };
+      img.src = `data:image/svg+xml;base64,${btoa(new XMLSerializer().serializeToString(svgElement))}`;
     }
     
     // Set feedback after download is initiated
     setDownloadFeedback('QR code downloaded!');
-    setTimeout(() => setDownloadFeedback(''), 6000); // Clear message after 2 seconds
+    setTimeout(() => setDownloadFeedback(''), 2000); // Clear message after 2 seconds
   };
 
   useEffect(() => {
@@ -101,7 +119,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
             id="qr-code-svg"
             value={cardUrl}
             size={qrCodeSize / 2}
-            bgColor="transparent"
+            bgColor={isTransparent ? "transparent" : "white"}
             fgColor="#000000"
             level="H"
             includeMargin={true}
