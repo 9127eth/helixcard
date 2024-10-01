@@ -75,7 +75,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
             <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col transition-all duration-300 ease-in-out bg-sidebar-bg`}>
               <header className="bg-sidebar-bg shadow-sm flex items-center justify-between p-4">
                 {isSidebarOpen ? (
-                  <Link href="/" className="text-2xl font-bold text-header-footer-primary-text">Helix.</Link>
+                  <Link href="/" className="text-2xl font-bold text-header-footer-primary-text">Helix</Link>
                 ) : (
                   <span className="text-2xl font-bold text-header-footer-primary-text">H</span>
                 )}
