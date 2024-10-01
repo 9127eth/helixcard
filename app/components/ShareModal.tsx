@@ -78,12 +78,12 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
       }`}
     >
       <div 
-        className={`bg-[var(--share-modal-bg)] p-4 sm:p-8 rounded-lg max-w-md w-full relative modal-content transition-all duration-300 ease-in-out transform ${
+        className={`bg-[#efefef] p-4 sm:p-8 rounded-lg max-w-md w-full relative modal-content transition-all duration-300 ease-in-out transform ${
           isOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         } max-h-[90vh] overflow-y-auto`}
       >
         <div className="mb-4 sm:mb-6">
-          <h1 className="text-3xl font-bold mb-2 text-center">
+          <h1 className="text-3xl font-bold mb-2 text-center text-black">
             {businessCard.firstName} {businessCard.lastName}
             {businessCard.credentials && (
               <span className="text-lg ml-2 text-gray-600">
@@ -91,7 +91,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
               </span>
             )}
           </h1>
-          <p className="text-lg sm:text-xl text-center">
+          <p className="text-lg sm:text-xl text-center text-black">
             {businessCard.jobTitle} {businessCard.company && <span className="text-gray-600">| {businessCard.company}</span>}
           </p>
         </div>
@@ -109,34 +109,34 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
         </div>
 
         <div className="mb-4 sm:mb-6 flex flex-col items-center space-y-2 sm:space-y-4">
-          <p className="text-xs sm:text-sm mb-2 text-center break-all">{cardUrl}</p>
+          <p className="text-xs sm:text-sm mb-2 text-center break-all text-black">{cardUrl}</p>
           <button
             onClick={copyToClipboard}
-            className="bg-primary text-primary-text px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4"
+            className="bg-[#93DBD6] text-black px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4 hover:bg-[#7bcbc5]"
           >
             <FaCopy className="mr-2 text-[#FF6A42]" /> Copy URL
           </button>
           {copyFeedback && <p className="text-green-600 text-xs sm:text-sm">{copyFeedback}</p>}
           <button
             onClick={() => window.open(cardUrl, '_blank')}
-            className="bg-foreground text-background px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4"
+            className="bg-[#000000] text-white px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4 hover:bg-[#333333]"
           >
             <FaExternalLinkAlt className="mr-2" /> View in Browser
           </button>
         </div>
         <div className="border-t border-gray-300 pt-4 sm:pt-6 mt-4 sm:mt-6">
-          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-center">Download QR Code</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-center text-black">Download QR Code</h3>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-4">
             <select
               value={qrCodeFormat}
               onChange={(e) => setQrCodeFormat(e.target.value as 'png' | 'jpeg' | 'svg')}
-              className="p-1 border rounded text-sm w-full sm:w-1/4"
+              className="p-1 border rounded text-sm w-full sm:w-1/4 text-black bg-white"
             >
               <option value="png">PNG</option>
               <option value="jpeg">JPEG</option>
               <option value="svg">SVG</option>
             </select>
-            <label className="flex items-center text-sm">
+            <label className="flex items-center text-sm text-black">
               <input
                 type="checkbox"
                 checked={isTransparent}

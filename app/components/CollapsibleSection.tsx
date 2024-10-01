@@ -31,11 +31,11 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
   }, [open, children]);
 
   return (
-    <div className="border-b border-gray-300">
+    <div className="border-b border-gray-300 dark:border-gray-700">
       <button
         type="button"
         onClick={toggleSection}
-        className="w-full flex justify-between items-center py-4 px-4 hover:bg-gray-100 transition-colors duration-200"
+        className="w-full flex justify-between items-center py-4 px-4 hover:bg-gray-100 dark:hover:bg-[#2c2d31] transition-colors duration-200"
       >
         <h3 className="font-semibold text-lg">{title}</h3>
         <FontAwesomeIcon

@@ -41,8 +41,8 @@
   --foreground: #dddee3;
   --primary: #93DBD6;
   --primary-text: #dddee3;
-  --card-header-bg: #2f3136;
-  --card-footer-bg: #2f3136;
+  --card-header-bg: #2c2d31;
+  --card-footer-bg: #2c2d31;
   --card-grid-background: #2f3136;
   --end-card-bg: #323338;
   --sidebar-bg: #2c2d31;
@@ -54,9 +54,9 @@
   --body-primary-text: #dcddde;
   --header-footer-primary-text: #dddee3;
   --header-footer-secondary-text: #b9bbbe;
-  --send-text-button-bg: #7289da;
+  --send-text-button-bg: #40444b;
   --send-text-button-text: #dddee3;
-  --save-contact-button-bg: #43b581;
+  --save-contact-button-bg: #40444b;
   --save-contact-button-text: #dddee3;
   --link-icon-color: #FF6A42;  /* Changed to reddish color */
   --link-text-color: #dcddde;
@@ -151,8 +151,12 @@ h3 .business-card-form {
 }
 
 .card-grid-icon-button:hover {
-  background-color: var(--primary);
+  background-color: var(--primary-hover);
   color: var(--primary-text);
+}
+
+.dark .card-grid-icon-button:hover {
+  background-color: #40444b;
 }
 
 .pronouns-spacing {

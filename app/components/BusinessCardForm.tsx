@@ -535,8 +535,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       {/* Move the dropdown outside of the CollapsibleSection */}
       {showSocialLinkDropdown && (
-        <div className="inline-block align-bottom bg-[var(--card-grid-background)] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-[var(--card-grid-background)] px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+        <div className="inline-block align-bottom bg-[#40444b] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div className="bg-[#40444b] px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
             <button
               onClick={() => setShowSocialLinkDropdown(false)}
               className="absolute top-2 right-2 text-[var(--body-primary-text)] hover:text-[var(--primary-text)] focus:outline-none"
@@ -801,7 +801,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       <div className="flex justify-between items-center">
         <button
           type="submit"
-          className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+          className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-4 py-2 rounded hover:bg-[#40444b] transition-colors"
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Saving...' : 'Save'}

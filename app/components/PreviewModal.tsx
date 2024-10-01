@@ -38,15 +38,15 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
-      <div className="bg-white h-full shadow-lg overflow-hidden flex flex-col">
+      <div className="bg-[#2c2d31] h-full shadow-lg overflow-hidden flex flex-col">
         <div className="p-4 relative">
           <button 
             onClick={onClose} 
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 px-2 py-1"
+            className="absolute top-4 right-4 text-gray-300 hover:text-gray-100 px-2 py-1"
           >
             Close Preview
           </button>
-          <h2 className="text-xl font-semibold mb-4">Card Preview</h2>
+          <h2 className="text-xl font-semibold mb-4 text-white">Card Preview</h2>
         </div>
         <div className="flex-grow overflow-hidden">
           <iframe
@@ -56,7 +56,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
             title="Business Card Preview"
           />
         </div>
-        <div className="p-4">
+        <div className="p-4 bg-[#2c2d31]">
           <div className="flex justify-center mb-4">
             <a 
               href={cardUrl} 
@@ -70,9 +70,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
-              <span className="text-sm font-semibold">Card URL</span>
+              <span className="text-sm font-semibold text-white">Card URL</span>
               <button onClick={handleCopyUrl} className="ml-2 relative">
-                <FaCopy className="text-gray-500 hover:text-gray-700" />
+                <FaCopy className="text-gray-300 hover:text-gray-100" />
                 {copied && (
                   <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs py-1 px-2 rounded">
                     Copied!
@@ -80,7 +80,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-600 break-all">{cardUrl}</p>
+            <p className="text-xs text-gray-300 break-all">{cardUrl}</p>
           </div>
         </div>
       </div>
