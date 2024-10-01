@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BusinessCard } from '@/app/types';
-import { FaCopy, FaExternalLinkAlt } from 'react-icons/fa';
+import { Copy, ExternalLink } from 'react-feather'; // Add this import
 
 interface PreviewModalProps {
   isOpen: boolean;
@@ -65,14 +65,14 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
               className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-sm flex items-center"
             >
               View in Browser
-              <FaExternalLinkAlt className="ml-1" size={10} />
+              <ExternalLink className="ml-1" size={14} /> {/* Updated icon */}
             </a>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
               <span className="text-sm font-semibold text-white">Card URL</span>
               <button onClick={handleCopyUrl} className="ml-2 relative">
-                <FaCopy className="text-gray-300 hover:text-gray-100" />
+                <Copy className="text-gray-300 hover:text-gray-100" size={16} /> {/* Updated icon */}
                 {copied && (
                   <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs py-1 px-2 rounded">
                     Copied!

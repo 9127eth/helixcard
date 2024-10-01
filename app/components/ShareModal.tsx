@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { BusinessCard } from '@/app/types';
-import { FaCopy, FaExternalLinkAlt, FaDownload } from 'react-icons/fa';
+import { Copy, ExternalLink, Download } from 'react-feather'; // Updated import
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -114,14 +114,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
             onClick={copyToClipboard}
             className="bg-[#93DBD6] text-black px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4 hover:bg-[#7bcbc5]"
           >
-            <FaCopy className="mr-2 text-[#FF6A42]" /> Copy URL
+            <Copy className="mr-2 text-[#FF6A42]" size={16} /> Copy URL
           </button>
           {copyFeedback && <p className="text-green-600 text-xs sm:text-sm">{copyFeedback}</p>}
           <button
             onClick={() => window.open(cardUrl, '_blank')}
             className="bg-[#000000] text-white px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4 hover:bg-[#333333]"
           >
-            <FaExternalLinkAlt className="mr-2" /> View in Browser
+            <ExternalLink className="mr-2" size={16} /> View in Browser
           </button>
         </div>
         <div className="border-t border-gray-300 pt-4 sm:pt-6 mt-4 sm:mt-6">
@@ -148,9 +148,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
           </div>
           <button
             onClick={downloadQRCode}
-            className="bg-primary text-primary-text px-4 py-2 rounded w-full sm:w-3/4 mx-auto block flex items-center justify-center"
+            className="bg-primary text-black px-4 py-2 rounded w-full sm:w-3/4 mx-auto block flex items-center justify-center"
           >
-            <FaDownload className="mr-2 text-[#FF6A42]" /> Download
+            <Download className="mr-2 text-[#FF6A42]" size={16} /> Download
           </button>
           {downloadFeedback && <p className="text-green-600 text-xs sm:text-sm text-center mt-2">{downloadFeedback}</p>}
         </div>

@@ -3,6 +3,7 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload, FaAt, FaFileAlt } from 'react-icons/fa';
+import { Facebook, Instagram, Linkedin, Twitter, Youtube, Twitch, MessageCircle, Link as LinkIcon, Phone, Mail, Send, Download, AtSign, FileText } from 'react-feather';
 import { BusinessCard } from '@/app/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -95,14 +96,14 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
               }
             }}
           >
-            <FaPaperPlane className="mr-2" />
+            <Send className="mr-2" size={18} />
             Send a Text
           </button>
           <button 
             className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-3 rounded-md flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={handleSaveContact}
           >
-            <FaDownload className="mr-2" />
+            <Download className="mr-2" size={18} />
             Save Contact
           </button>
         </div>
@@ -119,7 +120,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                   <h2 className="text-2xl font-bold mb-4">Contact</h2>
                   {card.phoneNumber && (
                     <p className="flex items-center mb-2">
-                      <FaPhone className="mr-2 text-[var(--link-icon-color)]" />
+                      <Phone className="mr-2 text-[var(--link-icon-color)]" size={18} />
                       <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
                         {card.phoneNumber}
                       </a>
@@ -127,7 +128,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                   )}
                   {card.email && (
                     <p className="flex items-center mb-2">
-                      <FaEnvelope className="mr-2 text-[var(--link-icon-color)]" />
+                      <Mail className="mr-2 text-[var(--link-icon-color)]" size={18} />
                       <a href={`mailto:${card.email}`} className="text-[var(--link-text-color)] hover:underline">
                         {card.email}
                       </a>
@@ -143,31 +144,31 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                   <div className="grid grid-cols-2 gap-4">
                     {card.linkedIn && (
                       <a href={card.linkedIn} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <FaLinkedin size={29} className="mb-2 text-[var(--social-icon-color)]" />
+                        <Linkedin size={29} className="mb-2 text-[var(--social-icon-color)]" />
                         <span className="text-[var(--social-text-color)]">LinkedIn</span>
                       </a>
                     )}
                     {card.twitter && (
                       <a href={card.twitter} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <FaTwitter size={29} className="mb-2 text-[var(--social-icon-color)]" />
+                        <Twitter size={29} className="mb-2 text-[var(--social-icon-color)]" />
                         <span className="text-[var(--social-text-color)]">Twitter</span>
                       </a>
                     )}
                     {card.facebookUrl && (
                       <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <FaFacebook size={29} className="mb-2 text-[var(--social-icon-color)]" />
+                        <Facebook size={29} className="mb-2 text-[var(--social-icon-color)]" />
                         <span className="text-[var(--social-text-color)]">Facebook</span>
                       </a>
                     )}
                     {card.instagramUrl && (
                       <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <FaInstagram size={29} className="mb-2 text-[var(--social-icon-color)]" />
+                        <Instagram size={29} className="mb-2 text-[var(--social-icon-color)]" />
                         <span className="text-[var(--social-text-color)]">Instagram</span>
                       </a>
                     )}
                     {card.threadsUrl && (
                       <a href={card.threadsUrl} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <FaAt size={29} className="mb-2 text-[var(--social-icon-color)]" />
+                        <AtSign size={29} className="mb-2 text-[var(--social-icon-color)]" />
                         <span className="text-[var(--social-text-color)]">Threads</span>
                       </a>
                     )}
@@ -189,7 +190,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                       rel="noopener noreferrer"
                       className="flex items-center hover:opacity-80"
                     >
-                      <FaLink className="mr-2 text-[var(--link-icon-color)]" />
+                      <LinkIcon className="mr-2 text-[var(--link-icon-color)]" size={18} />
                       <span className="text-[var(--link-text-color)]">{link.displayText || link.url}</span>
                     </a>
                   ))}
@@ -228,7 +229,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                   rel="noopener noreferrer"
                   className="mt-4 flex items-center hover:opacity-80"
                 >
-                  <FaFileAlt className="mr-2 text-[var(--link-icon-color)]" />
+                  <FileText className="mr-2 text-[var(--link-icon-color)]" size={18} />
                   <span className="text-[var(--link-text-color)]">{card.cvDisplayText || 'View document'}</span>
                 </a>
               </div>

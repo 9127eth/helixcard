@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLinkedin, faTwitter, faFacebook, faInstagram, faTiktok, faYoutube, faDiscord, faTwitch, faSnapchat, faTelegram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
-import { faLink, faPlus, faTimes, faAt, faEye, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { deleteCv } from '../lib/firebaseOperations';
 import { uploadImage, deleteImage } from '../lib/uploadUtils';
 import Image from 'next/image';
 import CollapsibleSection from './CollapsibleSection';
+import { 
+  Linkedin, Twitter, Facebook, Instagram, Youtube, 
+  Link, Plus, X, AtSign, Eye, Copy, Trash2, Phone, Mail
+} from 'react-feather';
+import { FaTiktok } from 'react-icons/fa';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
@@ -249,18 +251,18 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   };
 
   const availableSocialLinks = [
-    { name: 'linkedIn', label: 'LinkedIn', icon: faLinkedin },
-    { name: 'twitter', label: 'Twitter', icon: faTwitter },
-    { name: 'facebookUrl', label: 'Facebook', icon: faFacebook },
-    { name: 'instagramUrl', label: 'Instagram', icon: faInstagram },
-    { name: 'tiktokUrl', label: 'TikTok', icon: faTiktok },
-    { name: 'youtubeUrl', label: 'YouTube', icon: faYoutube },
-    { name: 'discordUrl', label: 'Discord', icon: faDiscord },
-    { name: 'twitchUrl', label: 'Twitch', icon: faTwitch },
-    { name: 'snapchatUrl', label: 'Snapchat', icon: faSnapchat },
-    { name: 'telegramUrl', label: 'Telegram', icon: faTelegram },
-    { name: 'whatsappUrl', label: 'WhatsApp', icon: faWhatsapp },
-    { name: 'threadsUrl', label: 'Threads', icon: faAt },
+    { name: 'linkedIn', label: 'LinkedIn', icon: Linkedin },
+    { name: 'twitter', label: 'Twitter', icon: Twitter },
+    { name: 'facebookUrl', label: 'Facebook', icon: Facebook },
+    { name: 'instagramUrl', label: 'Instagram', icon: Instagram },
+    { name: 'tiktokUrl', label: 'TikTok', icon: FaTiktok },
+    { name: 'youtubeUrl', label: 'YouTube', icon: Youtube },
+    { name: 'discordUrl', label: 'Discord', icon: Link },
+    { name: 'twitchUrl', label: 'Twitch', icon: Link },
+    { name: 'snapchatUrl', label: 'Snapchat', icon: Link },
+    { name: 'telegramUrl', label: 'Telegram', icon: Link },
+    { name: 'whatsappUrl', label: 'WhatsApp', icon: Phone },
+    { name: 'threadsUrl', label: 'Threads', icon: AtSign },
   ];
 
   const handleAddSocialLink = (linkName: string) => {
@@ -517,9 +519,10 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <div className="overflow-y-auto">
             {additionalSocialLinks.map((link) => {
               const socialLink = availableSocialLinks.find(sl => sl.name === link);
+              const IconComponent = socialLink?.icon || Link;
               return (
                 <div key={link} className="flex items-center space-x-2 mb-2">
-                  <FontAwesomeIcon icon={socialLink?.icon || faLink} className="w-4 h-4 text-gray-400" />
+                  <IconComponent size={16} className="text-gray-400" />
                   <input
                     type={link === 'twitter' ? 'text' : 'url'}
                     name={link}
@@ -533,7 +536,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                     onClick={() => removeSocialLink(link)}
                     className="text-gray-400 hover:text-[#FF6A42] transition-colors"
                   >
-                    <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
+                    <X size={16} />
                   </button>
                 </div>
               );
@@ -545,7 +548,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               onClick={() => setShowSocialLinkDropdown(!showSocialLinkDropdown)}
               className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-2 py-1 rounded-md text-sm flex items-center mt-2"
             >
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              <Plus size={16} className="mr-2" />
               Add Social Link
             </button>
           </div>
@@ -560,7 +563,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               onClick={() => setShowSocialLinkDropdown(false)}
               className="absolute top-2 right-2 text-[var(--body-primary-text)] hover:text-[var(--primary-text)] focus:outline-none"
             >
-              <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
+              <X size={20} />
             </button>
             <div className="sm:flex sm:items-start">
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
@@ -580,7 +583,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                         }}
                         className="w-full text-left px-4 py-2 hover:bg-[var(--primary-hover)] flex items-center text-sm text-[var(--body-primary-text)]"
                       >
-                        <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4 text-[var(--social-icon-color)]" />
+                        <link.icon size={16} className="mr-2 text-[var(--social-icon-color)]" />
                         <span className="truncate">{link.label}</span>
                       </button>
                     ))}
@@ -596,7 +599,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <div className="overflow-y-auto">
             {formData.webLinks.map((link, index) => (
               <div key={index} className="flex items-center space-x-2 mb-2">
-                <FontAwesomeIcon icon={faLink} className="w-4 h-4 text-gray-400" />
+                <Link size={16} className="text-gray-400" />
                 <input
                   type="url"
                   value={link.url}
@@ -616,7 +619,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   onClick={() => removeWebLink(index)}
                   className="text-gray-400 hover:text-[#FF6A42] transition-colors"
                 >
-                  <FontAwesomeIcon icon={faTimes} className="w-4 h-4" />
+                  <X size={16} />
                 </button>
               </div>
             ))}
@@ -626,7 +629,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
             onClick={addWebLink}
             className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-2 py-1 rounded-md text-sm flex items-center mt-2"
           >
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            <Plus size={16} className="mr-2" />
             Add Web Link
           </button>
         </div>
@@ -748,7 +751,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                     rel="noopener noreferrer"
                     className={`text-[var(--body-primary-text)] hover:underline flex items-center ${!isPro && 'pointer-events-none opacity-50'}`}
                   >
-                    <FontAwesomeIcon icon={faEye} className="mr-2 w-4 h-4 text-gray-400" /> View Document
+                    <Eye size={16} className="mr-2 text-gray-400" /> View Document
                   </a>
                   <div className="relative">
                     <button
@@ -757,7 +760,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                       className={`text-[var(--body-primary-text)] hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
                       disabled={!isPro}
                     >
-                      <FontAwesomeIcon icon={faCopy} className="mr-2 w-4 h-4 text-gray-400" /> Copy URL
+                      <Copy size={16} className="mr-2 text-gray-400" /> Copy URL
                     </button>
                     {showCopyTooltip && (
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded">
@@ -773,7 +776,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 className={`text-red-500 hover:text-red-700 transition-colors flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
                 disabled={!isPro}
               >
-                <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4" /> Delete Document
+                <Trash2 size={16} className="mr-2" /> Delete Document
               </button>
             </div>
           )}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FaStar, FaEdit, FaEye, FaShareAlt } from 'react-icons/fa';
+import { FiShare, FiEdit, FiEye } from 'react-icons/fi';
 import { BusinessCard } from '@/app/types';
 import { ShareModal } from './ShareModal';
 
@@ -21,7 +21,9 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
     <div className="w-full bg-card-grid-background border rounded-lg shadow-sm hover:shadow-md transition-shadow relative flex flex-col p-4 h-[180px]">
       {card.isPrimary && (
         <div className="absolute top-2 right-2 group">
-          <FaStar className="h-3 w-3 text-[var(--foreground)]" />
+          <svg className="h-3 w-3 text-[var(--foreground)]" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="6" />
+          </svg>
           <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 right-0 bottom-full mb-2 whitespace-nowrap">
             Primary card
           </span>
@@ -35,21 +37,21 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">{card.company}</p>
       </div>
       <div className="mt-auto">
-        <div className="flex space-x-2">
+        <div className="flex space-x-3">
           <Link href={`/edit-card/${card.id}`} className="card-grid-icon-button group relative">
-            <FaEdit className="text-[var(--card-grid-icon-button-text)]" />
+            <FiEdit className="text-[var(--card-grid-icon-button-text)]" />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Edit
             </span>
           </Link>
           <button onClick={onView} className="card-grid-icon-button group relative">
-            <FaEye className="text-[var(--card-grid-icon-button-text)]" />
+            <FiEye className="text-[var(--card-grid-icon-button-text)]" />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Preview
             </span>
           </button>
           <button onClick={handleShareClick} className="card-grid-icon-button group relative">
-            <FaShareAlt className="text-[var(--card-grid-icon-button-text)]" />
+            <FiShare className="text-[var(--card-grid-icon-button-text)]" />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Share this card
             </span>
