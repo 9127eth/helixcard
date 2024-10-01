@@ -8,9 +8,9 @@ import Image from 'next/image';
 import CollapsibleSection from './CollapsibleSection';
 import { 
   Linkedin, Twitter, Facebook, Instagram, Youtube, 
-  Link, Plus, X, AtSign, Eye, Copy, Trash2, Phone, Mail
+  Link, Plus, X, AtSign, Eye, Copy, Trash2, Phone,
 } from 'react-feather';
-import { FaTiktok } from 'react-icons/fa';
+import { FaTiktok, FaTwitch, FaSnapchatGhost, FaTelegram, FaDiscord } from 'react-icons/fa';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
@@ -257,10 +257,10 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     { name: 'instagramUrl', label: 'Instagram', icon: Instagram },
     { name: 'tiktokUrl', label: 'TikTok', icon: FaTiktok },
     { name: 'youtubeUrl', label: 'YouTube', icon: Youtube },
-    { name: 'discordUrl', label: 'Discord', icon: Link },
-    { name: 'twitchUrl', label: 'Twitch', icon: Link },
-    { name: 'snapchatUrl', label: 'Snapchat', icon: Link },
-    { name: 'telegramUrl', label: 'Telegram', icon: Link },
+    { name: 'discordUrl', label: 'Discord', icon: FaDiscord },
+    { name: 'twitchUrl', label: 'Twitch', icon: FaTwitch },
+    { name: 'snapchatUrl', label: 'Snapchat', icon: FaSnapchatGhost },
+    { name: 'telegramUrl', label: 'Telegram', icon: FaTelegram },
     { name: 'whatsappUrl', label: 'WhatsApp', icon: Phone },
     { name: 'threadsUrl', label: 'Threads', icon: AtSign },
   ];
@@ -557,17 +557,17 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       {/* Move the dropdown outside of the CollapsibleSection */}
       {showSocialLinkDropdown && (
-        <div className="inline-block align-bottom bg-[#40444b] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-[#40444b] px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+        <div className="inline-block align-bottom bg-white dark:bg-[#40444b] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div className="bg-white dark:bg-[#40444b] px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
             <button
               onClick={() => setShowSocialLinkDropdown(false)}
-              className="absolute top-2 right-2 text-[var(--body-primary-text)] hover:text-[var(--primary-text)] focus:outline-none"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-500 dark:text-[var(--body-primary-text)] dark:hover:text-[var(--primary-text)] focus:outline-none"
             >
               <X size={20} />
             </button>
             <div className="sm:flex sm:items-start">
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                <h3 className="text-lg leading-6 font-medium text-[var(--body-primary-text)]" id="modal-title">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-[var(--body-primary-text)]" id="modal-title">
                   Add Social Link
                 </h3>
                 <div className="mt-2">
@@ -581,9 +581,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                           handleAddSocialLink(link.name);
                           setShowSocialLinkDropdown(false);
                         }}
-                        className="w-full text-left px-4 py-2 hover:bg-[var(--primary-hover)] flex items-center text-sm text-[var(--body-primary-text)]"
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-[var(--primary-hover)] flex items-center text-sm text-gray-700 dark:text-[var(--body-primary-text)]"
                       >
-                        <link.icon size={16} className="mr-2 text-[var(--social-icon-color)]" />
+                        <link.icon size={16} className="mr-2 text-gray-400 dark:text-[var(--social-icon-color)]" />
                         <span className="truncate">{link.label}</span>
                       </button>
                     ))}
@@ -830,13 +830,19 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </button>
         
         {initialData && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="delete-button bg-red-500 px-2 py-1 rounded-md hover:bg-red-600 transition-colors font-bold text-sm text-white"
-          >
-            Delete
-          </button>
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="text-red-500 hover:text-red-700 transition-colors"
+              aria-label="Delete card"
+            >
+              <Trash2 size={25} />
+            </button>
+            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              Danger! Clicking here will delete this card.
+            </span>
+          </div>
         )}
       </div>
     </form>
