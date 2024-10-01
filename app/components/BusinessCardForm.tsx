@@ -113,6 +113,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl || null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     console.log('Initial data:', initialData);
@@ -154,6 +155,24 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
     fetchUserStatus();
   }, [user]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // Adjust this breakpoint as needed
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Function to determine if a section should be open
+  const shouldSectionBeOpen = () => {
+    if (!isEditing) return true; // Always open when creating new card
+    if (!isMobile) return true; // Always open on desktop
+    return false; // Closed on mobile when editing
+  };
 
   const addProtocolToUrl = (url: string): string => {
     if (url && !/^https?:\/\//i.test(url) && url !== 'https://') {
@@ -324,7 +343,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       {error && <p className="text-red-500 text-xs">{error}</p>}
 
       {/* First Section - Always Open */}
-      <CollapsibleSection title="Card Description" isOpen={true}>
+      <CollapsibleSection title="Card Description" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="space-y-1">
             <input
@@ -343,7 +362,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </div>
       </CollapsibleSection>
       {/* Second Section - Always Open */}
-      <CollapsibleSection title="Basic Information" isOpen={true}>
+      <CollapsibleSection title="Basic Information" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
@@ -462,7 +481,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       </CollapsibleSection>
 
       {/* Remaining Sections - Open if editing, closed if creating */}
-      <CollapsibleSection title="Contact Information" isOpen={isEditing}>
+      <CollapsibleSection title="Contact Information" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -493,7 +512,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Social Links" isOpen={isEditing}>
+      <CollapsibleSection title="Social Links" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="overflow-y-auto">
             {additionalSocialLinks.map((link) => {
@@ -572,7 +591,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </div>
       )}
 
-      <CollapsibleSection title="Web Links" isOpen={isEditing}>
+      <CollapsibleSection title="Web Links" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="overflow-y-auto">
             {formData.webLinks.map((link, index) => (
@@ -613,7 +632,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Primary Image Upload" isOpen={isEditing}>
+      <CollapsibleSection title="Profile Image Upload" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="image" className="block text-xs font-medium text-gray-400">
@@ -672,7 +691,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Custom Message" isOpen={isEditing}>
+      <CollapsibleSection title="Custom Header/Message" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div>
             <label htmlFor="customMessageHeader" className="block text-xs mb-1 font-bold text-gray-400">Custom Message Header</label>
@@ -700,7 +719,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Add a Document" isOpen={isEditing}>
+      <CollapsibleSection title="Document" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
