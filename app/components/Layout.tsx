@@ -140,7 +140,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           <button
                             onClick={toggleDarkMode}
                             className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out ${
-                              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'
+                              theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
                             }`}
                           >
                             <div

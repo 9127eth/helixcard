@@ -91,7 +91,7 @@ body {
 
 .delete-button {
   background-color: #FF6A42 !important; /* red-500 */
-  color: white !important;
+  color: black !important;
 }
 
 .delete-button:hover {

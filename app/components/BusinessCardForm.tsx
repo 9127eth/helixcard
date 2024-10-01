@@ -535,42 +535,36 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       {/* Move the dropdown outside of the CollapsibleSection */}
       {showSocialLinkDropdown && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setShowSocialLinkDropdown(false)}></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
-                <button
-                  onClick={() => setShowSocialLinkDropdown(false)}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-500 focus:outline-none"
-                >
-                  <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
-                </button>
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Add Social Link
-                    </h3>
-                    <div className="mt-2">
-                      {availableSocialLinks
-                        .filter((link) => !additionalSocialLinks.includes(link.name))
-                        .map((link) => (
-                          <button
-                            key={link.name}
-                            type="button"
-                            onClick={() => {
-                              handleAddSocialLink(link.name);
-                              setShowSocialLinkDropdown(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-sm"
-                          >
-                            <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4" />
-                            <span className="truncate">{link.label}</span>
-                          </button>
-                        ))}
-                    </div>
-                  </div>
+        <div className="inline-block align-bottom bg-[var(--card-grid-background)] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div className="bg-[var(--card-grid-background)] px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+            <button
+              onClick={() => setShowSocialLinkDropdown(false)}
+              className="absolute top-2 right-2 text-[var(--body-primary-text)] hover:text-[var(--primary-text)] focus:outline-none"
+            >
+              <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
+            </button>
+            <div className="sm:flex sm:items-start">
+              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                <h3 className="text-lg leading-6 font-medium text-[var(--body-primary-text)]" id="modal-title">
+                  Add Social Link
+                </h3>
+                <div className="mt-2">
+                  {availableSocialLinks
+                    .filter((link) => !additionalSocialLinks.includes(link.name))
+                    .map((link) => (
+                      <button
+                        key={link.name}
+                        type="button"
+                        onClick={() => {
+                          handleAddSocialLink(link.name);
+                          setShowSocialLinkDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-[var(--primary-hover)] flex items-center text-sm text-[var(--body-primary-text)]"
+                      >
+                        <FontAwesomeIcon icon={link.icon} className="mr-2 w-4 h-4 text-[var(--social-icon-color)]" />
+                        <span className="truncate">{link.label}</span>
+                      </button>
+                    ))}
                 </div>
               </div>
             </div>
@@ -817,7 +811,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <button
             type="button"
             onClick={handleDelete}
-            className="delete-button bg-red-500 px-2 py-1 rounded-md border border-red-700 hover:bg-red-600 transition-colors font-bold text-sm text-white"
+            className="delete-button bg-red-500 px-2 py-1 rounded-md hover:bg-red-600 transition-colors font-bold text-sm text-white"
           >
             Delete
           </button>
