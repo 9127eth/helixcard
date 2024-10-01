@@ -78,12 +78,12 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
       }`}
     >
       <div 
-        className={`bg-[#efefef] p-4 sm:p-8 rounded-lg max-w-md w-full relative modal-content transition-all duration-300 ease-in-out transform ${
+        className={`bg-[#efefef] p-6 sm:p-10 rounded-lg max-w-md w-full relative modal-content transition-all duration-300 ease-in-out transform ${
           isOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         } max-h-[90vh] overflow-y-auto`}
       >
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-3xl font-bold mb-2 text-center text-black">
+        <div className="mb-6 text-left">
+          <h1 className="text-3xl font-bold mb-2 text-black">
             {businessCard.firstName} {businessCard.lastName}
             {businessCard.credentials && (
               <span className="text-lg ml-2 text-gray-600">
@@ -91,7 +91,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
               </span>
             )}
           </h1>
-          <p className="text-lg sm:text-xl text-center text-black">
+          <p className="text-lg sm:text-xl text-black">
             {businessCard.jobTitle} {businessCard.company && <span className="text-gray-600">| {businessCard.company}</span>}
           </p>
         </div>
@@ -108,24 +108,24 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
           />
         </div>
 
-        <div className="mb-4 sm:mb-6 flex flex-col items-center space-y-2 sm:space-y-4">
+        <div className="mb-6 flex flex-col items-center space-y-4">
           <p className="text-xs sm:text-sm mb-2 text-center break-all text-black">{cardUrl}</p>
           <button
             onClick={copyToClipboard}
-            className="bg-[#93DBD6] text-black px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4 hover:bg-[#7bcbc5]"
+            className="bg-[#93DBD6] text-black px-4 py-2 rounded flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#7bcbc5]"
           >
             <Copy className="mr-2 text-[#FF6A42]" size={16} /> Copy URL
           </button>
           {copyFeedback && <p className="text-green-600 text-xs sm:text-sm">{copyFeedback}</p>}
           <button
             onClick={() => window.open(cardUrl, '_blank')}
-            className="bg-[#000000] text-white px-4 py-2 rounded flex items-center justify-center w-full sm:w-3/4 hover:bg-[#333333]"
+            className="bg-[#000000] text-white px-4 py-2 rounded flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#333333]"
           >
             <ExternalLink className="mr-2" size={16} /> View in Browser
           </button>
         </div>
-        <div className="border-t border-gray-300 pt-4 sm:pt-6 mt-4 sm:mt-6">
-          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-center text-black">Download QR Code</h3>
+        <div className="border-t border-gray-300 pt-6 mt-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-4 text-center text-black">Download QR Code</h3>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-4">
             <select
               value={qrCodeFormat}
@@ -146,17 +146,17 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
               No background
             </label>
           </div>
-          <button
+          <div
             onClick={downloadQRCode}
-            className="bg-primary text-black px-4 py-2 rounded w-full sm:w-3/4 mx-auto block flex items-center justify-center"
+            className="text-black cursor-pointer flex items-center justify-center"
           >
             <Download className="mr-2 text-[#FF6A42]" size={16} /> Download
-          </button>
+          </div>
           {downloadFeedback && <p className="text-green-600 text-xs sm:text-sm text-center mt-2">{downloadFeedback}</p>}
         </div>
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-700"
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 text-gray-500 hover:text-gray-700 text-2xl p-2"
         >
           ×
         </button>
