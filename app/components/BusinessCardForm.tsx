@@ -11,7 +11,7 @@ import {
   Link, Plus, X, AtSign, Eye, Copy, Trash2, Phone,
 } from 'react-feather';
 import { FaTiktok, FaTwitch, FaSnapchatGhost, FaTelegram, FaDiscord } from 'react-icons/fa';
-import { parsePhoneNumberFromString, AsYouType } from 'libphonenumber-js'; // Import the library
+import { parsePhoneNumberFromString } from 'libphonenumber-js'; // Import the library
 import ReactPhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 
