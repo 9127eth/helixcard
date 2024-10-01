@@ -27,17 +27,8 @@ const SettingsPage: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h2 className="text-xl font-semibold mb-2">Privacy and Security</h2>
+            <h2 className="text-xl font-semibold mb-2">Danger Zone</h2>
             <ul className="space-y-2">
-              <li><Link href="#" className="text-blue-600 hover:underline">Privacy Settings</Link></li>
-              <li><Link href="#" className="text-blue-600 hover:underline">Two-Factor Authentication</Link></li>
-              <li><Link href="#" className="text-blue-600 hover:underline">Manage Connected Apps</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Data Management</h2>
-            <ul className="space-y-2">
-              <li><Link href="#" className="text-blue-600 hover:underline">Export Your Data</Link></li>
               <li><Link href="#" className="text-blue-600 hover:underline">Delete Account</Link></li>
             </ul>
           </div>
