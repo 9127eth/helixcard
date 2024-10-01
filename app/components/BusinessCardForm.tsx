@@ -11,6 +11,9 @@ import {
   Link, Plus, X, AtSign, Eye, Copy, Trash2, Phone,
 } from 'react-feather';
 import { FaTiktok, FaTwitch, FaSnapchatGhost, FaTelegram, FaDiscord } from 'react-icons/fa';
+import { parsePhoneNumberFromString, AsYouType } from 'libphonenumber-js'; // Import the library
+import ReactPhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
@@ -210,6 +213,14 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     setIsSubmitting(true);
     setError(null);
 
+    // Validate the phone number
+    const isPhoneValid = validatePhoneNumber();
+
+    if (!isPhoneValid) {
+      setIsSubmitting(false);
+      return;
+    }
+
     if (!user) {
       setError('User not authenticated');
       setIsSubmitting(false);
@@ -333,6 +344,40 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       setShowCopyTooltip(true);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       copyTimeoutRef.current = setTimeout(() => setShowCopyTooltip(false), 2000);
+    }
+  };
+
+  // Function to handle phone number changes
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const asYouType = new AsYouType(); // No country code specified for international formatting
+    const formattedValue = asYouType.input(value);
+
+    setFormData((prevState) => ({
+      ...prevState,
+      phoneNumber: formattedValue,
+    }));
+  };
+
+  const validatePhoneNumber = () => {
+    const { phoneNumber } = formData;
+
+    const phoneNumberObj = parsePhoneNumberFromString(phoneNumber);
+
+    if (phoneNumberObj && phoneNumberObj.isValid()) {
+      // Valid number
+      const formattedNumber = phoneNumberObj.formatInternational();
+
+      setFormData((prevState) => ({
+        ...prevState,
+        phoneNumber: formattedNumber,
+      }));
+
+      return true;
+    } else {
+      // Invalid number
+      setError('Please enter a valid phone number, including the country code.');
+      return false;
     }
   };
 
@@ -488,14 +533,15 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="phoneNumber" className="block text-xs mb-1 font-bold text-gray-400">Phone Number</label>
-              <input
-                id="phoneNumber"
-                type="tel"
-                name="phoneNumber"
+              <ReactPhoneInput
+                placeholder="Enter phone number"
                 value={formData.phoneNumber}
-                onChange={handleChange}
-                placeholder="Phone Number"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                onChange={(value) => setFormData({ ...formData, phoneNumber: value || '' })}
+                defaultCountry="US" // Change as needed
+                international
+                countryCallingCodeEditable={true}
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                required
               />
             </div>
             <div>

@@ -67,6 +67,11 @@ export function useAuth() {
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
+        
+        // Check for specific Firebase error codes
+        if (error.message.includes('auth/email-already-in-use')) {
+          throw new Error('An account with this email already exists. Please try logging in instead.');
+        }
       }
       throw error;
     }

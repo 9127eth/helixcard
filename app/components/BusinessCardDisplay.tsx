@@ -8,6 +8,7 @@ import { Facebook, Instagram, Linkedin, Twitter, Youtube, Twitch, MessageCircle,
 import { BusinessCard } from '@/app/types';
 import Link from 'next/link';
 import Image from 'next/image';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 
 interface BusinessCardDisplayProps {
@@ -42,6 +43,17 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+  };
+
+  const formatPhoneNumberDisplay = (phoneNumberString: string): string => {
+    const phoneNumber = parsePhoneNumberFromString(phoneNumberString);
+    if (!phoneNumber) {
+      // If parsing fails, return the original string
+      return phoneNumberString;
+    }
+
+    // Format the number in national format if possible
+    return phoneNumber.formatNational();
   };
 
   return (
@@ -123,7 +135,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
                     <p className="flex items-center mb-2">
                       <Phone className="mr-2 text-[var(--link-icon-color)]" size={18} />
                       <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
-                        {card.phoneNumber}
+                        {formatPhoneNumberDisplay(card.phoneNumber)}
                       </a>
                     </p>
                   )}
