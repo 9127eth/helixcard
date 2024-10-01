@@ -68,6 +68,7 @@
   --primary-text-hover: #ffffff;
   --collapsible-header-hover: #323338;
   --preview-button-text: #323338;  /* Add this line inside the .dark selector */
+  --card-grid-secondary-text: #a5a6aa;
 }
 
 body {

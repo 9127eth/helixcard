@@ -31,8 +31,8 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <h3 className="text-3xl font-semibold mb-2 line-clamp-1 overflow-hidden">
           {card.description}
         </h3>
-        <p className="text-sm text-gray-600 truncate">{card.jobTitle}</p>
-        <p className="text-sm text-gray-600 truncate">{card.company}</p>
+        <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">{card.jobTitle}</p>
+        <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">{card.company}</p>
       </div>
       <div className="mt-auto">
         <div className="flex space-x-2">
