@@ -10,8 +10,8 @@ export const CreateCardIcon: React.FC = () => {
   }
 
   return (
-    <Link href="/create-card" className="inline-flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors ml-2">
-      <span className="text-xl font-bold">+</span>
+    <Link href="/create-card" className="inline-flex items-center justify-center w-6 h-6 bg-[var(--primary)] text-[var(--primary-text)] rounded-full hover:bg-[var(--primary-hover)] hover:text-[var(--primary-text-hover)] transition-colors ml-2">
+      <span className="text-xl font-bold dark:text-[#323338]">+</span>
     </Link>
   );
 };

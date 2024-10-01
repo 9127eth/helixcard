@@ -87,31 +87,31 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                   <nav>
                     <ul className="space-y-2">
                       <li>
-                        <Link href="/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                        <Link href="/dashboard" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
                           <FaCreditCard className="text-xs" />
                           {isSidebarOpen && <span className="text-sm">My Cards</span>}
                         </Link>
                       </li>
                       <li>
-                        <Link href="/how-it-works" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                        <Link href="/how-it-works" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
                           <FaList className="text-xs" />
                           {isSidebarOpen && <span className="text-sm">How It Works</span>}
                         </Link>
                       </li>
                       <li>
-                        <Link href="/get-helix-pro" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                        <Link href="/get-helix-pro" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
                           <FaStar className="text-xs" />
                           {isSidebarOpen && <span className="text-sm">Get Helix Pro</span>}
                         </Link>
                       </li>
                       <li>
-                        <Link href="/support" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                        <Link href="/support" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
                           <FaQuestionCircle className="text-xs" />
                           {isSidebarOpen && <span className="text-sm">Support</span>}
                         </Link>
                       </li>
                       <li>
-                        <Link href="/settings" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200">
+                        <Link href="/settings" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
                           <FaCog className="text-xs" />
                           {isSidebarOpen && <span className="text-sm">Settings</span>}
                         </Link>
@@ -129,7 +129,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                         </div>
                       </li>
                       <li className="mt-4">
-                        <button onClick={handleSignOut} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 w-full text-left">
+                        <button onClick={handleSignOut} className="flex items-center space-x-2 p-2 rounded hover:bg-background w-full text-left">
                           <FaSignOutAlt className="text-xs" />
                           {isSidebarOpen && <span className="text-sm">Sign Out</span>}
                         </button>

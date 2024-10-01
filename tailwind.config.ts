@@ -33,6 +33,7 @@ const config: Config = {
         "link-text-color": "var(--link-text-color)",
         "end-card-header-secondary-text-color": "var(--end-card-header-secondary-text-color)",
         "share-modal-bg": "var(--share-modal-bg)",
+        "button-text-dark": "var(--button-text-dark)",
       },
       fontFamily: {
         sans: ['var(--font-inter)'],

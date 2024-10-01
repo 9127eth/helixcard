@@ -37,19 +37,19 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
       <div className="mt-auto">
         <div className="flex space-x-2">
           <Link href={`/edit-card/${card.id}`} className="card-grid-icon-button group relative">
-            <FaEdit />
+            <FaEdit className="text-[var(--card-grid-icon-button-text)]" />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Edit
             </span>
           </Link>
           <button onClick={onView} className="card-grid-icon-button group relative">
-            <FaEye />
+            <FaEye className="text-[var(--card-grid-icon-button-text)]" />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Preview
             </span>
           </button>
           <button onClick={handleShareClick} className="card-grid-icon-button group relative">
-            <FaShareAlt />
+            <FaShareAlt className="text-[var(--card-grid-icon-button-text)]" />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Share this card
             </span>

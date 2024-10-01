@@ -30,12 +30,16 @@
   --link-text-color: #333333;  /* New variable for link text */
   --end-card-header-secondary-text-color: #666666;  /* You can set any default color you prefer */
   --share-modal-bg: #efefef; /* Default to white, but you can change this */
+  --primary-hover: #7bcbc5;  /* Slightly darker shade of primary */
+  --primary-text-hover: #000000;
+  --sidebar-bg: #F5FDFD;  /* Add this line */
+  --button-text-dark: #323338;
 }
 
 .dark {
   --background: #323338;
   --foreground: #dddee3;
-  --primary: #7289da;
+  --primary: #93DBD6;
   --primary-text: #dddee3;
   --card-header-bg: #2f3136;
   --card-footer-bg: #2f3136;
@@ -54,10 +58,15 @@
   --send-text-button-text: #dddee3;
   --save-contact-button-bg: #43b581;
   --save-contact-button-text: #dddee3;
-  --link-icon-color: #7289da;
+  --link-icon-color: #FF6A42;  /* Changed to reddish color */
   --link-text-color: #dcddde;
   --end-card-header-secondary-text-color: #b9bbbe;
   --share-modal-bg: #2f3136;
+  --card-grid-icon-button-bg: #2f3136;  /* Added this line */
+  --card-grid-icon-button-text: #dddee3;  /* Added this line */
+  --primary-hover: #323338;  /* Slightly darker shade of primary for dark mode */
+  --primary-text-hover: #ffffff;
+  --collapsible-header-hover: #323338;
 }
 
 body {
@@ -134,14 +143,14 @@ h3 .business-card-form {
   border-radius: 50%;
   font-size: 1rem;
   color: var(--foreground);
-  background-color: #93DBD6;
-  border: 2px solid #93DBD6;
+  background-color: var(--card-grid-icon-button-bg);
+  border: 2px solid var(--primary);
   transition: all 0.2s ease-in-out;
 }
 
 .card-grid-icon-button:hover {
-  background-color: #ffffff;
-  color: #000000;
+  background-color: var(--primary);
+  color: var(--primary-text);
 }
 
 .pronouns-spacing {
