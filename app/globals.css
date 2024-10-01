@@ -67,6 +67,7 @@
   --primary-hover: #323338;  /* Slightly darker shade of primary for dark mode */
   --primary-text-hover: #ffffff;
   --collapsible-header-hover: #323338;
+  --preview-button-text: #323338;  /* Add this line inside the .dark selector */
 }
 
 body {

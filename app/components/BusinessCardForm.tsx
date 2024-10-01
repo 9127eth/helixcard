@@ -733,7 +733,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                     href={formData.cvUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`text-black hover:underline flex items-center ${!isPro && 'pointer-events-none opacity-50'}`}
+                    className={`text-[var(--body-primary-text)] hover:underline flex items-center ${!isPro && 'pointer-events-none opacity-50'}`}
                   >
                     <FontAwesomeIcon icon={faEye} className="mr-2 w-4 h-4 text-gray-400" /> View Document
                   </a>
@@ -741,7 +741,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                     <button
                       type="button"
                       onClick={handleCopyUrl}
-                      className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                      className={`text-[var(--body-primary-text)] hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
                       disabled={!isPro}
                     >
                       <FontAwesomeIcon icon={faCopy} className="mr-2 w-4 h-4 text-gray-400" /> Copy URL
@@ -757,10 +757,10 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               <button
                 type="button"
                 onClick={handleCvDelete}
-                className={`text-black hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                className={`text-red-500 hover:text-red-700 transition-colors flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
                 disabled={!isPro}
               >
-                <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4 text-gray-400" /> Delete Document
+                <FontAwesomeIcon icon={faTrash} className="mr-2 w-4 h-4" /> Delete Document
               </button>
             </div>
           )}
