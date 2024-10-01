@@ -134,23 +134,25 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           {isSidebarOpen && <span className="text-sm">Sign Out</span>}
                         </button>
                       </li>
-                      <li>
-                        <div className="flex items-center justify-between p-2 rounded">
-                          {isSidebarOpen && <span className="text-sm">Dark Mode</span>}
-                          <button
-                            onClick={toggleDarkMode}
-                            className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out ${
-                              theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
-                            }`}
-                          >
-                            <div
-                              className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
-                                theme === 'dark' ? 'transform translate-x-6' : ''
+                      {isSidebarOpen && (
+                        <li>
+                          <div className="flex items-center justify-between p-2 rounded">
+                            <span className="text-sm">Dark Mode</span>
+                            <button
+                              onClick={toggleDarkMode}
+                              className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out ${
+                                theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
                               }`}
-                            ></div>
-                          </button>
-                        </div>
-                      </li>
+                            >
+                              <div
+                                className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
+                                  theme === 'dark' ? 'transform translate-x-6' : ''
+                                }`}
+                              ></div>
+                            </button>
+                          </div>
+                        </li>
+                      )}
                     </ul>
                   </nav>
                 </div>

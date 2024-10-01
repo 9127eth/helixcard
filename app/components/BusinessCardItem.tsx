@@ -21,7 +21,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
     <div className="w-full bg-card-grid-background border rounded-lg shadow-sm hover:shadow-md transition-shadow relative flex flex-col p-4 h-[180px]">
       {card.isPrimary && (
         <div className="absolute top-2 right-2 group">
-          <FaStar className="h-3 w-3 text-black" />
+          <FaStar className="h-3 w-3 text-[var(--foreground)]" />
           <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 right-0 bottom-full mb-2 whitespace-nowrap">
             Primary card
           </span>
