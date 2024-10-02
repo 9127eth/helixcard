@@ -13,11 +13,13 @@ const GetHelixProPage: React.FC = () => {
   const [isYearly, setIsYearly] = useState(false);
   const { user } = useAuth();
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkSubscription = async () => {
       if (user) {
         try {
+          setIsLoading(true);
           const idToken = await user.getIdToken();
           const response = await fetch('/api/verify-subscription', {
             method: 'POST',
@@ -30,7 +32,11 @@ const GetHelixProPage: React.FC = () => {
           setIsSubscribed(data.success);
         } catch (error) {
           console.error('Error checking subscription:', error);
+        } finally {
+          setIsLoading(false);
         }
+      } else {
+        setIsLoading(false);
       }
     };
 
@@ -145,7 +151,9 @@ const GetHelixProPage: React.FC = () => {
                   </li>
                 </ul>
               </div>
-              {isSubscribed ? (
+              {isLoading ? (
+                <div>Loading...</div>
+              ) : isSubscribed ? (
                 <button 
                   className="w-full bg-primary text-black font-bold py-2 px-4 rounded-lg cursor-not-allowed opacity-70"
                   disabled
@@ -153,7 +161,7 @@ const GetHelixProPage: React.FC = () => {
                   Current Plan
                 </button>
               ) : (
-                <StripePaymentForm isYearly={isYearly} isSubscribed={isSubscribed} />
+                <StripePaymentForm isYearly={isYearly} />
               )}
             </div>
           </div>

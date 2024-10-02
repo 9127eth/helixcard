@@ -7,9 +7,10 @@ import { useRouter } from 'next/navigation';
 
 interface StripePaymentFormProps {
   isYearly: boolean;
+  isSubscribed?: boolean; // Make this prop optional
 }
 
-const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ isYearly }) => {
+const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ isYearly, isSubscribed = false }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const stripe = useStripe();
@@ -64,6 +65,10 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ isYearly }) => {
       setIsLoading(false);
     }
   };
+
+  if (isSubscribed) {
+    return null;
+  }
 
   return (
     <form onSubmit={handleSubmit}>
