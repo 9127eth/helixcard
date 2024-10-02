@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
@@ -12,6 +12,30 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 const GetHelixProPage: React.FC = () => {
   const [isYearly, setIsYearly] = useState(false);
   const { user } = useAuth();
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (user) {
+        try {
+          const idToken = await user.getIdToken();
+          const response = await fetch('/api/verify-subscription', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idToken }),
+          });
+          const data = await response.json();
+          setIsSubscribed(data.success);
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+        }
+      }
+    };
+
+    checkSubscription();
+  }, [user]);
 
   const handleCancelSubscription = async () => {
     if (!user) {
@@ -121,12 +145,21 @@ const GetHelixProPage: React.FC = () => {
                   </li>
                 </ul>
               </div>
-              <StripePaymentForm isYearly={isYearly} />
+              {isSubscribed ? (
+                <button 
+                  className="w-full bg-primary text-black font-bold py-2 px-4 rounded-lg cursor-not-allowed opacity-70"
+                  disabled
+                >
+                  Current Plan
+                </button>
+              ) : (
+                <StripePaymentForm isYearly={isYearly} isSubscribed={isSubscribed} />
+              )}
             </div>
           </div>
           <button
             onClick={handleCancelSubscription}
-            className="mt-8 bg-red-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200"
+            className="mt-8 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200"
           >
             Cancel Subscription
           </button>
