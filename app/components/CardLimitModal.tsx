@@ -16,23 +16,31 @@ const CardLimitModal: React.FC<CardLimitModalProps> = ({ isPro, limit, onClose }
         <h2 className="text-xl font-bold mb-4">Card Limit Reached</h2>
         <p className="mb-4">
           {isPro
-            ? `You have reached the maximum limit of ${limit} cards. Please contact support to increase your limit.`
-            : `Free users can only create ${limit} card. Upgrade to Pro to create more cards.`}
+            ? `You have reached the maximum limit of ${limit} business cards. Please contact support to increase your limit.`
+            : `Free users can only create ${limit} business card. Upgrade to HelixPro to create more cards.`}
         </p>
-        {!isPro && (
+        <div className="flex justify-between">
+          {!isPro && (
+            <button 
+              onClick={() => router.push('/get-helix-pro')}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
+            >
+              Upgrade to Pro
+            </button>
+          )}
           <button 
-            onClick={() => router.push('/get-helix-pro')}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
+            onClick={() => router.push('/support')}
+            className="bg-primary text-black px-4 py-2 rounded hover:bg-green-600 mr-2"
           >
-            Upgrade to Pro
+            Contact Support
           </button>
-        )}
-        <button 
-          onClick={onClose}
-          className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
-        >
-          Close
-        </button>
+          <button 
+            onClick={onClose}
+            className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

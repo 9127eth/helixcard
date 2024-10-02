@@ -59,14 +59,14 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user, onClose }) 
           </p>
           {!isPro && (
             <button 
-              onClick={() => router.push('/upgrade')}
+              onClick={() => router.push('/get-helix-pro')}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
             >
               Upgrade to Pro
             </button>
           )}
           <button 
-            onClick={onClose}
+            onClick={() => router.push('/dashboard')}
             className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
           >
             Close
