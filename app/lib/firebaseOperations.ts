@@ -17,6 +17,7 @@ import { uploadCv } from './uploadUtils';
 import { ref, deleteObject } from 'firebase/storage'; // Removed getStorage as it's not used
 import { deleteField } from 'firebase/firestore';
 import { storage } from './firebase'; // Assuming you have a firebase.ts file with these exports
+import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from './constants';
 
 // Added UserData interface
 interface UserData {
@@ -393,4 +394,22 @@ export async function deleteCv(userId: string, cardId: string) {
       updatedAt: serverTimestamp(),
     });
   }
+}
+export async function getUserCardCount(userId: string): Promise<number> {
+  if (!db) throw new Error('Firestore is not initialized');
+  
+  const cardsRef = collection(db, 'users', userId, 'businessCards');
+  const q = query(cardsRef);
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.size;
+}
+
+export async function canCreateCard(userId: string): Promise<boolean> {
+  if (!db) throw new Error('Firestore is not initialized');
+  
+  const cardCount = await getUserCardCount(userId);
+  const userDoc = await getDoc(doc(db, 'users', userId));
+  const isPro = userDoc.data()?.isPro || false;
+  const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
+  return cardCount < limit;
 }

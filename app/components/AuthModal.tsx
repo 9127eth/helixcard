@@ -65,7 +65,7 @@ export const AuthModal: React.FC = () => {
   if (user) {
     return (
       <div>
-        <ClientCardCreator user={user} />
+        <ClientCardCreator user={user} onClose={() => {}} />
       </div>
     );
   }
