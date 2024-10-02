@@ -350,6 +350,11 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   const validatePhoneNumber = () => {
     const { phoneNumber } = formData;
 
+    if (!phoneNumber) {
+      // Phone number is optional, so if it's empty, consider it valid
+      return true;
+    }
+
     const phoneNumberObj = parsePhoneNumberFromString(phoneNumber);
 
     if (phoneNumberObj && phoneNumberObj.isValid()) {
@@ -364,7 +369,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       return true;
     } else {
       // Invalid number
-      setError('Please enter a valid phone number, including the country code.');
+      setError('Please enter a valid phone number, including the country code, or leave it blank.');
       return false;
     }
   };
@@ -529,7 +534,6 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 international
                 countryCallingCodeEditable={true}
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                required
               />
             </div>
             <div>

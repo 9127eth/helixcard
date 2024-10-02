@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { deleteUser } from 'firebase/auth';
-import { doc, deleteDoc, collection, getDocs, writeBatch } from 'firebase/firestore';
+import { doc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { ref, listAll, deleteObject } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -53,7 +53,11 @@ const DeleteAccountButton: React.FC = () => {
       router.push('/');
     } catch (error) {
       console.error('Error deleting account:', error);
-      alert('An error occurred while deleting your account. Please try again.');
+      if (error instanceof Error && error.message.includes('auth/requires-recent-login')) {
+        alert('For security reasons, to proceed with deleting your account, you need to log out, then log back in and proceed to deleting your account.');
+      } else {
+        alert('An error occurred while deleting your account. Please try again.');
+      }
     } finally {
       setIsDeleting(false);
     }
