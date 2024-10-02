@@ -18,6 +18,7 @@ import {
 } from 'react-feather';
 import { useTheme } from 'next-themes';
 import { Moon } from 'react-feather';
+import DeleteAccountButton from './DeleteAccountButton';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -144,26 +145,34 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                         </button>
                       </li>
                       {isSidebarOpen && (
-                        <li>
-                          <div className="flex items-center justify-between p-2 rounded hover:bg-background">
-                            <div className="flex items-center space-x-2">
-                              <Moon className="w-4 h-4" />
-                              <span className="text-sm">Dark Mode</span>
-                            </div>
-                            <button
-                              onClick={toggleDarkMode}
-                              className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out ${
-                                theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
-                              }`}
-                            >
-                              <div
-                                className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
-                                  theme === 'dark' ? 'transform translate-x-6' : ''
+                        <>
+                          <li>
+                            <div className="flex items-center justify-between p-2 rounded hover:bg-background">
+                              <div className="flex items-center space-x-2">
+                                <Moon className="w-4 h-4" />
+                                <span className="text-sm">Dark Mode</span>
+                              </div>
+                              <button
+                                onClick={toggleDarkMode}
+                                className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ease-in-out ${
+                                  theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
                                 }`}
-                              ></div>
-                            </button>
-                          </div>
-                        </li>
+                              >
+                                <div
+                                  className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
+                                    theme === 'dark' ? 'transform translate-x-6' : ''
+                                  }`}
+                                ></div>
+                              </button>
+                            </div>
+                          </li>
+                          <li>
+                            <p className="text-xs text-gray-500 mt-4 mb-2">Signed in as: {user.email}</p>
+                          </li>
+                          <li>
+                            <DeleteAccountButton />
+                          </li>
+                        </>
                       )}
                     </ul>
                   </nav>
