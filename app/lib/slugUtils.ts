@@ -2,7 +2,12 @@ import { db } from './firebase';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 export function generateCardSlug(): string {
-  return Math.random().toString(36).substring(2, 5);
+  const blacklist = ['nig', 'fag', 'ass', 'sex', 'fat', 'gay'];
+  let slug: string;
+  do {
+    slug = Math.random().toString(36).substring(2, 5);
+  } while (blacklist.includes(slug));
+  return slug;
 }
 
 export async function isCardSlugUnique(userId: string, cardSlug: string): Promise<boolean> {
