@@ -132,7 +132,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
     isPrimary: isFirstCard || isPlaceholder,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    isActive: userData.isPro || isFirstCard || isPlaceholder,
+    isActive: userData.isPro || isFirstCard || isPlaceholder || cleanedCardData.isPrimary,
   });
 
   if (isFirstCard || isPlaceholder) {

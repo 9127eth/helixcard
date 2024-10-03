@@ -14,6 +14,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const handleShareClick = () => {
+    if (!card.isActive) return;
     setIsShareModalOpen(true);
   };
 
@@ -32,11 +33,19 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         </div>
       )}
       {showInactiveStatus && (
-        <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-bl">
+        <div className="absolute top-0 right-0 bg-gray-500 text-white text-xs px-2 py-1 rounded-bl group">
           Inactive
+          <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 right-0 bottom-full mb-2 whitespace-nowrap">
+            Get Pro to re-activate
+          </span>
         </div>
       )}
-      <div className="flex-grow overflow-hidden cursor-pointer" onClick={handleShareClick}>
+      <div
+        className={`flex-grow overflow-hidden ${
+          card.isActive ? 'cursor-pointer' : 'cursor-default'
+        }`}
+        onClick={card.isActive ? handleShareClick : undefined}
+      >
         <h3 className="text-3xl font-semibold mb-2 line-clamp-1 overflow-hidden">
           {card.description}
         </h3>
@@ -57,7 +66,13 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
               Preview
             </span>
           </button>
-          <button onClick={handleShareClick} className="card-grid-icon-button group relative">
+          <button
+            onClick={handleShareClick}
+            className={`card-grid-icon-button group relative ${
+              !card.isActive ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            disabled={!card.isActive}
+          >
             <FiShare className="text-[var(--card-grid-icon-button-text)]" />
             <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
               Share this card
