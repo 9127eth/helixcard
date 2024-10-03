@@ -72,6 +72,7 @@ export interface BusinessCardData {
   cvHeader?: string;
   cvDescription?: string;
   imageUrl?: string; // Add this line
+  isActive: boolean;
 }
 
 

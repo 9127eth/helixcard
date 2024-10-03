@@ -132,7 +132,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
     isPrimary: isFirstCard || isPlaceholder,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    isActive: userData.isPro,
+    isActive: userData.isPro || isFirstCard || isPlaceholder,
   });
 
   if (isFirstCard || isPlaceholder) {
@@ -313,7 +313,13 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
   if (!db) throw new Error('Firebase database is not initialized');
   if (!storage) throw new Error('Firebase storage is not initialized');
 
+  const userRef = doc(db, 'users', userId);
+  const userDoc = await getDoc(userRef);
+  const userData = userDoc.data() as UserData;
+
   const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
+  const cardDoc = await getDoc(cardRef);
+  const existingCardData = cardDoc.data() as BusinessCardData;
 
   // Handle CV file upload
   if (cardData.cv instanceof File) {
@@ -338,6 +344,9 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
     }
     return acc;
   }, {} as Partial<BusinessCardData>);
+
+  // Set isActive based on user's pro status and card's primary status
+  cleanedCardData.isActive = userData.isPro || existingCardData.isPrimary;
 
   await updateDoc(cardRef, cleanedCardData);
 }
@@ -414,4 +423,23 @@ export async function canCreateCard(userId: string): Promise<boolean> {
   const isPro = userDoc.data()?.isPro || false;
   const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
   return cardCount < limit;
+}
+
+export async function updateCardActiveStatus(userId: string, isPro: boolean) {
+  if (!db) throw new Error('Firestore is not initialized');
+
+  const userRef = doc(db, 'users', userId);
+  const cardsRef = collection(userRef, 'businessCards');
+  const cardsSnapshot = await getDocs(cardsRef);
+
+  const batch = writeBatch(db);
+
+  cardsSnapshot.forEach((cardDoc) => {
+    const cardData = cardDoc.data() as BusinessCardData;
+    batch.update(cardDoc.ref, {
+      isActive: isPro || cardData.isPrimary
+    });
+  });
+
+  await batch.commit();
 }

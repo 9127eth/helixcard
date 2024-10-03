@@ -60,6 +60,7 @@ export interface BusinessCardData {
   cvDescription?: string;
   cvDisplayText?: string;
   imageUrl?: string;
+  isActive: boolean;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
@@ -106,6 +107,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     cvDescription: initialData?.cvDescription || '',
     cvDisplayText: initialData?.cvDisplayText || '',
     imageUrl: initialData?.imageUrl || '',
+    isActive: initialData?.isActive ?? true, // Default to true if not provided
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);

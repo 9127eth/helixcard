@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const decodedToken = await auth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
-    const userRecord = await auth.getUser(uid);
+    // Removed: const userRecord = await auth.getUser(uid);
     const db = getFirestore();
     const userDoc = await db.collection('users').doc(uid).get();
     const userData = userDoc.data();
