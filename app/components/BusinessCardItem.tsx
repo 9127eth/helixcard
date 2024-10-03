@@ -17,6 +17,8 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
     setIsShareModalOpen(true);
   };
 
+  const showInactiveStatus = card.isActive === false;
+
   return (
     <div className="w-full bg-card-grid-background border rounded-lg shadow-sm hover:shadow-md transition-shadow relative flex flex-col p-4 h-[180px]">
       {card.isPrimary && (
@@ -29,7 +31,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
           </span>
         </div>
       )}
-      {!card.isActive && (
+      {showInactiveStatus && (
         <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-bl">
           Inactive
         </div>

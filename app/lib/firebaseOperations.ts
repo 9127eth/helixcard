@@ -303,7 +303,12 @@ export async function getBusinessCard(userId: string, cardId: string) {
   const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
   const cardSnap = await getDoc(cardRef);
   if (cardSnap.exists()) {
-    return { id: cardSnap.id, ...cardSnap.data() };
+    const data = cardSnap.data();
+    return { 
+      id: cardSnap.id, 
+      ...data, 
+      isActive: data.isActive === undefined ? true : data.isActive 
+    };
   } else {
     throw new Error('Business card not found');
   }
@@ -345,8 +350,10 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
     return acc;
   }, {} as Partial<BusinessCardData>);
 
-  // Set isActive based on user's pro status and card's primary status
-  cleanedCardData.isActive = userData.isPro || existingCardData.isPrimary;
+  // Only set isActive if it's explicitly provided in cardData
+  if ('isActive' in cardData) {
+    cleanedCardData.isActive = cardData.isActive;
+  }
 
   await updateDoc(cardRef, cleanedCardData);
 }

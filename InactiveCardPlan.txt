@@ -1,6 +1,6 @@
 
 I need to implement making non primary cards inactive if the user firestore "isPro" status is false. There is already a way to cancel subs so we do not need to make any changes to our stripe integration.
-All of this logic should only be tied to the firebase "isPro" status. We should not add any new fields or anything like that if not absolutely necessary.
+All of this logic should only be tied to the firebase "isPro" status. We should not add any new fields (other than "isActive") or anything like that if not absolutely necessary.
 When a user cancels and the firestore changes to isPro=false I want a few things to happen, but I want this to be tied to the firebase changed isPro to false. 
 The dashboard should show non primary cards as inactive. 
 Provide messaging to inform the user that these cards are inactive and require a subscription to reactivate.

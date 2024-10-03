@@ -26,7 +26,14 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
         }
         // Fetch cards (existing code)
         const cardsSnapshot = await getDocs(query(collection(db, 'users', userId, 'businessCards')));
-        const fetchedCards = cardsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BusinessCard));
+        const fetchedCards = cardsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            isActive: data.isActive === undefined ? true : data.isActive
+          } as BusinessCard;
+        });
         setCards(fetchedCards);
 
         // Fetch username
