@@ -425,9 +425,17 @@ export async function getUserCardCount(userId: string): Promise<number> {
 export async function canCreateCard(userId: string): Promise<boolean> {
   if (!db) throw new Error('Firestore is not initialized');
   
-  const cardCount = await getUserCardCount(userId);
   const userDoc = await getDoc(doc(db, 'users', userId));
-  const isPro = userDoc.data()?.isPro || false;
+  const userData = userDoc.data();
+  const isPro = userData?.isPro || false;
+  const primaryCardPlaceholder = userData?.primaryCardPlaceholder || false;
+
+  // If there's a primary card placeholder, allow creating a new card
+  if (primaryCardPlaceholder) {
+    return true;
+  }
+
+  const cardCount = await getUserCardCount(userId);
   const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
   return cardCount < limit;
 }

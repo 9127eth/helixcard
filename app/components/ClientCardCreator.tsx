@@ -6,7 +6,7 @@ import { BusinessCardForm, BusinessCardData } from './BusinessCardForm';
 import { saveBusinessCard, canCreateCard } from '../lib/firebaseOperations';
 import { useRouter } from 'next/navigation';
 import { generateCardSlug } from '../lib/slugUtils';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from '../lib/constants';
 
@@ -86,37 +86,32 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user, onClose }) 
     }
 
     try {
-      const canCreate = await canCreateCard(user.uid);
-      if (!canCreate) {
-        if (!db) {
-          throw new Error('Firestore database instance is not available.');
-        }
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        const isPro = userDoc.data()?.isPro || false;
-        const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
-        if (isPro) {
-          alert(`You have reached the maximum limit of ${limit} cards. Please contact support to increase your limit.`);
-        } else {
-          alert(`Free users can only create ${limit} card. Upgrade to Pro to create more.`);
-        }
-        return;
-      }
-
       if (!db) {
         throw new Error('Firestore database instance is not available.');
       }
-      // Fetch user document to check for existing primary card
+
       const userDocRef = doc(db, 'users', user.uid);
       const userDocSnap = await getDoc(userDocRef);
       const userData = userDocSnap.data();
 
-      const isFirstCard = !userData?.primaryCardId;
-      const isPlaceholder = userData?.primaryCardPlaceholder === true;
+      const isPro = userData?.isPro || false;
+      const primaryCardPlaceholder = userData?.primaryCardPlaceholder || false;
+
+      if (!primaryCardPlaceholder) {
+        const canCreate = await canCreateCard(user.uid);
+        if (!canCreate) {
+          const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
+          if (isPro) {
+            alert(`You have reached the maximum limit of ${limit} cards. Please contact support to increase your limit.`);
+          } else {
+            alert(`Free users can only create ${limit} card. Upgrade to Pro to create more.`);
+          }
+          return;
+        }
+      }
 
       let cardSlug = generateCardSlug();
-
-      // Use username as cardSlug for the first (primary) card
-      if (isFirstCard || isPlaceholder) {
+      if (primaryCardPlaceholder) {
         if (!userData?.username) {
           throw new Error('Username not found for user');
         }
@@ -126,8 +121,8 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user, onClose }) 
       const updatedCardData = {
         ...cardData,
         cardSlug,
-        isPrimary: isFirstCard || isPlaceholder,
-        isActive: isFirstCard || isPlaceholder || isPro, // Set isActive based on isPrimary or isPro status
+        isPrimary: primaryCardPlaceholder,
+        isActive: primaryCardPlaceholder || isPro,
         name: `${cardData.firstName}${cardData.lastName ? ' ' + cardData.lastName : ''}`.trim(),
         lastName: cardData.lastName || '',
       };
@@ -137,23 +132,20 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user, onClose }) 
         email: cardData.email || '',
       });
 
-      // Update user document if this is the primary card
-      if (isFirstCard || isPlaceholder) {
-        await import('firebase/firestore').then(({ updateDoc }) => {
-          updateDoc(userDocRef, {
-            primaryCardId: returnedCardSlug,
-            primaryCardPlaceholder: false,
-          });
+      if (primaryCardPlaceholder) {
+        await updateDoc(userDocRef, {
+          primaryCardId: returnedCardSlug,
+          primaryCardPlaceholder: false,
         });
       }
 
       alert('Business card created successfully.');
-      router.push('/dashboard'); // Redirect to dashboard after creation
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error creating card:', error);
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  };
+  }
 
   return (
     <BusinessCardForm

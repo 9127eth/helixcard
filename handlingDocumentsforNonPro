@@ -1,0 +1,5 @@
+When a user is no longer a pro user, we need to handle the documents they have uploaded.
+for ispro=false, the document section on the business card url should be hidden.
+As is not, users should not be able to upload a new document. They should be able to delete the existing document.
+Users should get a warning that their CV will be deleted 30 days after their subscription ends.
+We should have some automated way to delete the CV 30 days after the subscription ends.
