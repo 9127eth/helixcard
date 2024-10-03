@@ -51,6 +51,7 @@ interface BusinessCardData {
   cv?: File;
   isPrimary: boolean; 
   cvUrl?: string;
+  isActive: boolean;
 }
 
 export async function saveBusinessCard(user: User, cardData: BusinessCardData, cvFile?: File) {
@@ -131,6 +132,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
     isPrimary: isFirstCard || isPlaceholder,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    isActive: userData.isPro,
   });
 
   if (isFirstCard || isPlaceholder) {

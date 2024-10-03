@@ -266,6 +266,20 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
           <p className="text-xs text-[var(--header-footer-secondary-text)] pb-4">&copy; 2024 HelixCard. All rights reserved.</p>
         </div>
       </footer>
+      {!card.isActive && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md">
+            <h2 className="text-xl font-bold mb-4">This card is no longer active.</h2>
+            <p className="mb-4">The owner has deactivated this business card.</p>
+            <Link 
+              href="/" 
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+            >
+              Create a new free card
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

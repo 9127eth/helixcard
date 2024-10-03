@@ -127,6 +127,7 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user, onClose }) 
         ...cardData,
         cardSlug,
         isPrimary: isFirstCard || isPlaceholder,
+        isActive: isFirstCard || isPlaceholder || isPro, // Set isActive based on isPrimary or isPro status
         name: `${cardData.firstName}${cardData.lastName ? ' ' + cardData.lastName : ''}`.trim(),
         lastName: cardData.lastName || '',
       };

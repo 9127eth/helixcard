@@ -29,6 +29,11 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
           </span>
         </div>
       )}
+      {!card.isActive && (
+        <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-bl">
+          Inactive
+        </div>
+      )}
       <div className="flex-grow overflow-hidden cursor-pointer" onClick={handleShareClick}>
         <h3 className="text-3xl font-semibold mb-2 line-clamp-1 overflow-hidden">
           {card.description}

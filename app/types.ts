@@ -35,6 +35,7 @@ export interface BusinessCard {
   customMessageHeader?: string;
   threadsUrl?: string;
   imageUrl?: string; // Add this line
+  isActive: boolean; // Add this line
 }
 
 export interface BusinessCardData {
