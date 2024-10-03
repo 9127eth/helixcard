@@ -65,6 +65,9 @@ const GetHelixProPage: React.FC = () => {
       }
 
       alert('Subscription cancelled successfully. Your account will remain Pro until the end of the current billing period.');
+      
+      // Update local state
+      setIsSubscribed(false);
     } catch (error) {
       alert('An error occurred. Please try again.');
     }

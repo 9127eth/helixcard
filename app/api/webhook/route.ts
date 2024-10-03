@@ -91,26 +91,28 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
 
-  // Find the Firebase user with the matching Stripe customer ID
-  const userRecord = await auth.listUsers().then(listUsersResult =>
-    listUsersResult.users.find(user =>
-      user.customClaims?.stripeCustomerId === customerId
-    )
-  );
+  // Query Firestore for the user with the matching Stripe customer ID
+  const userQuerySnapshot = await db.collection('users')
+    .where('stripeCustomerId', '==', customerId)
+    .limit(1)
+    .get();
 
-  if (!userRecord) {
+  if (userQuerySnapshot.empty) {
     console.error(`No user found for Stripe customer ID: ${customerId}`);
     return;
   }
 
+  const userDoc = userQuerySnapshot.docs[0];
+  const uid = userDoc.id;
+
   // Update the user's isPro status to false
-  await db.collection('users').doc(userRecord.uid).update({
+  await db.collection('users').doc(uid).update({
     isPro: false,
     stripeSubscriptionId: null, // Remove the subscription ID
   });
 
   // Update custom claims
-  await auth.setCustomUserClaims(userRecord.uid, { isPro: false });
+  await auth.setCustomUserClaims(uid, { isPro: false });
 
-  console.log(`Subscription cancelled for user: ${userRecord.uid}`);
+  console.log(`Subscription cancelled for user: ${uid}`);
 }

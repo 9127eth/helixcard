@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '../../lib/firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 
 export async function POST(req: Request) {
   try {
@@ -8,7 +9,11 @@ export async function POST(req: Request) {
     const uid = decodedToken.uid;
 
     const userRecord = await auth.getUser(uid);
-    if (userRecord.customClaims?.isPro) {
+    const db = getFirestore();
+    const userDoc = await db.collection('users').doc(uid).get();
+    const userData = userDoc.data();
+
+    if (userData?.isPro) {
       return NextResponse.json({ success: true });
     } else {
       return NextResponse.json({ success: false }, { status: 402 });
