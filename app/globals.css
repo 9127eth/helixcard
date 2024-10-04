@@ -34,6 +34,9 @@
   --primary-text-hover: #000000;
   --sidebar-bg: #F5FDFD;  /* Add this line */
   --button-text-dark: #323338;
+  --phone-input-bg: white;
+  --phone-input-text: black;
+  --phone-input-hover: #f3f4f6;
 }
 
 .dark {
@@ -47,6 +50,9 @@
   --end-card-bg: #323338;
   --sidebar-bg: #2c2d31;
   --input-bg: #1e1f23;
+  --phone-input-bg: #374051;
+  --phone-input-text: white;
+  --phone-input-hover: #4a5568;
   
   --social-tile-bg: #40444b;
   --social-icon-color: #ffffff;
@@ -161,4 +167,18 @@ h3 .business-card-form {
 
 .pronouns-spacing {
   letter-spacing: theme('letterSpacing.normal');
+}
+
+.phone-input-custom input {
+  background-color: var(--phone-input-bg) !important;
+  color: var(--phone-input-text) !important;
+}
+
+.phone-input-custom .country-list {
+  background-color: var(--phone-input-bg) !important;
+  color: var(--phone-input-text) !important;
+}
+
+.phone-input-custom .country-list .country:hover {
+  background-color: var(--phone-input-hover) !important;
 }

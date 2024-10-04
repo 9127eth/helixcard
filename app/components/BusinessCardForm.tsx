@@ -535,7 +535,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 defaultCountry="US" // Change as needed
                 international
                 countryCallingCodeEditable={true}
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm phone-input-custom"
               />
             </div>
             <div>
