@@ -10,6 +10,7 @@ interface ApiResponse {
   user: {
     primaryCardId: string | null;
     primaryCardPlaceholder: boolean;
+    isPro: boolean;
   };
   card: BusinessCard | null;
 }
@@ -62,7 +63,7 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
     const data: ApiResponse = await res.json();
 
     if (data.card) {
-      return <BusinessCardDisplay card={data.card} />;
+      return <BusinessCardDisplay card={data.card} isPro={data.user.isPro} />;
     } else if (data.user.primaryCardId === null && data.user.primaryCardPlaceholder) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">

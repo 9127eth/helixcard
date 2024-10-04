@@ -36,6 +36,7 @@ export interface BusinessCard {
   threadsUrl?: string;
   imageUrl?: string; // Add this line
   isActive: boolean; // Add this line
+  isPro?: boolean; // Add this line
 }
 
 export interface BusinessCardData {
@@ -73,6 +74,7 @@ export interface BusinessCardData {
   cvDescription?: string;
   imageUrl?: string; // Add this line
   isActive: boolean;
+  isPro?: boolean;
 }
 
 

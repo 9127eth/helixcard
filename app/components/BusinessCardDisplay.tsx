@@ -13,9 +13,10 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 interface BusinessCardDisplayProps {
   card: BusinessCard;
+  isPro: boolean;
 }
 
-const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
+const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }) => {
 
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
@@ -55,6 +56,8 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
     // Format the number in national format if possible
     return phoneNumber.formatNational();
   };
+
+  const showDocument = isPro && card.cvUrl;
 
   return (
     <div className="bg-[var(--end-card-bg)] shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col">
@@ -232,7 +235,8 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card }) => {
               </div>
             )}
 
-            {card.cvUrl && (
+            {/* Conditionally render the document section */}
+            {showDocument && (
               <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-4">{card.cvHeader || 'Documents'}</h2>
                 {card.cvDescription && <p>{card.cvDescription}</p>}

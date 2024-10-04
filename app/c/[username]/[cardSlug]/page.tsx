@@ -43,7 +43,7 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
       return <div>Card not found</div>;
     }
 
-    return <BusinessCardDisplay card={data.card} />;
+    return <BusinessCardDisplay card={data.card} isPro={data.card.isPro} />;
   } catch (error) {
     console.error('Error fetching card data:', error);
     return <div>Error loading card data. Please try again later.</div>;

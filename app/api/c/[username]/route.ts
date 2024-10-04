@@ -35,7 +35,17 @@ export async function GET(
 
     const cardData = { id: cardDoc.id, ...cardDoc.data() } as BusinessCard;
 
-    return NextResponse.json({ card: cardData }, { headers: { 'Cache-Control': 'no-store' } });
+    return NextResponse.json({
+      user: {
+        isPro: userData.isPro || false,  // Add this line to include isPro status
+        primaryCardId: userData.primaryCardId,
+        primaryCardPlaceholder: userData.primaryCardPlaceholder || false,
+      },
+      card: {
+        ...cardData,
+        id: cardDoc.id,
+      },
+    }, { headers: { 'Cache-Control': 'no-store' }, status: 200 });
   } catch (error) {
     console.error('Error fetching primary business card:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

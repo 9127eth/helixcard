@@ -304,10 +304,18 @@ export async function getBusinessCard(userId: string, cardId: string) {
   const cardSnap = await getDoc(cardRef);
   if (cardSnap.exists()) {
     const data = cardSnap.data();
+    
+    // Fetch the user's pro status
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
+    const isPro = userData?.isPro || false;
+    
     return { 
       id: cardSnap.id, 
       ...data, 
-      isActive: data.isActive === undefined ? true : data.isActive 
+      isActive: data.isActive === undefined ? true : data.isActive,
+      isPro: isPro
     };
   } else {
     throw new Error('Business card not found');
