@@ -318,13 +318,7 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
   if (!db) throw new Error('Firebase database is not initialized');
   if (!storage) throw new Error('Firebase storage is not initialized');
 
-  const userRef = doc(db, 'users', userId);
-  const userDoc = await getDoc(userRef);
-  const userData = userDoc.data() as UserData;
-
   const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
-  const cardDoc = await getDoc(cardRef);
-  const existingCardData = cardDoc.data() as BusinessCardData;
 
   // Handle CV file upload
   if (cardData.cv instanceof File) {
