@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FiShare, FiEdit, FiEye, FiMoreHorizontal, FiTrash2 } from 'react-icons/fi';
+import { FiShare, FiEdit, FiEye, FiTrash2 } from 'react-icons/fi';
 import { BusinessCard } from '@/app/types';
 import { ShareModal } from './ShareModal';
 import DropdownMenu from './DropdownMenu';
