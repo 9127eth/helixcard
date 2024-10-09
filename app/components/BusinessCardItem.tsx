@@ -58,15 +58,27 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">{card.jobTitle}</p>
         <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">{card.company}</p>
       </div>
-      {showInactiveStatus && (
-        <div className="absolute bottom-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded group">
-          Inactive
-          <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 right-0 bottom-full mb-2 whitespace-nowrap">
-            Get Pro to re-activate
-          </span>
+      <div className="mt-auto pt-4 border-t border-gray-200 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          {card.isPrimary && (
+            <div className="group relative">
+              <span className="text-xs text-gray-500 dark:text-gray-400 italic p-1">
+                Main
+              </span>
+              <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full mb-1 left-0 whitespace-nowrap">
+                This is your main card
+              </span>
+            </div>
+          )}
+          {showInactiveStatus && (
+            <div className="bg-gray-500 text-white text-xs px-2 py-1 rounded group relative">
+              Inactive
+              <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full mb-1 left-0 whitespace-nowrap">
+                Get Pro to re-activate
+              </span>
+            </div>
+          )}
         </div>
-      )}
-      <div className="mt-auto">
         <div className="flex space-x-3">
           <Link href={`/edit-card/${card.id}`} className="card-grid-icon-button group relative">
             <FiEdit className="text-[var(--card-grid-icon-button-text)]" />
@@ -94,16 +106,6 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
           </button>
         </div>
       </div>
-      {card.isPrimary && (
-        <div className="absolute bottom-2 right-2 group">
-          <span className="text-xs text-gray-500 dark:text-gray-400 italic p-1">
-            Main
-          </span>
-          <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 right-0 bottom-full mb-2 whitespace-nowrap">
-            This is your main card
-          </span>
-        </div>
-      )}
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
