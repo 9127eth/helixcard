@@ -212,41 +212,46 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    // Only proceed if the submit button was clicked
+    if (e.nativeEvent instanceof SubmitEvent && 
+        e.nativeEvent.submitter instanceof HTMLButtonElement && 
+        e.nativeEvent.submitter.type === 'submit') {
+      setIsSubmitting(true);
+      setError(null);
 
-    // Validate the phone number
-    const isPhoneValid = validatePhoneNumber();
+      // Validate the phone number
+      const isPhoneValid = validatePhoneNumber();
 
-    if (!isPhoneValid) {
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!user) {
-      setError('User not authenticated');
-      setIsSubmitting(false);
-      return;
-    }
-    try {
-      const updatedCardData = { ...formData, cv: cvFile || undefined };
-      if (imageFile) {
-        if (formData.imageUrl) {
-          await deleteImage(user.uid, formData.imageUrl);
-        }
-        const uploadedImageUrl = await uploadImage(user.uid, imageFile);
-        updatedCardData.imageUrl = uploadedImageUrl;
-      } else if (imageToDelete) {
-        await deleteImage(user.uid, imageToDelete);
-        updatedCardData.imageUrl = '';
+      if (!isPhoneValid) {
+        setIsSubmitting(false);
+        return;
       }
-      await onSuccess(updatedCardData);
-      setImageToDelete(null); // Reset the imageToDelete state
-    } catch (error) {
-      console.error('Error saving business card:', error);
-      setError('Failed to save business card. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+
+      if (!user) {
+        setError('User not authenticated');
+        setIsSubmitting(false);
+        return;
+      }
+      try {
+        const updatedCardData = { ...formData, cv: cvFile || undefined };
+        if (imageFile) {
+          if (formData.imageUrl) {
+            await deleteImage(user.uid, formData.imageUrl);
+          }
+          const uploadedImageUrl = await uploadImage(user.uid, imageFile);
+          updatedCardData.imageUrl = uploadedImageUrl;
+        } else if (imageToDelete) {
+          await deleteImage(user.uid, imageToDelete);
+          updatedCardData.imageUrl = '';
+        }
+        await onSuccess(updatedCardData);
+        setImageToDelete(null); // Reset the imageToDelete state
+      } catch (error) {
+        console.error('Error saving business card:', error);
+        setError('Failed to save business card. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -376,6 +381,20 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+      e.preventDefault();
+      const form = e.target.form;
+      if (form) {
+        const index = Array.prototype.indexOf.call(form, e.target);
+        const nextElement = form.elements[index + 1] as HTMLElement | null;
+        if (nextElement) {
+          nextElement.focus();
+        }
+      }
+    }
+  };
+
   if (!user) {
     return <div className="text-sm">Please log in to create or edit a business card.</div>;
   }
@@ -393,6 +412,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               name="description"
               value={formData.description}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               required
@@ -415,6 +435,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="First Name"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
                 required
@@ -428,6 +449,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="middleName"
                 value={formData.middleName}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Middle Name"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -440,6 +462,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Last Name"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -454,6 +477,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="jobTitle"
                 value={formData.jobTitle}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Job Title"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -466,6 +490,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="company"
                 value={formData.company}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Company"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -478,6 +503,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="pronouns"
                 value={formData.pronouns}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Pronouns"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -490,6 +516,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="prefix"
                 value={formData.prefix}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Prefix"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -502,6 +529,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="credentials"
                 value={formData.credentials}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Credentials"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -514,6 +542,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               name="aboutMe"
               value={formData.aboutMe}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="About Me"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               rows={3}
@@ -546,6 +575,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Email"
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
@@ -568,6 +598,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                     name={link}
                     value={formData[link as keyof BusinessCardData] as string}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     placeholder={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'Handle' : 'URL'}`}
                     className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
                   />
@@ -644,6 +675,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   type="url"
                   value={link.url}
                   onChange={(e) => handleWebLinkChange(index, 'url', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="URL"
                   className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
                 />
@@ -651,6 +683,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   type="text"
                   value={link.displayText}
                   onChange={(e) => handleWebLinkChange(index, 'displayText', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Display Text"
                   className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
                 />
@@ -743,6 +776,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               name="customMessageHeader"
               value={formData.customMessageHeader}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="Custom Message Header (optional)"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
@@ -754,6 +788,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               name="customMessage"
               value={formData.customMessage}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="Custom Message"
               className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               rows={2}
@@ -827,6 +862,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               name="cvHeader"
               value={formData.cvHeader}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="Defaults to 'Documents' if left blank"
               className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)] ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               disabled={!isPro}
@@ -839,6 +875,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               name="cvDescription"
               value={formData.cvDescription}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="Doc Description (optional)"
               className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)] ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               rows={2}
@@ -852,6 +889,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               name="cvDisplayText"
               value={formData.cvDisplayText}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               placeholder="Defaults to 'View Document' if left blank"
               className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)] ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               disabled={!isPro}
