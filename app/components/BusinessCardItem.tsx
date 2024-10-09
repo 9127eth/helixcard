@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FiShare, FiEdit, FiEye } from 'react-icons/fi';
+import { FiShare, FiEdit, FiEye, FiMoreHorizontal, FiTrash2 } from 'react-icons/fi';
 import { BusinessCard } from '@/app/types';
 import { ShareModal } from './ShareModal';
+import DropdownMenu from './DropdownMenu';
+import { handleCardDelete } from '../lib/cardOperations';
+import { useAuth } from '../hooks/useAuth';
 
 interface BusinessCardItemProps {
   card: BusinessCard;
@@ -12,16 +15,37 @@ interface BusinessCardItemProps {
 
 export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const { user } = useAuth();
 
   const handleShareClick = () => {
     if (!card.isActive) return;
     setIsShareModalOpen(true);
   };
 
+  const handleDelete = async () => {
+    if (user) {
+      const deleted = await handleCardDelete(user, card);
+      if (deleted) {
+        // Refresh the card list or remove the card from the UI
+        // You might need to implement this functionality in the parent component
+      }
+    }
+  };
+
   const showInactiveStatus = card.isActive === false;
 
   return (
     <div className="w-full bg-card-grid-background border rounded-lg shadow-sm hover:shadow-md transition-shadow relative flex flex-col p-4 h-[180px]">
+      <div className="absolute top-2 right-2">
+        <DropdownMenu
+          options={[
+            { label: 'Preview', icon: FiEye, onClick: onView },
+            { label: 'Share', icon: FiShare, onClick: handleShareClick, disabled: !card.isActive },
+            { label: 'Edit', icon: FiEdit, href: `/edit-card/${card.id}` },
+            { label: 'Delete', icon: FiTrash2, onClick: handleDelete, danger: true },
+          ]}
+        />
+      </div>
       <div
         className={`flex-grow overflow-hidden ${
           card.isActive ? 'cursor-pointer' : 'cursor-default'
