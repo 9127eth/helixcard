@@ -64,12 +64,10 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
 
   const businessCardsRef = collection(userRef, 'businessCards');
 
-  const isFirstCard = !userData.primaryCardId;
-  const isPlaceholder = userData.primaryCardPlaceholder;
-
+  const isFirstCard = !userData.primaryCardId || userData.primaryCardPlaceholder;
   let cardSlug = cardData.cardSlug || generateCardSlug();
 
-  if (isFirstCard || isPlaceholder) {
+  if (isFirstCard) {
     cardSlug = userData.username || user.uid;
   }
 
@@ -129,13 +127,13 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   batch.set(newCardRef, {
     ...cleanedCardData,
     cardSlug,
-    isPrimary: isFirstCard || isPlaceholder,
+    isPrimary: isFirstCard,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    isActive: userData.isPro || isFirstCard || isPlaceholder || cleanedCardData.isPrimary,
+    isActive: userData.isPro || isFirstCard,
   });
 
-  if (isFirstCard || isPlaceholder) {
+  if (isFirstCard) {
     batch.update(userRef, {
       primaryCardId: cardSlug,
       primaryCardPlaceholder: false,
@@ -144,7 +142,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
 
   await batch.commit();
 
-  const cardUrl = await generateCardUrl(user.uid, cardSlug, isFirstCard || isPlaceholder);
+  const cardUrl = await generateCardUrl(user.uid, cardSlug, isFirstCard);
 
   return { cardSlug, cardUrl };
 }
@@ -277,8 +275,9 @@ export async function createUserDocument(user: User): Promise<void> {
 
     const userData = {
       isPro: false,
-      primaryCardId: null,
+      primaryCardId: username, // Set primaryCardId to the generated username
       username,
+      primaryCardPlaceholder: true, // Set this to true initially
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -292,7 +291,7 @@ export async function createUserDocument(user: User): Promise<void> {
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
     }
-    throw error; // Re-throw the error to be handled by the calling function
+    throw error;
   }
 }
 
