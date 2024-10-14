@@ -85,5 +85,10 @@ export function isValidSlug(slug: string): boolean {
 }
 
 export function generateUsername(): string {
-  return Math.random().toString(36).substring(2, 8);
+  const blacklist = ['nig', 'fag', 'ass', 'sex', 'fat', 'gay'];
+  let username: string;
+  do {
+    username = Math.random().toString(36).substring(2, 8);
+  } while (blacklist.some(word => username.includes(word)));
+  return username;
 }

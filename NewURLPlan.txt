@@ -13,8 +13,8 @@ https://www.helixcard.app/c/{username}/{additionalSlug} where the additional slu
 First Card Creation Implementation Plan
 
 To implement the new requirements for the MVP while keeping in mind the placeholder functionality, we should start by modifying the user registration process and the card creation process. Here's a step-by-step approach:
-Update User Registration:
-When a user registers, generate a random 6-character username and store it in the user document.
+Upon User Registration:
+Create a document in the users collection, generate a random 6-character username and store it in the user document.
 Set up the primaryCardPlaceholder field to true initially.
 Modify Card Creation Process:
 When a user creates their first card, set it as the primary card and use the username as the slug.
@@ -24,7 +24,7 @@ Modify the generateCardUrl function to use the username for the primary card.
 Update Placeholder Handling:
 Ensure the placeholder functionality works with the new URL structure.
 Let's start by updating the user registration process and the card creation function. We'll need to modify the following files:
-User registration function (likely in a file like app/lib/auth.ts or similar)
+User registration function 
 Card creation function (likely in a file like app/lib/cards.ts or similar)
 URL generation function (likely in app/utils/url.ts or similar)
 Let's begin with the user registration function:
