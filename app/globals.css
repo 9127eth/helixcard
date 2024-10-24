@@ -147,22 +147,17 @@ h3 .business-card-form {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem;  /* Increased padding from 0.5rem to 0.75rem */
-  border-radius: 50%;
-  font-size: 1rem;
-  color: var(--foreground);
-  background-color: var(--card-grid-icon-button-bg);
-  border: 2px solid var(--primary);
+  padding: 0.5rem;
   transition: all 0.2s ease-in-out;
 }
 
 .card-grid-icon-button:hover {
-  background-color: var(--primary-hover);
-  color: var(--primary-text);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 0.375rem;
 }
 
 .dark .card-grid-icon-button:hover {
-  background-color: #40444b;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .pronouns-spacing {
