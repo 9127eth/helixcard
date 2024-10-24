@@ -101,7 +101,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
               <h1 className="text-2xl font-bold">Edit Your Business Card</h1>
               <button
                 onClick={handlePreviewToggle}
-                className="bg-blue-500 text-white dark:text-[var(--preview-button-text)] px-4 py-2 rounded hover:bg-[#40444b] transition-colors text-sm"
+                className="bg-blue-500 text-white dark:text-[var(--preview-button-text)] px-4 py-2 rounded-full hover:bg-[#40444b] transition-colors text-sm"
               >
                 Preview
               </button>
@@ -153,5 +153,6 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
     </Layout>
   );
 }
+
 
 
