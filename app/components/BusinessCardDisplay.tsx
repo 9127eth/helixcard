@@ -66,12 +66,19 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           <div className="flex flex-row items-start justify-between">
             <div className="flex flex-col items-start">
               <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
-                {card.description}
+                {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
+                {(card.credentials || card.pronouns) && (
+                  <span className="text-lg ml-2 text-[var(--end-card-header-secondary-text-color)]">
+                    {card.credentials}
+                    {card.credentials && card.pronouns && " "}
+                    {card.pronouns && (
+                      <span className="text-sm italic pronouns-spacing">
+                        ({card.pronouns})
+                      </span>
+                    )}
+                  </span>
+                )}
               </h1>
-              <p className="text-xl mb-2 text-[var(--header-footer-primary-text)]">
-                <span className="font-bold">{card.firstName} {card.lastName}</span>
-                {card.credentials && <span className="font-normal">, {card.credentials}</span>}
-              </p>
               <p className="text-lg sm:text-xl text-[var(--header-footer-primary-text)]">
                 {card.jobTitle} {card.company && <span className="text-[var(--end-card-header-secondary-text-color)]">| {card.company}</span>}
               </p>
@@ -96,7 +103,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
       <div className="container mx-auto px-4 py-6 flex-shrink-0">
         <div className="flex justify-center space-x-4">
           <button
-            className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-3 rounded-md flex items-center hover:opacity-80 transition duration-300 text-sm"
+            className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={() => {
               if (card.phoneNumber) {
                 window.location.href = `sms:${card.phoneNumber}`;
@@ -109,7 +116,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             Send a Text
           </button>
           <button 
-            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-3 rounded-md flex items-center hover:opacity-80 transition duration-300 text-sm"
+            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={handleSaveContact}
           >
             <Download className="mr-2" size={18} />
@@ -250,17 +257,15 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
       <footer className="bg-card-footer text-white py-4 sm:py-6 lg:py-8 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
         <div className="container mx-auto px-4 text-center">
-          <h3 className="text-lg font-semibold mb-2 text-[var(--header-footer-primary-text)]">Get Your Own Business Card</h3>
           <p className="text-sm mb-4 text-[var(--header-footer-secondary-text)]">Create a modern, digital business card like this one for free. Get started now!</p>
           <Link 
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-md text-sm transition duration-300 mb-6 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
+            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-sm transition duration-300 mb-6 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
           >
             Get Your Card
           </Link>
-          <p className="text-xs text-[var(--header-footer-secondary-text)] pb-4">&copy; 2024 HelixCard. All rights reserved.</p>
         </div>
       </footer>
       {card.isActive === false && (
