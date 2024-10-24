@@ -35,7 +35,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
   const showInactiveStatus = card.isActive === false;
 
   return (
-    <div className="w-full bg-card-grid-background border rounded-lg shadow-sm hover:shadow-md transition-shadow relative flex flex-col p-4 h-[180px]">
+    <div className="w-full bg-card-grid-background border rounded-2xl shadow-sm hover:shadow-md transition-shadow relative flex flex-col p-4 h-[220px]">
       <div className="absolute top-2 right-2">
         <DropdownMenu
           options={[
@@ -55,6 +55,10 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <h3 className="text-3xl font-semibold mb-2 line-clamp-1 overflow-hidden">
           {card.description}
         </h3>
+        <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">
+          <span className="font-bold">{`${card.firstName} ${card.lastName}`}</span>
+          {card.credentials && <span>, {card.credentials}</span>}
+        </p>
         <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">{card.jobTitle}</p>
         <p className="text-sm text-gray-600 dark:text-[var(--card-grid-secondary-text)] truncate">{card.company}</p>
       </div>

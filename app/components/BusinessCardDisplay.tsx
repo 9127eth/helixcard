@@ -66,19 +66,12 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           <div className="flex flex-row items-start justify-between">
             <div className="flex flex-col items-start">
               <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
-                {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
-                {(card.credentials || card.pronouns) && (
-                  <span className="text-lg ml-2 text-[var(--end-card-header-secondary-text-color)]">
-                    {card.credentials}
-                    {card.credentials && card.pronouns && " "}
-                    {card.pronouns && (
-                      <span className="text-sm italic pronouns-spacing">
-                        ({card.pronouns})
-                      </span>
-                    )}
-                  </span>
-                )}
+                {card.description}
               </h1>
+              <p className="text-xl mb-2 text-[var(--header-footer-primary-text)]">
+                <span className="font-bold">{card.firstName} {card.lastName}</span>
+                {card.credentials && <span className="font-normal">, {card.credentials}</span>}
+              </p>
               <p className="text-lg sm:text-xl text-[var(--header-footer-primary-text)]">
                 {card.jobTitle} {card.company && <span className="text-[var(--end-card-header-secondary-text-color)]">| {card.company}</span>}
               </p>
