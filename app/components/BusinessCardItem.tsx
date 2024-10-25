@@ -37,7 +37,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
   return (
     <div className="w-full relative">
       {/* Background layer for depth effect */}
-      <div className="absolute top-2 left-2 w-full h-[220px] bg-[var(--primary)] rounded-2xl" />
+      <div className="absolute top-2 left-2 w-full h-[220px] bg-[var(--card-depth)] rounded-2xl" />
       
       {/* Main card content */}
       <div className="relative bg-card-grid-background border rounded-2xl shadow-sm hover:shadow-md transition-shadow flex flex-col p-4 h-[220px]">

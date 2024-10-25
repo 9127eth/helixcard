@@ -103,7 +103,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
       <div className="container mx-auto px-4 py-6 flex-shrink-0">
         <div className="flex justify-center space-x-4">
           <button
-            className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+            className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={() => {
               if (card.phoneNumber) {
                 window.location.href = `sms:${card.phoneNumber}`;
@@ -116,7 +116,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             Send a Text
           </button>
           <button 
-            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-3 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={handleSaveContact}
           >
             <Download className="mr-2" size={18} />
@@ -262,7 +262,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-sm transition duration-300 mb-6 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
+            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full text-sm transition duration-300 mb-6 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
           >
             Get Your Card
           </Link>

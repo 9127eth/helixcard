@@ -8,12 +8,13 @@
 :root {
   --background: #efefef;
   --foreground: #000000;
-  --primary: #93DBD6;  /* Blue-500 in Tailwind */
+  --primary: #B8EB41;  /* Blue-500 in Tailwind */
   --primary-text: #000000;
   --card-header-bg: #F5FDFD;  /*this is end-card-bg*/
-  --card-footer-bg: #FECAB9;  /* Add this line */
+  --card-footer-bg: #E1DBC6;  /* Add this line */
   --card-grid-background: #FFFFFF;  /* Add this line */
   --end-card-bg: #efefef;  /* New variable for main card background */
+  --card-depth: #7CCEDA; /* Add this line for light mode */
   
   /* New variables */
   --social-tile-bg: #ffffff;
@@ -22,15 +23,15 @@
   --body-primary-text: #333333;
   --header-footer-primary-text: #000000;
   --header-footer-secondary-text: #000000;
-  --send-text-button-bg: #93DBD6;
+  --send-text-button-bg: #7CCEDA;
   --send-text-button-text: #000000;
-  --save-contact-button-bg: #B9E4FE;
+  --save-contact-button-bg: #B8EB41;
   --save-contact-button-text: #000000;
-  --link-icon-color: #FF6A42;  /* New variable for link icons */
+  --link-icon-color: #FC9A99;  /* New variable for link icons */
   --link-text-color: #333333;  /* New variable for link text */
   --end-card-header-secondary-text-color: #666666;  /* You can set any default color you prefer */
   --share-modal-bg: #efefef; /* Default to white, but you can change this */
-  --primary-hover: #7bcbc5;  /* Slightly darker shade of primary */
+  --primary-hover: #7CCEDA;  /* Slightly darker shade of primary */
   --primary-text-hover: #000000;
   --sidebar-bg: #F5FDFD;  /* Add this line */
   --button-text-dark: #323338;
@@ -42,7 +43,7 @@
 .dark {
   --background: #323338;
   --foreground: #dddee3;
-  --primary: #93DBD6;
+  --primary: #7CCEDA;
   --primary-text: #dddee3;
   --card-header-bg: #2c2d31;
   --card-footer-bg: #2c2d31;
@@ -53,6 +54,7 @@
   --phone-input-bg: #374051;
   --phone-input-text: white;
   --phone-input-hover: #4a5568;
+  --card-depth: #7CCEDA; /* Add this line for dark mode */
   
   --social-tile-bg: #40444b;
   --social-icon-color: #ffffff;
@@ -129,8 +131,8 @@ h3 .business-card-form {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
-  background-color: #93DBD6;
-  border: 2px solid #93DBD6;
+  background-color: #7CCEDA;
+  border: 2px solid #7CCEDA;
   transition: all 0.2s ease-in-out;
 }
 
