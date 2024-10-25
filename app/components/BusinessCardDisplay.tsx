@@ -102,19 +102,17 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
       <div className="container mx-auto px-4 py-6 flex-shrink-0">
         <div className="flex justify-center space-x-4">
-          <button
-            className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
-            onClick={() => {
-              if (card.phoneNumber) {
+          {card.phoneNumber && (
+            <button
+              className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+              onClick={() => {
                 window.location.href = `sms:${card.phoneNumber}`;
-              } else {
-                alert('No phone number available for this contact.');
-              }
-            }}
-          >
-            <Send className="mr-2" size={18} />
-            Send a Text
-          </button>
+              }}
+            >
+              <Send className="mr-2" size={18} />
+              Send a Text
+            </button>
+          )}
           <button 
             className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={handleSaveContact}
