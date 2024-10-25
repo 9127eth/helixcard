@@ -617,7 +617,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
             <button
               type="button"
               onClick={() => setShowSocialLinkDropdown(!showSocialLinkDropdown)}
-              className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-2 py-1 rounded-md text-sm flex items-center mt-2"
+              className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-4 py-1.5 rounded-full text-sm flex items-center mt-2 min-w-[140px] justify-center"
             >
               <Plus size={16} className="mr-2" />
               Add Social Link
@@ -700,7 +700,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <button
             type="button"
             onClick={addWebLink}
-            className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-2 py-1 rounded-md text-sm flex items-center mt-2"
+            className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-4 py-1.5 rounded-full text-sm flex items-center mt-2 min-w-[140px] justify-center"
           >
             <Plus size={16} className="mr-2" />
             Add Web Link
@@ -901,7 +901,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       <div className="flex justify-between items-center">
         <button
           type="submit"
-          className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-4 py-2 rounded hover:bg-[#40444b] transition-colors"
+          className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-6 py-2 rounded-full hover:bg-[#40444b] transition-colors min-w-[100px]"
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Saving...' : 'Save'}

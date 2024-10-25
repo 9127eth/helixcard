@@ -102,21 +102,19 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
       <div className="container mx-auto px-4 py-6 flex-shrink-0">
         <div className="flex justify-center space-x-4">
-          <button
-            className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-3 rounded-md flex items-center hover:opacity-80 transition duration-300 text-sm"
-            onClick={() => {
-              if (card.phoneNumber) {
+          {card.phoneNumber && (
+            <button
+              className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+              onClick={() => {
                 window.location.href = `sms:${card.phoneNumber}`;
-              } else {
-                alert('No phone number available for this contact.');
-              }
-            }}
-          >
-            <Send className="mr-2" size={18} />
-            Send a Text
-          </button>
+              }}
+            >
+              <Send className="mr-2" size={18} />
+              Send a Text
+            </button>
+          )}
           <button 
-            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-3 rounded-md flex items-center hover:opacity-80 transition duration-300 text-sm"
+            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={handleSaveContact}
           >
             <Download className="mr-2" size={18} />
@@ -257,17 +255,15 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
       <footer className="bg-card-footer text-white py-4 sm:py-6 lg:py-8 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
         <div className="container mx-auto px-4 text-center">
-          <h3 className="text-lg font-semibold mb-2 text-[var(--header-footer-primary-text)]">Get Your Own Business Card</h3>
           <p className="text-sm mb-4 text-[var(--header-footer-secondary-text)]">Create a modern, digital business card like this one for free. Get started now!</p>
           <Link 
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-md text-sm transition duration-300 mb-6 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
+            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full text-sm transition duration-300 mb-6 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
           >
             Get Your Card
           </Link>
-          <p className="text-xs text-[var(--header-footer-secondary-text)] pb-4">&copy; 2024 HelixCard. All rights reserved.</p>
         </div>
       </footer>
       {card.isActive === false && (

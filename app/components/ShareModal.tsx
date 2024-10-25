@@ -115,29 +115,31 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
         </div>
         
         <div className="mb-4 sm:mb-6 flex justify-center">
-          <QRCodeSVG
-            id="qr-code-svg"
-            value={cardUrl}
-            size={qrCodeSize / 2}
-            bgColor={isTransparent ? "transparent" : "white"}
-            fgColor="#000000"
-            level="H"
-            includeMargin={true}
-          />
+          <div className="rounded-2xl overflow-hidden">
+            <QRCodeSVG
+              id="qr-code-svg"
+              value={cardUrl}
+              size={qrCodeSize / 2}
+              bgColor={isTransparent ? "transparent" : "white"}
+              fgColor="#000000"
+              level="H"
+              includeMargin={true}
+            />
+          </div>
         </div>
 
         <div className="mb-6 flex flex-col items-center space-y-4">
           <p className="text-xs sm:text-sm mb-2 text-center break-all text-black">{cardUrl}</p>
           <button
             onClick={copyToClipboard}
-            className="bg-[#93DBD6] text-black px-4 py-2 rounded flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#7bcbc5]"
+            className="bg-[#93DBD6] text-black px-4 py-2 rounded-full flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#7bcbc5]"
           >
             <Copy className="mr-2 text-[#FF6A42]" size={16} /> Copy URL
           </button>
           {copyFeedback && <p className="text-green-600 text-xs sm:text-sm">{copyFeedback}</p>}
           <button
             onClick={() => window.open(cardUrl, '_blank')}
-            className="bg-[#000000] text-white px-4 py-2 rounded flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#333333]"
+            className="bg-[#000000] text-white px-4 py-2 rounded-full flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#333333]"
           >
             <ExternalLink className="mr-2" size={16} /> View in Browser
           </button>

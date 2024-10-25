@@ -9,6 +9,7 @@ import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
 import { createUserDocument } from '../lib/firebaseOperations';
+import { FaApple } from 'react-icons/fa';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -120,10 +121,7 @@ export const AuthModal: React.FC = () => {
             onClick={handleAppleSignIn}
             className="w-full py-2 px-4 mb-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 flex items-center justify-center"
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-              <path d="M294.29,0.32l28.57,0.63c22.42,0.5,57.62,2.74,100.72,13.51,74.18,18.48,137.27,58.25,184.83,97.21,27.58,22.62,49.64,44.71,70.28,70.98,24.33,30.92,45.05,71.87,53.96,119.31,3.86,20.52,5.39,39.97,6.05,57.02,0.09,2.23,0.16,4.33,0.21,6.31l0.1,3.88l0.03,1.72c0,0.45,0,0.71,0,0.71v-0.71l-0.03-1.72l-0.1-3.88c-0.05-1.98-0.12-4.08-0.21-6.31c-0.66-17.05-2.19-36.5-6.05-57.02c-8.91-47.44-29.63-88.39-53.96-119.31c-20.64-26.27-42.7-48.36-70.28-70.98c-47.56-38.96-110.65-78.73-184.83-97.21c-43.1-10.77-78.3-13.01-100.72-13.51l-28.57-0.63Z" fill="#555555"/>
-              <path d="M664.65,555.29c-0.36-40.09,16.33-70.07,49.94-89.71c-19.06-27.98-47.33-43.45-84.38-46.55c-35.69-3.06-74.62,21.47-89.01,21.47c-15.26,0-51.14-20.74-79.81-20.74c-62.10,0.97-127.47,51.68-127.47,154.83c0,30.59,5.34,62.10,16.01,94.55c14.23,41.91,65.59,144.67,118.89,143.11c28.11-0.61,47.69-20.50,84.13-20.50c35.32,0,53.29,20.50,84.13,20.50c54.20-0.73,100.01-96.10,113.55-138.01c-71.21-33.69-106.62-118.89-85.98-218.95Zm-81.04-253.77c30.35-38.93,27.01-74.62,26.04-87.45c-26.04,1.70-56.39,18.44-73.79,39.66c-16.01,18.68-29.63,47.69-25.92,75.83c28.84,2.18,55.42-11.40,73.67-28.04Z" fill="#555555"/>
-            </svg>
+            <FaApple className="w-5 h-5 mr-2" />
             Continue with Apple
           </button>
         </>
