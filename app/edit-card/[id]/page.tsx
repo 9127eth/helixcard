@@ -52,9 +52,11 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
     if (user && params.id) {
       try {
         await updateBusinessCard(user.uid, params.id, updatedCardData);
-        router.push('/dashboard');
+        // Show a success message
+        alert('Business card updated successfully.');
       } catch (error) {
         console.error('Error updating business card:', error);
+        alert('Failed to update business card. Please try again.');
       }
     }
   };
