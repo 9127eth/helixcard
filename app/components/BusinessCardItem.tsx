@@ -6,16 +6,21 @@ import { ShareModal } from './ShareModal';
 import DropdownMenu from './DropdownMenu';
 import { handleCardDelete } from '../lib/cardOperations';
 import { useAuth } from '../hooks/useAuth';
+import { updateCardDepthColor } from '../lib/firebaseOperations';
+import ColorPickerDialog from './ColorPickerDialog';
 
 interface BusinessCardItemProps {
   card: BusinessCard;
   onView: () => void;
   username: string | null;
+  onUpdate?: (updatedCard: BusinessCard) => void;
 }
 
-export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username }) => {
+export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username, onUpdate }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { user } = useAuth();
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [currentColor, setCurrentColor] = useState(card.cardDepthColor || '#7CCEDA'); // Default color
 
   const handleShareClick = () => {
     if (!card.isActive) return;
@@ -34,10 +39,33 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
 
   const showInactiveStatus = card.isActive === false;
 
+  const handleColorChange = async (color: string) => {
+    if (!user) {
+      console.error('User is not authenticated');
+      return;
+    }
+    try {
+      await updateCardDepthColor(user.uid, card.cardSlug, color);
+      setCurrentColor(color);
+      // Create updated card object with new color
+      const updatedCard = {
+        ...card,
+        cardDepthColor: color
+      };
+      // Call the onUpdate prop with the updated card
+      onUpdate?.(updatedCard);
+    } catch (error) {
+      console.error('Error updating card depth color:', error);
+    }
+  };
+
   return (
     <div className="w-full relative">
       {/* Background layer for depth effect */}
-      <div className="absolute top-2 left-2 w-full h-[220px] bg-[var(--card-depth)] rounded-2xl" />
+      <div 
+        className="absolute top-2 left-2 w-full h-[220px] rounded-2xl" 
+        style={{ backgroundColor: currentColor }}
+      />
       
       {/* Main card content */}
       <div className="relative bg-card-grid-background border rounded-2xl shadow-sm hover:shadow-md transition-shadow flex flex-col p-4 h-[220px]">
@@ -48,6 +76,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
               { label: 'Share', icon: FiShare, onClick: handleShareClick, disabled: !card.isActive },
               { label: 'Edit', icon: FiEdit, href: `/edit-card/${card.id}` },
               { label: 'Delete', icon: FiTrash2, onClick: handleDelete, danger: true },
+              { label: 'Change Color', icon: FiEdit, onClick: () => setIsColorPickerOpen(true) },
             ]}
           />
         </div>
@@ -121,6 +150,12 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         onClose={() => setIsShareModalOpen(false)}
         businessCard={card}
         username={username}
+      />
+      <ColorPickerDialog
+        isOpen={isColorPickerOpen}
+        onClose={() => setIsColorPickerOpen(false)}
+        currentColor={currentColor}
+        onColorChange={handleColorChange}
       />
     </div>
   );

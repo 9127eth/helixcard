@@ -459,3 +459,12 @@ export async function updateCardActiveStatus(userId: string, isPro: boolean) {
 
   await batch.commit();
 }
+
+export async function updateCardDepthColor(userId: string, cardSlug: string, color: string) {
+  if (!db) throw new Error('Firestore is not initialized');
+  
+  const cardRef = doc(db, 'users', userId, 'businessCards', cardSlug);
+  await updateDoc(cardRef, {
+    cardDepthColor: color
+  });
+}

@@ -37,6 +37,7 @@ export interface BusinessCard {
   imageUrl?: string; // Add this line
   isActive: boolean; // Add this line
   isPro?: boolean; // Add this line
+  cardDepthColor?: string; // Add this line
 }
 
 export interface BusinessCardData {
@@ -75,6 +76,8 @@ export interface BusinessCardData {
   imageUrl?: string; // Add this line
   isActive: boolean;
   isPro?: boolean;
+  cardDepthColor?: string;
 }
+
 
 

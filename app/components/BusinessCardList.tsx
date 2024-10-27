@@ -60,6 +60,14 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
     setIsPreviewOpen(false);
   };
 
+  const handleCardUpdate = (updatedCard: BusinessCard) => {
+    setCards(prevCards => 
+      prevCards.map(card => 
+        card.id === updatedCard.id ? updatedCard : card
+      )
+    );
+  };
+
   if (isLoading) {
     return <div>Loading your business cards...</div>;
   }
@@ -73,6 +81,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
               card={card}
               onView={() => handleViewCard(card)}
               username={username}
+              onUpdate={handleCardUpdate}
             />
           </div>
         ))}
