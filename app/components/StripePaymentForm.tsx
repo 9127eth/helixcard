@@ -37,7 +37,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ isYearly, isSubsc
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId: isYearly ? 'price_1Q3l6y2Mf4JwDdD1KMNERs1V' : 'price_1Q3lBw2Mf4JwDdD1ousIVogs',
+          priceId: isYearly ? 'price_1QEfJH2Mf4JwDdD1j2ME28Fw' : 'price_1QEXRZ2Mf4JwDdD1pdam2mHo',
           idToken,
         }),
       });
