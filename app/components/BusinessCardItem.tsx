@@ -75,8 +75,8 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
               { label: 'Preview', icon: FiEye, onClick: onView },
               { label: 'Share', icon: FiShare, onClick: handleShareClick, disabled: !card.isActive },
               { label: 'Edit', icon: FiEdit, href: `/edit-card/${card.id}` },
-              { label: 'Delete', icon: FiTrash2, onClick: handleDelete, danger: true },
               { label: 'Change Color', icon: FiEdit, onClick: () => setIsColorPickerOpen(true) },
+              { label: 'Delete', icon: FiTrash2, onClick: handleDelete, danger: true },
             ]}
           />
         </div>
