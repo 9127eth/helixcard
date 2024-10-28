@@ -81,13 +81,13 @@ const GetHelixProPage: React.FC = () => {
           <div className="flex items-center space-x-4 mb-8">
             <span className={`text-lg ${!isYearly ? 'font-bold' : ''}`}>Monthly</span>
             <button
-              className={`w-16 h-8 rounded-full p-1 ${
+              className={`w-14 h-6 rounded-full p-0.5 ${
                 isYearly ? 'bg-gray-600' : 'bg-gray-300'
               }`}
               onClick={() => setIsYearly(!isYearly)}
             >
               <div
-                className={`w-6 h-6 rounded-full bg-white transform duration-300 ease-in-out ${
+                className={`w-5 h-5 rounded-full bg-white transform duration-300 ease-in-out ${
                   isYearly ? 'translate-x-8' : ''
                 }`}
               ></div>
@@ -95,7 +95,7 @@ const GetHelixProPage: React.FC = () => {
             <span className={`text-lg ${isYearly ? 'font-bold' : ''}`}>Yearly</span>
           </div>
           <div className="flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
-            <div className="bg-white dark:bg-[#2c2d31] rounded-lg shadow-md p-8 w-full md:w-80 border-2 border-gray-500 flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#2c2d31] rounded-[30px] shadow-md p-8 w-full md:w-80 border-2 border-gray-500 flex flex-col justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-4">Free</h2>
                 <p className="text-gray-500 mb-6">${isYearly ? '0/year' : '0/month'}</p>
@@ -127,7 +127,7 @@ const GetHelixProPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="bg-white dark:bg-[#2c2d31] rounded-lg shadow-md p-8 w-full md:w-80 border-2 border-gray-500 flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#2c2d31] rounded-[30px] shadow-md p-8 w-full md:w-80 border-2 border-gray-500 flex flex-col justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-4">Pro</h2>
                 <p className="text-gray-500 mb-6">${isYearly ? '12.99/year' : '2.99/month'}</p>

@@ -77,9 +77,9 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ isYearly, isSubsc
       <button
         type="submit"
         disabled={!stripe || isLoading}
-        className="w-full bg-blue-500 text-white dark:text-[#323338] font-bold py-2 px-4 rounded-lg mt-4 transition duration-200"
+        className="w-full bg-blue-500 text-white dark:text-[#323338] font-bold py-2 px-4 rounded-[20px] mt-4 transition duration-200"
       >
-        {isLoading ? 'Processing...' : `Pay $${isYearly ? '12' : '3'}`}
+        {isLoading ? 'Processing...' : `Upgrade for $${isYearly ? '12.99' : '2.99'}`}
       </button>
     </form>
   );
