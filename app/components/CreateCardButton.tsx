@@ -37,7 +37,7 @@ export const CreateCardButton: React.FC = () => {
     <>
       <button
         onClick={handleClick}
-        className="w-full bg-[var(--card-grid-background)] text-[var(--foreground)] rounded-lg shadow-sm hover:shadow-md transition-shadow border-2 border-[#FECAB9] flex flex-col items-center justify-center p-4 h-[180px] hover:bg-[var(--primary-hover)] dark:hover:bg-[#40444b]"
+        className="w-full bg-[var(--card-grid-background)] text-[var(--foreground)] rounded-2xl shadow-sm hover:shadow-md transition-shadow border-2 border-[#FECAB9] flex flex-col items-center justify-center p-4 h-[220px] hover:bg-[var(--primary-hover)] dark:hover:bg-[#40444b]"
       >
         <div className="text-3xl mb-2">+</div>
         <div className="font-bold text-xl">Create New</div>
