@@ -78,7 +78,7 @@ const GetHelixProPage: React.FC = () => {
     <Layout title="Get Helix Pro - HelixCard" showSidebar={true}>
       <Elements stripe={stripePromise}>
         <div className="flex flex-col items-center p-8">
-          <h1 className="text-3xl font-bold mb-6">Choose the plan that is right for you.</h1>
+          <h1 className="text-4xl font-bold mb-6">Choose the plan that is right for you.</h1>
           <div className="flex items-center space-x-4 mb-8">
             <span className={`text-lg ${!isYearly ? 'font-bold' : ''}`}>Monthly</span>
             <button

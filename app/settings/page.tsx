@@ -35,7 +35,7 @@ const SettingsPage: React.FC = () => {
   return (
     <Layout title="Settings - HelixCard" showSidebar={true}>
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
+        <h1 className="text-4xl font-bold mb-6">Settings</h1>
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold mb-2">Account Settings</h2>

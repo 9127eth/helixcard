@@ -101,7 +101,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
         <div className="flex flex-col md:flex-row">
           <div className="w-full md:w-3/5 md:pr-8">
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-bold">Edit Your Business Card</h1>
+              <h1 className="text-3xl font-bold">Edit Card</h1>
               <button
                 onClick={handlePreviewToggle}
                 className="bg-blue-500 text-white dark:text-[var(--preview-button-text)] px-4 py-2 rounded-full hover:bg-[#40444b] transition-colors text-sm"

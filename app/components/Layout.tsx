@@ -18,6 +18,7 @@ import {
   Sun 
 } from 'react-feather';
 import { useTheme } from 'next-themes';
+import Image from 'next/image';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -74,10 +75,16 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
           <>
             <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col transition-all duration-300 ease-in-out bg-sidebar-bg`}>
               <header className="bg-sidebar-bg shadow-sm flex items-center justify-between p-4">
-                {isSidebarOpen ? (
-                  <Link href="/" className="text-2xl font-bold text-header-footer-primary-text">Helix</Link>
-                ) : (
-                  <span className="text-2xl font-bold text-header-footer-primary-text">H</span>
+                {isSidebarOpen && (
+                  <Link href="/" className="flex items-center">
+                    <Image
+                      src="/logo.png"
+                      alt="Helix Logo"
+                      width={100}
+                      height={100}
+                      priority
+                    />
+                  </Link>
                 )}
                 <button 
                   onClick={toggleSidebar} 
