@@ -7,17 +7,17 @@ import { useAuth } from '../hooks/useAuth';
 import { 
   List, 
   CreditCard, 
-  Star, 
+  Zap, 
   HelpCircle, 
   Settings, 
   Users, 
   ShoppingCart, 
   LogOut, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  Sun 
 } from 'react-feather';
 import { useTheme } from 'next-themes';
-import { Moon } from 'react-feather';
 import DeleteAccountButton from './DeleteAccountButton';
 
 interface LayoutProps {
@@ -110,7 +110,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                       </li>
                       <li>
                         <Link href="/get-helix-pro" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
-                          <Star className="w-4 h-4" />
+                          <Zap className="w-4 h-4" />
                           {isSidebarOpen && <span className="text-sm">Get Helix Pro</span>}
                         </Link>
                       </li>
@@ -149,7 +149,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           <li>
                             <div className="flex items-center justify-between p-2 rounded hover:bg-background">
                               <div className="flex items-center space-x-2">
-                                <Moon className="w-4 h-4" />
+                                <Sun className="w-4 h-4" />
                                 <span className="text-sm">Dark Mode</span>
                               </div>
                               <button

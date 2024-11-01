@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { FiShare, FiEdit, FiEye, FiTrash2 } from 'react-icons/fi';
+import { BiPalette } from 'react-icons/bi';
 import { BusinessCard } from '@/app/types';
 import { ShareModal } from './ShareModal';
 import DropdownMenu from './DropdownMenu';
@@ -75,7 +76,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
               { label: 'Preview', icon: FiEye, onClick: onView },
               { label: 'Share', icon: FiShare, onClick: handleShareClick, disabled: !card.isActive },
               { label: 'Edit', icon: FiEdit, href: `/edit-card/${card.id}` },
-              { label: 'Change Color', icon: FiEdit, onClick: () => setIsColorPickerOpen(true) },
+              { label: 'Change Color', icon: BiPalette, onClick: () => setIsColorPickerOpen(true) },
               { label: 'Delete', icon: FiTrash2, onClick: handleDelete, danger: true },
             ]}
           />
