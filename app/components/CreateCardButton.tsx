@@ -35,13 +35,24 @@ export const CreateCardButton: React.FC = () => {
 
   return (
     <>
-      <button
-        onClick={handleClick}
-        className="w-full bg-[var(--card-grid-background)] text-[var(--foreground)] rounded-2xl shadow-sm hover:shadow-md transition-shadow border-2 border-[#FECAB9] flex flex-col items-center justify-center p-4 h-[220px] hover:bg-[var(--primary-hover)] dark:hover:bg-[#40444b]"
-      >
-        <div className="text-3xl mb-2">+</div>
-        <div className="font-bold text-xl">Create New</div>
-      </button>
+      <div className="w-full relative">
+        {/* Background layer for depth effect */}
+        <div 
+          className="absolute top-2 left-2 w-full h-[220px] rounded-2xl" 
+          style={{ backgroundColor: '#d1d5dc' }}
+        />
+        
+        {/* Main button content */}
+        <button
+          onClick={handleClick}
+          className="relative w-full bg-[var(--card-grid-background)] text-[var(--foreground)] rounded-2xl shadow-sm hover:shadow-md transition-shadow border flex flex-col items-center justify-center p-4 h-[220px] hover:bg-[var(--primary-hover)] dark:hover:bg-[#40444b]"
+        >
+          <div className="flex items-center space-x-2">
+            <span className="text-3xl">+</span>
+            <span className="font-bold text-xl">Create New</span>
+          </div>
+        </button>
+      </div>
       {showLimitModal && (
         <CardLimitModal
           isPro={isPro}
