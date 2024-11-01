@@ -32,10 +32,15 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
 
   const handleDelete = async () => {
     if (user) {
-      const deleted = await handleCardDelete(user, card);
-      if (deleted) {
-        // Refresh the card list or remove the card from the UI
-        // You might need to implement this functionality in the parent component
+      setIsActionLoading(true);
+      try {
+        const deleted = await handleCardDelete(user, card);
+        if (deleted) {
+          // Refresh the card list or remove the card from the UI
+          // You might need to implement this functionality in the parent component
+        }
+      } finally {
+        setIsActionLoading(false);
       }
     }
   };
@@ -47,6 +52,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
       console.error('User is not authenticated');
       return;
     }
+    setIsActionLoading(true);
     try {
       await updateCardDepthColor(user.uid, card.cardSlug, color);
       setCurrentColor(color);
@@ -59,6 +65,8 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
       onUpdate?.(updatedCard);
     } catch (error) {
       console.error('Error updating card depth color:', error);
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
