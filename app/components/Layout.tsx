@@ -18,7 +18,6 @@ import {
   Sun 
 } from 'react-feather';
 import { useTheme } from 'next-themes';
-import DeleteAccountButton from './DeleteAccountButton';
 
 interface LayoutProps {
   children: React.ReactNode;

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload, FaAt, FaFileAlt } from 'react-icons/fa';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -9,6 +9,7 @@ import { BusinessCard } from '@/app/types';
 import Link from 'next/link';
 import Image from 'next/image';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import LoadingSpinner from './LoadingSpinner';
 
 
 interface BusinessCardDisplayProps {
@@ -17,6 +18,17 @@ interface BusinessCardDisplayProps {
 }
 
 const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (card) {
+      setIsLoading(false);
+    }
+  }, [card]);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';

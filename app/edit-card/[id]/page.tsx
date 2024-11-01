@@ -10,6 +10,7 @@ import { getBusinessCard, updateBusinessCard, deleteBusinessCard } from '../../l
 import { BusinessCard, BusinessCardData } from '@/app/types';
 import { doc, getDoc } from 'firebase/firestore'; // Import Firestore functions
 import { db } from '../../lib/firebase'; // Import Firestore database
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function EditCardPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -87,7 +88,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
     : null;
 
   if (isLoading) {
-    return <Layout title="Edit Business Card - HelixCard"><div>Loading...</div></Layout>;
+    return <LoadingSpinner />;
   }
 
   if (!cardData) {

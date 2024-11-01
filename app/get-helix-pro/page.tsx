@@ -6,6 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import Layout from '../components/Layout';
 import StripePaymentForm from '../components/StripePaymentForm';
 import { useAuth } from '../hooks/useAuth';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -155,7 +156,7 @@ const GetHelixProPage: React.FC = () => {
                 </ul>
               </div>
               {isLoading ? (
-                <div>Loading...</div>
+                <LoadingSpinner fullScreen={false} />
               ) : isSubscribed ? (
                 <button 
                   className="w-full bg-primary text-black font-bold py-2 px-4 rounded-lg cursor-not-allowed opacity-70"

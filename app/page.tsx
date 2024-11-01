@@ -6,12 +6,13 @@ import Layout from './components/Layout';
 import WelcomeMessage from './components/WelcomeMessage';
 import { AuthModal } from './components/AuthModal';
 import DashboardPage from './dashboard/page';
+import LoadingSpinner from './components/LoadingSpinner';
 
 export default function Home() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (user) {

@@ -14,6 +14,7 @@ import { FaTiktok, FaTwitch, FaSnapchatGhost, FaTelegram, FaDiscord } from 'reac
 import { parsePhoneNumberFromString } from 'libphonenumber-js'; // Import the library
 import ReactPhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+import LoadingSpinner from './LoadingSpinner';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
@@ -899,13 +900,16 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       </CollapsibleSection>
 
       <div className="flex justify-between items-center">
-        <button
-          type="submit"
-          className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-6 py-2 rounded-full hover:bg-[#40444b] transition-colors min-w-[100px]"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Saving...' : 'Save'}
-        </button>
+        {isSubmitting ? (
+          <LoadingSpinner fullScreen={false} />
+        ) : (
+          <button 
+            type="submit" 
+            className="bg-primary text-black px-4 py-2 rounded hover:bg-primary-hover"
+          >
+            Save Changes
+          </button>
+        )}
         
         {initialData && (
           <div className="relative group">

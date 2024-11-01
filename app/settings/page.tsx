@@ -4,15 +4,22 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import Link from 'next/link';
 import DeleteAccountButton from '../components/DeleteAccountButton';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const SettingsPage: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check the initial theme when the component mounts
     const isDark = document.documentElement.classList.contains('dark');
     setIsDarkMode(isDark);
+    setIsLoading(false);
   }, []);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;

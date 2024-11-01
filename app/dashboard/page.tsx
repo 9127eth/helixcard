@@ -10,6 +10,7 @@ import { canCreateCard } from '../lib/firebaseOperations';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from '../lib/constants';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ const DashboardPage: React.FC = () => {
   };
 
   if (!user) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   return (

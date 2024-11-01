@@ -5,6 +5,7 @@ import { BusinessCardItem } from './BusinessCardItem';
 import { CreateCardButton } from './CreateCardButton';
 import { BusinessCard } from '@/app/types';
 import PreviewModal from './PreviewModal';
+import LoadingSpinner from './LoadingSpinner';
 
 interface BusinessCardListProps {
   userId: string;
@@ -69,7 +70,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   };
 
   if (isLoading) {
-    return <div>Loading your business cards...</div>;
+    return <LoadingSpinner fullScreen={false} />;
   }
 
   return (

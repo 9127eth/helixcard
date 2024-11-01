@@ -9,6 +9,7 @@ import { handleCardDelete } from '../lib/cardOperations';
 import { useAuth } from '../hooks/useAuth';
 import { updateCardDepthColor } from '../lib/firebaseOperations';
 import ColorPickerDialog from './ColorPickerDialog';
+import LoadingSpinner from './LoadingSpinner';
 
 interface BusinessCardItemProps {
   card: BusinessCard;
@@ -22,6 +23,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
   const { user } = useAuth();
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [currentColor, setCurrentColor] = useState(card.cardDepthColor || '#7CCEDA'); // Default color
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const handleShareClick = () => {
     if (!card.isActive) return;
@@ -60,8 +62,22 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
     }
   };
 
+  const handleAction = async () => {
+    setIsActionLoading(true);
+    try {
+      // Perform action
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   return (
     <div className="w-full relative">
+      {isActionLoading && (
+        <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
+          <LoadingSpinner fullScreen={false} />
+        </div>
+      )}
       {/* Background layer for depth effect */}
       <div 
         className="absolute top-2 left-2 w-full h-[220px] rounded-2xl" 
