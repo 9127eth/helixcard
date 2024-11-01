@@ -62,15 +62,6 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
     }
   };
 
-  const handleAction = async () => {
-    setIsActionLoading(true);
-    try {
-      // Perform action
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
   return (
     <div className="w-full relative">
       {isActionLoading && (
