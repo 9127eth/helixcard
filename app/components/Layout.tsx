@@ -166,12 +166,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                               </button>
                             </div>
                           </li>
-                          <li>
-                            <p className="text-xs text-gray-500 mt-4 mb-2">Signed in as: {user.email}</p>
-                          </li>
-                          <li>
-                            <DeleteAccountButton />
-                          </li>
                         </>
                       )}
                     </ul>
@@ -180,7 +174,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
               </aside>
             </div>
             <div className="flex-1 flex flex-col">
-              <header className="bg-background shadow-sm">
+              <header className="bg-background">
                 <div className="px-4 py-4">
                   {/* Add any content for the right side header here */}
                 </div>

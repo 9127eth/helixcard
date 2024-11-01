@@ -45,8 +45,10 @@ const DashboardPage: React.FC = () => {
     <Layout title="Dashboard - HelixCard" showSidebar={true}>
       <div className="p-6">
         <div className="flex items-center mb-6">
-          <h1 className="text-xl font-bold">My Business Cards</h1>
-          <CreateCardIcon onClick={handleCreateCard} />
+          <h1 className="text-6xl font-bold">Business Cards</h1>
+          <div className="pl-2">
+            <CreateCardIcon onClick={handleCreateCard} />
+          </div>
         </div>
         <BusinessCardList userId={user.uid} />
       </div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import Link from 'next/link';
+import DeleteAccountButton from '../components/DeleteAccountButton';
 
 const SettingsPage: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -63,10 +64,8 @@ const SettingsPage: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h2 className="text-xl font-semibold mb-2">Danger Zone</h2>
-            <ul className="space-y-2">
-              <li><Link href="#" className="text-blue-600 hover:underline">Delete Account</Link></li>
-            </ul>
+            <h2 className="text-xl font-semibold mb-2 text-black-600">Danger Zone</h2>
+            <DeleteAccountButton />
           </div>
         </div>
       </div>
