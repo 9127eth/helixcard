@@ -10,15 +10,81 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import LoadingSpinner from './LoadingSpinner';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 
 interface BusinessCardDisplayProps {
   card: BusinessCard;
   isPro: boolean;
 }
 
+interface EmailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (email: string) => Promise<void>;
+}
+
+const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) => {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      await onSubmit(email);
+      onClose();
+      setEmail('');
+    } catch (err) {
+      setError('Failed to send email. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Email This Card</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="mt-4">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email address"
+            className="w-full px-4 py-2 border rounded-lg mb-4"
+            required
+          />
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isLoading ? 'Sending...' : 'Send'}
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   useEffect(() => {
     if (card) {
@@ -70,6 +136,24 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
   };
 
   const showDocument = isPro && card.cvUrl;
+
+  const handleEmailCard = async (email: string) => {
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        cardUrl: window.location.href,
+        cardOwner: card.firstName,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send email');
+    }
+  };
 
   return (
     <div className="bg-[var(--end-card-bg)] shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col">
@@ -131,6 +215,13 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           >
             <Download className="mr-2" size={18} />
             Save Contact
+          </button>
+          <button 
+            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+            onClick={() => setShowEmailModal(true)}
+          >
+            <Mail className="mr-2" size={18} />
+            Email This Card
           </button>
         </div>
       </div>
@@ -292,6 +383,11 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           </div>
         </div>
       )}
+      <EmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSubmit={handleEmailCard}
+      />
     </div>
   );
 };
