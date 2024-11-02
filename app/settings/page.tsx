@@ -10,6 +10,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { User, CreditCard, Settings as SettingsIcon, AlertTriangle, Mail } from 'react-feather';
 import { FaApple } from 'react-icons/fa';
+import { ChangeEmailForm } from '../components/ChangeEmailForm';
+import { ChangePasswordForm } from '../components/ChangePasswordForm';
 
 interface SubscriptionData {
   isPro: boolean;
@@ -36,6 +38,8 @@ const SettingsPage: React.FC = () => {
     icon: <Mail className="w-5 h-5" />,
     label: 'Email'
   });
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -175,18 +179,18 @@ const SettingsPage: React.FC = () => {
             <div className="flex flex-wrap gap-3">
               {authProvider.providerId === 'password' && (
                 <>
-                  <Link 
-                    href="#" 
+                  <button 
+                    onClick={() => setShowEmailForm(true)}
                     className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
                   >
                     Change Email Address
-                  </Link>
-                  <Link 
-                    href="#" 
+                  </button>
+                  <button 
+                    onClick={() => setShowPasswordForm(true)}
                     className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
                   >
                     Change Password
-                  </Link>
+                  </button>
                 </>
               )}
               <button
@@ -197,6 +201,26 @@ const SettingsPage: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Modal for Email Change */}
+          {showEmailForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+                <h2 className="text-xl font-semibold mb-4">Change Email Address</h2>
+                <ChangeEmailForm onClose={() => setShowEmailForm(false)} />
+              </div>
+            </div>
+          )}
+
+          {/* Modal for Password Change */}
+          {showPasswordForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+                <h2 className="text-xl font-semibold mb-4">Change Password</h2>
+                <ChangePasswordForm onClose={() => setShowPasswordForm(false)} />
+              </div>
+            </div>
+          )}
 
           {/* Subscription Section */}
           <div className="bg-white dark:bg-[#2c2d31] rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
