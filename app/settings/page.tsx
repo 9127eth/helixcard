@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import Link from 'next/link';
 import DeleteAccountButton from '../components/DeleteAccountButton';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../hooks/useAuth';
