@@ -67,7 +67,7 @@ const DeleteAccountButton: React.FC = () => {
     <button
       onClick={handleDeleteAccount}
       disabled={isDeleting}
-      className="text-red-500 hover:text-red-700 transition-colors"
+      className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
     >
       {isDeleting ? 'Deleting...' : 'Delete Account'}
     </button>
