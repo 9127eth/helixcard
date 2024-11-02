@@ -147,6 +147,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
         email,
         cardUrl: window.location.href,
         cardOwner: card.firstName,
+        ...(card.email && { ownerEmail: card.email }),
       }),
     });
 
