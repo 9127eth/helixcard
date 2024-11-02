@@ -905,7 +905,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         ) : (
           <button 
             type="submit" 
-            className="bg-primary text-black px-4 py-2 rounded hover:bg-primary-hover"
+            className="bg-primary text-black px-4 py-2 rounded-full hover:bg-primary-hover"
           >
             Save Changes
           </button>

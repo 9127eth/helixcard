@@ -12,6 +12,7 @@ import { doc, getDoc } from 'firebase/firestore'; // Import Firestore functions
 import { db } from '../../lib/firebase'; // Import Firestore database
 import LoadingSpinner from '../../components/LoadingSpinner';
 
+
 export default function EditCardPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -97,24 +98,40 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
 
   return (
     <Layout title="Edit Business Card - HelixCard">
-      <div className="relative p-6 pb-12"> {/* Added padding here */}
+      <div className="relative p-6 pb-12">
         <div className="flex flex-col md:flex-row">
           <div className="w-full md:w-3/5 md:pr-8">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold">Edit Card</h1>
-              <button
-                onClick={handlePreviewToggle}
-                className="bg-blue-500 text-white dark:text-[var(--preview-button-text)] px-4 py-2 rounded-full hover:bg-[#40444b] transition-colors text-sm"
-              >
-                Preview
-              </button>
+              <div className="flex space-x-4">
+                <button
+                  onClick={handlePreviewToggle}
+                  className="text-[var(--body-primary-text)] hover:text-gray-600 dark:hover:text-gray-300 transition-colors text-sm"
+                >
+                  Preview
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="text-[var(--body-primary-text)] hover:text-gray-600 dark:hover:text-gray-300 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
             <BusinessCardForm 
               initialData={cardData} 
               onSuccess={handleSuccess} 
               onDelete={handleDelete}
-              isEditing={true} // Add this line
+              isEditing={true}
             />
+            <div className="mt-4 pl-1">
+              <button
+                onClick={handlePreviewToggle}
+                className="text-[var(--body-primary-text)] hover:text-gray-600 dark:hover:text-gray-300 transition-colors text-sm"
+              >
+                Preview
+              </button>
+            </div>
           </div>
           <div className="hidden md:block md:w-2/5">
             {/* This div is intentionally left empty for larger screens */}
