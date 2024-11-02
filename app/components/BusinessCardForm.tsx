@@ -768,7 +768,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Custom Header/Message" isOpen={shouldSectionBeOpen()}>
+      <CollapsibleSection title="Custom Header & Message" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div>
             <label htmlFor="customMessageHeader" className="block text-xs mb-1 font-bold text-gray-400">Custom Message Header</label>

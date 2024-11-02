@@ -44,36 +44,6 @@ const GetHelixProPage: React.FC = () => {
     checkSubscription();
   }, [user]);
 
-  const handleCancelSubscription = async () => {
-    if (!user) {
-      alert('You must be logged in to cancel your subscription.');
-      return;
-    }
-
-    try {
-      const idToken = await user.getIdToken();
-
-      const response = await fetch('/api/cancel-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ idToken }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to cancel subscription');
-      }
-
-      alert('Subscription cancelled successfully. Your account will remain Pro until the end of the current billing period.');
-      
-      // Update local state
-      setIsSubscribed(false);
-    } catch (error) {
-      alert('An error occurred. Please try again.');
-    }
-  };
-
   return (
     <Layout title="Get Helix Pro - HelixCard" showSidebar={true}>
       <Elements stripe={stripePromise}>
@@ -171,15 +141,6 @@ const GetHelixProPage: React.FC = () => {
                 )}
               </div>
             </div>
-
-            {isSubscribed && (
-              <button
-                onClick={handleCancelSubscription}
-                className="mt-8 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200"
-              >
-                Cancel Subscription
-              </button>
-            )}
           </div>
         </div>
       </Elements>

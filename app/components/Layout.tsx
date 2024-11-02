@@ -120,18 +120,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           {isSidebarOpen && <span className="text-sm">Get Helix Pro</span>}
                         </Link>
                       </li>
-                      <li>
-                        <Link href="/support" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
-                          <HelpCircle className="w-4 h-4" />
-                          {isSidebarOpen && <span className="text-sm">Support</span>}
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/settings" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
-                          <Settings className="w-4 h-4" />
-                          {isSidebarOpen && <span className="text-sm">Settings</span>}
-                        </Link>
-                      </li>
                       <li className="opacity-50 cursor-not-allowed">
                         <div className="flex items-center space-x-2 p-2 rounded">
                           <Users className="w-4 h-4" />
@@ -143,6 +131,18 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                           <ShoppingCart className="w-4 h-4" />
                           {isSidebarOpen && <span className="text-sm">Shop (Coming Soon)</span>}
                         </div>
+                      </li>
+                      <li>
+                        <Link href="/support" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
+                          <HelpCircle className="w-4 h-4" />
+                          {isSidebarOpen && <span className="text-sm">Support</span>}
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/settings" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
+                          <Settings className="w-4 h-4" />
+                          {isSidebarOpen && <span className="text-sm">Settings</span>}
+                        </Link>
                       </li>
                       <li className="mt-4">
                         <button onClick={handleSignOut} className="flex items-center space-x-2 p-2 rounded hover:bg-background w-full text-left">
