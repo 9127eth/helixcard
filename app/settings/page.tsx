@@ -173,18 +173,22 @@ const SettingsPage: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Link 
-                href="#" 
-                className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
-              >
-                Change Email Address
-              </Link>
-              <Link 
-                href="#" 
-                className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
-              >
-                Change Password
-              </Link>
+              {authProvider.providerId === 'password' && (
+                <>
+                  <Link 
+                    href="#" 
+                    className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                  >
+                    Change Email Address
+                  </Link>
+                  <Link 
+                    href="#" 
+                    className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                  >
+                    Change Password
+                  </Link>
+                </>
+              )}
               <button
                 onClick={handleSignOut}
                 className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
