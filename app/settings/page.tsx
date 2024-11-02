@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { User, Mail, CreditCard, Settings as SettingsIcon, AlertTriangle } from 'react-feather';
+import { User, CreditCard, Settings as SettingsIcon, AlertTriangle } from 'react-feather';
 
 interface SubscriptionData {
   isPro: boolean;
