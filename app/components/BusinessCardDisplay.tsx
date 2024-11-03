@@ -20,23 +20,36 @@ interface BusinessCardDisplayProps {
 interface EmailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (email: string) => Promise<void>;
+  onSubmit: (email: string, note?: string) => Promise<void>;
 }
 
 const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [email, setEmail] = useState('');
+  const [note, setNote] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
+
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
     
     try {
-      await onSubmit(email);
+      await onSubmit(email, note);
       onClose();
       setEmail('');
+      setNote('');
     } catch (err) {
       setError('Failed to send email. Please try again.');
     } finally {
@@ -51,16 +64,36 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
           <DialogTitle>Email This Card</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="mt-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter email address"
-            className="w-full px-4 py-2 border rounded-lg mb-4"
-            required
-          />
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-          <div className="flex justify-end gap-2">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
+                placeholder="Enter email address"
+                className={`w-full px-4 py-2 border rounded-lg mb-1 ${
+                  error ? 'border-red-500' : 'border-gray-300'
+                }`}
+                required
+              />
+              {error && (
+                <p className="text-red-500 text-sm">{error}</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Add a note (optional)"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                rows={3}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2 mt-4">
             <button
               type="button"
               onClick={onClose}
@@ -71,7 +104,7 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-[#7CCEDA] text-black rounded-lg hover:opacity-80 disabled:opacity-50"
             >
               {isLoading ? 'Sending...' : 'Send'}
             </button>
@@ -137,7 +170,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
   const showDocument = isPro && card.cvUrl;
 
-  const handleEmailCard = async (email: string) => {
+  const handleEmailCard = async (email: string, note?: string) => {
     const response = await fetch('/api/send-email', {
       method: 'POST',
       headers: {
@@ -145,6 +178,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
       },
       body: JSON.stringify({
         email,
+        note,
         cardUrl: window.location.href,
         cardOwner: card.firstName,
         ...(card.email && { ownerEmail: card.email }),
@@ -199,30 +233,19 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
       <div className="container mx-auto px-4 py-6 flex-shrink-0">
         <div className="flex justify-center space-x-4">
-          {card.phoneNumber && (
-            <button
-              className="bg-[var(--send-text-button-bg)] text-[var(--send-text-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
-              onClick={() => {
-                window.location.href = `sms:${card.phoneNumber}`;
-              }}
-            >
-              <Send className="mr-2" size={18} />
-              Send a Text
-            </button>
-          )}
-          <button 
-            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
-            onClick={handleSaveContact}
-          >
-            <Download className="mr-2" size={18} />
-            Save Contact
-          </button>
           <button 
             className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
             onClick={() => setShowEmailModal(true)}
           >
             <Mail className="mr-2" size={18} />
             Email This Card
+          </button>
+          <button 
+            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+            onClick={handleSaveContact}
+          >
+            <Download className="mr-2" size={18} />
+            Save Contact
           </button>
         </div>
       </div>
@@ -237,12 +260,23 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                 <div>
                   <h2 className="text-2xl font-bold mb-4">Contact</h2>
                   {card.phoneNumber && (
-                    <p className="flex items-center mb-2">
-                      <Phone className="mr-2 text-[var(--link-icon-color)]" size={18} />
-                      <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
-                        {formatPhoneNumberDisplay(card.phoneNumber)}
-                      </a>
-                    </p>
+                    <div className="flex items-center mb-2">
+                      <div className="flex items-center flex-grow">
+                        <Phone className="mr-2 text-[var(--link-icon-color)]" size={18} />
+                        <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
+                          {formatPhoneNumberDisplay(card.phoneNumber)}
+                        </a>
+                        <button
+                          className="bg-[var(--social-tile-bg)] text-[var(--social-text-color)] px-3 py-1 rounded-lg flex items-center hover:opacity-80 transition duration-300 text-sm ml-2"
+                          onClick={() => {
+                            window.location.href = `sms:${card.phoneNumber}`;
+                          }}
+                        >
+                          <Send className="mr-1" size={14} />
+                          Send a Text
+                        </button>
+                      </div>
+                    </div>
                   )}
                   {card.email && (
                     <p className="flex items-center mb-2">

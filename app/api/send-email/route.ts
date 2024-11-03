@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, cardUrl, cardOwner, ownerEmail } = await request.json();
+    const { email, cardUrl, cardOwner, ownerEmail, note } = await request.json();
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -31,18 +31,18 @@ export async function POST(request: Request) {
       subject: `${cardOwner}'s Digital Business Card`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Digital Business Card Shared with You</h2>
-          <p>Hello,</p>
-          <p>${cardOwner} has shared their digital business card with you.</p>
-          <p>Click the link below to view the card:</p>
+          <h2>Here is ${cardOwner}'s business card</h2>
+          ${note ? `<p><strong>Your note:</strong><br>${note}</p>` : ''}
+          <p>Click below to view the card:</p>
           <p><a href="${cardUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">View Business Card</a></p>
-          <p>Or copy this URL:</p>
           <p>${cardUrl}</p>
           ${ownerEmail 
             ? `<p>You can reply directly to this email to contact ${cardOwner}.</p>`
             : ''
           }
+          <p>Hope you have a great day!</p>
           <p>Best regards,<br>HelixCard Team</p>
+          <p style="color: #666; font-size: 0.9em;">P.S. Want your own digital business card? Create one for free at <a href="https://helixcard.app" style="color: #007bff; text-decoration: none;">helixcard.app</a></p>
         </div>
       `,
     };
