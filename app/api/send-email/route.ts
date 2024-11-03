@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || !process.env.EMAIL_SENDER) {
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
       console.error('Missing email configuration');
       return NextResponse.json(
         { error: 'Email service not configured' },
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.GMAIL_USER, // Your main Gmail address
+        user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD,
       },
     });
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const mailOptions = {
       from: {
         name: 'HelixCard',
-        address: process.env.EMAIL_SENDER // Your alias email
+        address: process.env.GMAIL_USER
       },
       ...(ownerEmail && { replyTo: ownerEmail }),
       to: email,
