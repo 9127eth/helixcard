@@ -56,7 +56,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       </div>
       <button
         type="submit"
-        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-teal hover:bg-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dark-pink dark:bg-teal dark:hover:bg-blue"
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-[#7CCEDA] hover:bg-[#6bbbC9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7CCEDA] dark:text-[var(--button-text)] dark:bg-[var(--primary)] dark:hover:bg-[#6bbbC9] transition-colors"
       >
         Log in
       </button>

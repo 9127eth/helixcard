@@ -13,11 +13,11 @@ const WelcomeMessage: React.FC = () => {
           priority
         />
       </div>
-      <h1 className="text-3xl text-black mb-6">Helping people create memorable connections.</h1>
-      <h5 className="text-1xl font-semibold mb-4 text-black">
+      <h1 className="text-3xl mb-6">Helping people create memorable connections.</h1>
+      <h5 className="text-1xl font-semibold mb-4">
         Empower your personal brand with customizable digital business cards.
       </h5>
-      <p className="text-lg text-black">
+      <p className="text-lg">
         <span className="italic">Try it free, no credit card required.</span>
       </p>
     </div>
