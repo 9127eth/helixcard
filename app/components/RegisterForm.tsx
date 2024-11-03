@@ -64,7 +64,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       </div>
       <button
         type="submit"
-        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#FF6A42] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red"
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-button-text bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
       >
         Sign up
       </button>

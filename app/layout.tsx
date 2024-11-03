@@ -9,8 +9,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HelixCard - Digital NFC Business Card",
-  description: "Create, customize, and share your digital business card",
+  title: "Helix - A Digital Business Card",
+  description: "Create a memorable connection with a digital business card",
+  openGraph: {
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Digital Business Card Platform'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/og-image.png'],
+  }
 };
 
 export default function RootLayout({
