@@ -8,13 +8,14 @@ import Image from 'next/image';
 import CollapsibleSection from './CollapsibleSection';
 import { 
   Linkedin, Twitter, Facebook, Instagram, Youtube, 
-  Link, Plus, X, AtSign, Eye, Copy, Trash2, Phone,
+  Link as LinkIcon, Plus, X, AtSign, Eye, Copy, Trash2, Phone,
 } from 'react-feather';
 import { FaTiktok, FaTwitch, FaSnapchatGhost, FaTelegram, FaDiscord } from 'react-icons/fa';
 import { parsePhoneNumberFromString } from 'libphonenumber-js'; // Import the library
 import ReactPhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import LoadingSpinner from './LoadingSpinner';
+import Link from 'next/link';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
@@ -111,7 +112,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     isActive: initialData?.isActive ?? true, // Default to true if not provided
   });
 
-  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>([]);
+  const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>(['linkedIn']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
@@ -408,6 +409,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       <CollapsibleSection title="Card Description" isOpen={shouldSectionBeOpen()}>
         <div className="space-y-4">
           <div className="space-y-1">
+            <label htmlFor="description" className="block text-xs mb-1 font-bold text-gray-400">
+              Card Label *
+            </label>
             <input
               type="text"
               name="description"
@@ -429,7 +433,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-xs mb-1 font-bold text-gray-400">First Name</label>
+              <label htmlFor="firstName" className="block text-xs mb-1 font-bold text-gray-400">
+                First Name *
+              </label>
               <input
                 id="firstName"
                 type="text"
@@ -590,7 +596,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <div className="overflow-y-auto">
             {additionalSocialLinks.map((link) => {
               const socialLink = availableSocialLinks.find(sl => sl.name === link);
-              const IconComponent = socialLink?.icon || Link;
+              const IconComponent = socialLink?.icon || LinkIcon;
               return (
                 <div key={link} className="flex items-center space-x-2 mb-2">
                   <IconComponent size={16} className="text-gray-400" />
@@ -671,7 +677,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <div className="overflow-y-auto">
             {formData.webLinks.map((link, index) => (
               <div key={index} className="flex items-center space-x-2 mb-2">
-                <Link size={16} className="text-gray-400" />
+                <LinkIcon size={16} className="text-gray-400" />
                 <input
                   type="url"
                   value={link.url}
@@ -802,7 +808,14 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         <div className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
-              Upload Document {!isPro && <span className="text-xs text-gray-500">(Pro feature)</span>}
+              Upload Document {!isPro && (
+                <Link 
+                  href="/get-helix-pro" 
+                  className="text-xs text-blue-500 hover:text-blue-600 hover:underline"
+                >
+                  (Get Helix Pro to upload a document)
+                </Link>
+              )}
             </label>
             <div className="flex items-center space-x-2">
               <input

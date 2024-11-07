@@ -98,7 +98,7 @@ export const AuthModal: React.FC = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md w-full max-w-md">
       <h4 className="text-2xl font-bold mb-6 text-center text-black dark:text-white">
         {isForgotPassword ? 'Reset Password' : isLogin ? 'Welcome Back' : 'Create Account'}
       </h4>

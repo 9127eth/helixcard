@@ -20,6 +20,7 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false); // Add this state
   const [username, setUsername] = useState<string | null>(null); // Add this state
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     const fetchCardData = async () => {
@@ -88,6 +89,39 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
         : `${baseUrl}/c/${username}/${cardData.cardSlug}`)
     : null;
 
+  // Add beforeunload event listener
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Handle navigation attempts
+  const handleNavigation = () => {
+    if (hasUnsavedChanges) {
+      const confirm = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+      if (confirm) {
+        setHasUnsavedChanges(false);
+        return true;
+      }
+      return false;
+    }
+    return true;
+  };
+
+  // Modified navigation handlers
+  const handleCancel = () => {
+    if (handleNavigation()) {
+      router.push('/dashboard');
+    }
+  };
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -103,20 +137,6 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
           <div className="w-full md:w-3/5 md:pr-8">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold">Edit Card</h1>
-              <div className="flex space-x-4">
-                <button
-                  onClick={handlePreviewToggle}
-                  className="text-[var(--body-primary-text)] hover:text-gray-600 dark:hover:text-gray-300 transition-colors text-sm"
-                >
-                  Preview
-                </button>
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="text-[var(--body-primary-text)] hover:text-gray-600 dark:hover:text-gray-300 transition-colors text-sm"
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
             <BusinessCardForm 
               initialData={cardData} 
