@@ -20,7 +20,6 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false); // Add this state
   const [username, setUsername] = useState<string | null>(null); // Add this state
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     const fetchCardData = async () => {
@@ -88,19 +87,6 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
         ? `${baseUrl}/c/${username}`
         : `${baseUrl}/c/${username}/${cardData.cardSlug}`)
     : null;
-
-  // Add beforeunload event listener
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
 
   if (isLoading) {
     return <LoadingSpinner />;
