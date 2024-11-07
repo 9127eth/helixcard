@@ -115,13 +115,6 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
     return true;
   };
 
-  // Modified navigation handlers
-  const handleCancel = () => {
-    if (handleNavigation()) {
-      router.push('/dashboard');
-    }
-  };
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
