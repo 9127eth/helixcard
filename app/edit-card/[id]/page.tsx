@@ -102,19 +102,6 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // Handle navigation attempts
-  const handleNavigation = () => {
-    if (hasUnsavedChanges) {
-      const confirm = window.confirm('You have unsaved changes. Are you sure you want to leave?');
-      if (confirm) {
-        setHasUnsavedChanges(false);
-        return true;
-      }
-      return false;
-    }
-    return true;
-  };
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
