@@ -28,21 +28,33 @@ export async function POST(request: Request) {
       },
       ...(ownerEmail && { replyTo: ownerEmail }),
       to: email,
-      subject: `${cardOwner}'s Digital Business Card`,
+      subject: `Here is ${cardOwner}'s business card`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Here is ${cardOwner}'s business card</h2>
-          ${note ? `<p><strong>Your note:</strong><br>${note}</p>` : ''}
-          <p>Click below to view the card:</p>
-          <p><a href="${cardUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">View Business Card</a></p>
-          <p>${cardUrl}</p>
+        <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 16px; color: #111827;">Here is ${cardOwner}'s business card</h1>
+          
+          ${note ? `
+            <p style="font-size: 16px; color: #374151; margin-bottom: 8px;"><strong>Note:</strong></p>
+            <p style="font-size: 16px; color: #374151; margin-bottom: 24px;">${note}</p>
+          ` : ''}
+          
+          <a href="${cardUrl}" style="display: inline-block; background-color: #18181B; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 24px; font-weight: 500; margin: 16px 0;">View Business Card</a>
+          
           ${ownerEmail 
-            ? `<p>You can reply directly to this email to contact ${cardOwner}.</p>`
+            ? `<p style="font-size: 14px; color: #4B5563; margin-top: 24px;">You can reply directly to this email to contact ${cardOwner}.</p>`
             : ''
           }
-          <p>Hope you have a great day!</p>
-          <p>Best regards,<br>HelixCard Team</p>
-          <p style="color: #666; font-size: 0.9em;">P.S. Want your own digital business card? Create one for free at <a href="https://helixcard.app" style="color: #007bff; text-decoration: none;">helixcard.app</a></p>
+          
+          <p style="font-size: 14px; color: #4B5563; margin-top: 24px;">Hope you have a great day!</p>
+          
+          <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 14px; color: #4B5563; margin: 0;">Best regards,</p>
+            <p style="font-size: 14px; font-weight: 500; color: #111827; margin: 4px 0;">HelixCard Team</p>
+          </div>
+          
+          <p style="font-size: 13px; color: #6B7280; margin-top: 24px;">
+            P.S. Want your own digital business card? Create one for free at <a href="https://helixcard.app" style="color: #2563EB; text-decoration: none;">helixcard.app</a>
+          </p>
         </div>
       `,
     };
@@ -50,9 +62,9 @@ export async function POST(request: Request) {
     await transporter.sendMail(mailOptions);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('Error sending email:', error);
     return NextResponse.json(
-      { error: `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { error: 'Failed to send email' },
       { status: 500 }
     );
   }
