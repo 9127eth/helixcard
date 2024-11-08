@@ -204,9 +204,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
   return (
     <div className="bg-[var(--end-card-bg)] shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col">
-      <header className="bg-card-header py-4 sm:py-6 lg:py-8 flex-shrink-0">
+      <header className="bg-card-header py-6 sm:py-8 lg:py-10 flex-shrink-0">
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="flex flex-row items-start justify-between">
+          <div className="flex flex-row items-start justify-between pt-2">
             <div className="flex flex-col items-start">
               <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
                 {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
@@ -240,30 +240,28 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
               </div>
             )}
           </div>
+          
+          <div className="flex justify-center space-x-4 mt-8 pb-2">
+            <button 
+              className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+              onClick={() => setShowEmailModal(true)}
+            >
+              <Mail className="mr-2" size={18} />
+              Email This Card
+            </button>
+            <button 
+              className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
+              onClick={handleSaveContact}
+            >
+              <Download className="mr-2" size={18} />
+              Save Contact
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 flex-shrink-0">
-        <div className="flex justify-center space-x-4">
-          <button 
-            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
-            onClick={() => setShowEmailModal(true)}
-          >
-            <Mail className="mr-2" size={18} />
-            Email This Card
-          </button>
-          <button 
-            className="bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] px-5 py-2 rounded-full flex items-center hover:opacity-80 transition duration-300 text-sm"
-            onClick={handleSaveContact}
-          >
-            <Download className="mr-2" size={18} />
-            Save Contact
-          </button>
-        </div>
-      </div>
-
       <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8 flex-grow overflow-y-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 pt-4">
           {/* Social Links and Contact Info */}
           <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-2">
@@ -273,14 +271,14 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                   <h2 className="text-2xl font-bold mb-4">Contact</h2>
                   {card.phoneNumber && (
                     <>
-                      <div className="flex items-center mb-2">
-                        <Phone className="mr-2 text-[var(--link-icon-color)]" size={18} />
+                      <div className="flex items-center mb-3">
+                        <Phone className="mr-3 text-[var(--link-icon-color)]" size={18} />
                         <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
                           {formatPhoneNumberDisplay(card.phoneNumber)}
                         </a>
                       </div>
-                      <div className="flex items-center mb-2">
-                        <MessageCircle className="mr-2 text-[var(--link-icon-color)]" size={18} />
+                      <div className="flex items-center mb-3">
+                        <MessageCircle className="mr-3 text-[var(--link-icon-color)]" size={18} />
                         <a
                           href={`sms:${card.phoneNumber}`}
                           className="text-[var(--link-text-color)] hover:underline"
@@ -291,12 +289,12 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                     </>
                   )}
                   {card.email && (
-                    <p className="flex items-center mb-2">
-                      <Mail className="mr-2 text-[var(--link-icon-color)]" size={18} />
+                    <div className="flex items-center mb-2">
+                      <Mail className="mr-3 text-[var(--link-icon-color)]" size={18} />
                       <a href={`mailto:${card.email}`} className="text-[var(--link-text-color)] hover:underline">
                         {card.email}
                       </a>
-                    </p>
+                    </div>
                   )}
                 </div>
               )}
@@ -389,7 +387,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                       rel="noopener noreferrer"
                       className="flex items-center hover:opacity-80"
                     >
-                      <LinkIcon className="mr-2 text-[var(--link-icon-color)]" size={18} />
+                      <LinkIcon className="mr-3 text-[var(--link-icon-color)]" size={18} />
                       <span className="text-[var(--link-text-color)]">{link.displayText || link.url}</span>
                     </a>
                   ))}
@@ -429,7 +427,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                   rel="noopener noreferrer"
                   className="mt-4 flex items-center hover:opacity-80"
                 >
-                  <FileText className="mr-2 text-[var(--link-icon-color)]" size={18} />
+                  <FileText className="mr-3 text-[var(--link-icon-color)]" size={18} />
                   <span className="text-[var(--link-text-color)]">{card.cvDisplayText || 'View document'}</span>
                 </a>
               </div>
@@ -438,14 +436,16 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
         </div>
       </main>
 
-      <footer className="bg-card-footer text-white py-4 sm:py-6 lg:py-8 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
+      <footer className="bg-[var(--end-card-bg)] text-white py-4 sm:py-5 lg:py-6 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm mb-4 text-[var(--header-footer-secondary-text)]">Create a modern, digital business card like this one for free.</p>
+          <p className="text-xs mb-3 text-[var(--header-footer-secondary-text)]">
+            Create a modern, digital business card like this one for free.
+          </p>
           <Link 
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full text-sm transition duration-300 mb-2 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
+            className="inline-block bg-gray-300 hover:bg-gray-600 text-black font-bold py-1.5 px-5 rounded-full text-xs transition duration-300 mb-1"
           >
             Get Your Card
           </Link>
