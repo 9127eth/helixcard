@@ -16,9 +16,10 @@ interface BusinessCardItemProps {
   onView: () => void;
   username: string | null;
   onUpdate?: (updatedCard: BusinessCard) => void;
+  onDelete?: (cardId: string) => void;
 }
 
-export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username, onUpdate }) => {
+export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username, onUpdate, onDelete }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { user } = useAuth();
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -36,8 +37,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
       try {
         const deleted = await handleCardDelete(user, card);
         if (deleted) {
-          // Refresh the card list or remove the card from the UI
-          // You might need to implement this functionality in the parent component
+          onDelete?.(card.id);
         }
       } finally {
         setIsActionLoading(false);

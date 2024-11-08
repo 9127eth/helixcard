@@ -919,62 +919,81 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
       <CollapsibleSection title="Appearance" isOpen={true}>
         <div className="space-y-4">
-          <label className="block text-xs mb-1 font-bold text-gray-400">Card Theme</label>
-          <div className="grid grid-cols-3 gap-4">
-            <div
-              className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                formData.theme === 'classic' 
-                  ? 'border-primary ring-2 ring-primary' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => handleChange({ 
-                target: { 
-                  name: 'theme', 
-                  value: 'classic' 
-                } 
-              } as React.ChangeEvent<HTMLInputElement>)}
-            >
-              <div className="text-center">
-                <div className="w-full h-24 bg-white border border-gray-200 rounded-lg mb-2"></div>
-                <span className="text-sm font-medium">Classic</span>
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-3 max-w-xl">
+              {/* Classic Theme */}
+              <div
+                className={`relative bg-white dark:bg-[#2c2d31] rounded-xl p-4 cursor-pointer transition-all border-2 ${
+                  formData.theme === 'classic' 
+                    ? 'border-[#7CCEDA]' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                onClick={() => handleChange({ 
+                  target: { 
+                    name: 'theme', 
+                    value: 'classic' 
+                  } 
+                } as React.ChangeEvent<HTMLInputElement>)}
+              >
+                <h3 className="text-lg font-bold mb-1">Classic</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Traditional black and white theme</p>
+                {formData.theme === 'classic' && (
+                  <div className="absolute top-1/2 -translate-y-1/2 right-4">
+                    <svg className="w-5 h-5 text-[#7CCEDA]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <div
-              className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                formData.theme === 'modern' 
-                  ? 'border-primary ring-2 ring-primary' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => handleChange({ 
-                target: { 
-                  name: 'theme', 
-                  value: 'modern' 
-                } 
-              } as React.ChangeEvent<HTMLInputElement>)}
-            >
-              <div className="text-center">
-                <div className="w-full h-24 bg-[var(--card-header-bg)] border border-gray-200 rounded-lg mb-2"></div>
-                <span className="text-sm font-medium">Modern</span>
+
+              {/* Modern Theme */}
+              <div
+                className={`relative bg-white dark:bg-[#2c2d31] rounded-xl p-4 cursor-pointer transition-all border-2 ${
+                  formData.theme === 'modern' 
+                    ? 'border-[#7CCEDA]' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                onClick={() => handleChange({ 
+                  target: { 
+                    name: 'theme', 
+                    value: 'modern' 
+                  } 
+                } as React.ChangeEvent<HTMLInputElement>)}
+              >
+                <h3 className="text-lg font-bold mb-1">Modern</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">A modern look with blue-green accents</p>
+                {formData.theme === 'modern' && (
+                  <div className="absolute top-1/2 -translate-y-1/2 right-4">
+                    <svg className="w-5 h-5 text-[#7CCEDA]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <div
-              className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                formData.theme === 'dark' 
-                  ? 'border-primary ring-2 ring-primary' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => handleChange({ 
-                target: { 
-                  name: 'theme', 
-                  value: 'dark' 
-                } 
-              } as React.ChangeEvent<HTMLInputElement>)}
-            >
-              <div className="text-center">
-                <div className="w-full h-24 bg-[#323338] border border-gray-600 rounded-lg mb-2"></div>
-                <span className="text-sm font-medium">Dark</span>
+
+              {/* Dark Theme */}
+              <div
+                className={`relative bg-white dark:bg-[#2c2d31] rounded-xl p-4 cursor-pointer transition-all border-2 ${
+                  formData.theme === 'dark' 
+                    ? 'border-[#7CCEDA]' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                onClick={() => handleChange({ 
+                  target: { 
+                    name: 'theme', 
+                    value: 'dark' 
+                  } 
+                } as React.ChangeEvent<HTMLInputElement>)}
+              >
+                <h3 className="text-lg font-bold mb-1">Dark</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Dark colors with shades of black and gray</p>
+                {formData.theme === 'dark' && (
+                  <div className="absolute top-1/2 -translate-y-1/2 right-4">
+                    <svg className="w-5 h-5 text-[#7CCEDA]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -69,6 +69,10 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
     );
   };
 
+  const handleCardDelete = (deletedCardId: string) => {
+    setCards(prevCards => prevCards.filter(card => card.id !== deletedCardId));
+  };
+
   if (isLoading) {
     return <LoadingSpinner fullScreen={false} />;
   }
@@ -85,6 +89,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
               onView={() => handleViewCard(card)}
               username={username}
               onUpdate={handleCardUpdate}
+              onDelete={handleCardDelete}
             />
           </div>
         ))}
