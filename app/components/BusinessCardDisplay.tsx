@@ -66,7 +66,7 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl sm:rounded-3xl">
         <DialogHeader>
           <DialogTitle>Email This Card</DialogTitle>
         </DialogHeader>
@@ -107,14 +107,14 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-full"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || success}
-              className="px-4 py-2 bg-[#7CCEDA] text-black rounded-lg hover:opacity-80 disabled:opacity-50"
+              className="px-4 py-2 bg-[#007AFF] text-white rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity"
             >
               {isLoading ? 'Sending...' : success ? 'Sent!' : 'Send'}
             </button>
