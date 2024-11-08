@@ -202,9 +202,45 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
     }
   };
 
+  const getThemeClasses = () => {
+    switch (card.theme) {
+      case 'classic':
+        return {
+          container: 'classic-theme bg-white',
+          header: 'bg-white',
+          buttons: 'bg-black text-white hover:bg-gray-800',
+          icons: 'text-black',
+          socialIcons: 'bg-white border-[0.5px] border-gray-600',
+          footer: 'bg-white',
+        };
+      case 'dark':
+        return {
+          container: 'dark bg-[#323338]',
+          header: 'bg-[#2c2d31]',
+          buttons: 'bg-[#40444b] text-white hover:bg-[#4a5568]',
+          icons: 'text-white',
+          socialIcons: 'bg-[#40444b]',
+          footer: 'bg-[#323338]',
+        };
+      default: // modern
+        return {
+          container: '',
+          header: 'bg-[var(--card-header-bg)]',
+          buttons: 'bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)]',
+          icons: 'text-[var(--link-icon-color)]',
+          socialIcons: 'bg-[var(--social-tile-bg)]',
+          footer: 'bg-[var(--end-card-bg)]',
+        };
+    }
+  };
+
+  const themeClasses = getThemeClasses();
+
   return (
-    <div className="bg-[var(--end-card-bg)] shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col">
-      <header className="bg-card-header py-6 sm:py-8 lg:py-10 flex-shrink-0">
+    <div className={`${themeClasses.container} shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col`}>
+      <header className={`bg-card-header py-6 sm:py-8 lg:py-10 flex-shrink-0 ${
+        card.theme === 'classic' ? 'border-b border-gray-300' : ''
+      }`}>
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-row items-start justify-between pt-2">
             <div className="flex flex-col items-start">
@@ -268,21 +304,24 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
               {/* Contact Information */}
               {(card.phoneNumber || card.email) && (
                 <div>
-                  <h2 className="text-2xl font-bold mb-4">Contact</h2>
+                  <h2 className={`text-2xl font-bold mb-4 ${
+                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                  }`}>Contact</h2>
                   {card.phoneNumber && (
                     <>
                       <div className="flex items-center mb-3">
-                        <Phone className="mr-3 text-[var(--link-icon-color)]" size={18} />
+                        <Phone className={`mr-3 ${
+                          card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                        }`} size={18} />
                         <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
                           {formatPhoneNumberDisplay(card.phoneNumber)}
                         </a>
                       </div>
                       <div className="flex items-center mb-3">
-                        <MessageCircle className="mr-3 text-[var(--link-icon-color)]" size={18} />
-                        <a
-                          href={`sms:${card.phoneNumber}`}
-                          className="text-[var(--link-text-color)] hover:underline"
-                        >
+                        <MessageCircle className={`mr-3 ${
+                          card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                        }`} size={18} />
+                        <a href={`sms:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
                           Send a text
                         </a>
                       </div>
@@ -290,7 +329,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                   )}
                   {card.email && (
                     <div className="flex items-center mb-2">
-                      <Mail className="mr-3 text-[var(--link-icon-color)]" size={18} />
+                      <Mail className={`mr-3 ${
+                        card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                      }`} size={18} />
                       <a href={`mailto:${card.email}`} className="text-[var(--link-text-color)] hover:underline">
                         {card.email}
                       </a>
@@ -302,7 +343,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
               {/* Social Links */}
               {(card.linkedIn || card.twitter || card.facebookUrl || card.instagramUrl || card.threadsUrl) && (
                 <div>
-                  <h2 className="text-2xl font-bold mb-4">Social</h2>
+                  <h2 className={`text-2xl font-bold mb-4 ${
+                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                  }`}>Social</h2>
                   <div className="flex flex-wrap gap-8 justify-center">
                     {card.linkedIn && (
                       <div className="flex flex-col items-center">
@@ -310,9 +353,11 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           href={card.linkedIn} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                          className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
                         >
-                          <Linkedin size={24} className="text-[var(--social-icon-color)]" />
+                          <Linkedin size={24} className={`${
+                            card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--social-icon-color)]'
+                          }`} />
                         </a>
                         <span className="text-sm text-[var(--social-text-color)]">LinkedIn</span>
                       </div>
@@ -323,7 +368,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           href={card.twitter} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                          className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
                         >
                           <XIcon size={24} className="text-[var(--social-icon-color)]" />
                         </a>
@@ -336,7 +381,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           href={card.facebookUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                          className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
                         >
                           <Facebook size={24} className="text-[var(--social-icon-color)]" />
                         </a>
@@ -349,7 +394,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           href={card.instagramUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                          className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
                         >
                           <Instagram size={24} className="text-[var(--social-icon-color)]" />
                         </a>
@@ -362,7 +407,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           href={card.threadsUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                          className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
                         >
                           <AtSign size={24} className="text-[var(--social-icon-color)]" />
                         </a>
@@ -377,7 +422,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             {/* Links Section */}
             {card.webLinks && card.webLinks.length > 0 && card.webLinks.some(link => link.url && link.url.trim() !== '') && (
               <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">Links</h2>
+                <h2 className={`text-2xl font-bold mb-4 ${
+                  card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                }`}>Links</h2>
                 <div className="flex flex-col space-y-2">
                   {card.webLinks.filter(link => link.url && link.url.trim() !== '').map((link, index) => (
                     <a
@@ -387,7 +434,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                       rel="noopener noreferrer"
                       className="flex items-center hover:opacity-80"
                     >
-                      <LinkIcon className="mr-3 text-[var(--link-icon-color)]" size={18} />
+                      <LinkIcon className={`mr-3 ${
+                        card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                      }`} size={18} />
                       <span className="text-[var(--link-text-color)]">{link.displayText || link.url}</span>
                     </a>
                   ))}
@@ -400,34 +449,52 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           <div className="lg:row-span-2">
             {card.aboutMe && (
               <div className="mt-8 lg:mt-0">
-                <h2 className="text-2xl font-bold mb-4">About Me</h2>
-                <p>{card.aboutMe}</p>
+                <h2 className={`text-2xl font-bold mb-4 ${
+                  card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                }`}>About Me</h2>
+                <p className={card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
+                  {card.aboutMe}
+                </p>
               </div>
             )}
 
             {card.customMessage && (
               <div className="mt-8">
                 {card.customMessageHeader ? (
-                  <h2 className="text-2xl font-bold mb-4">{card.customMessageHeader}</h2>
+                  <h2 className={`text-2xl font-bold mb-4 ${
+                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                  }`}>{card.customMessageHeader}</h2>
                 ) : (
-                  <h2 className="text-2xl font-bold mb-4">Custom Message</h2>
+                  <h2 className={`text-2xl font-bold mb-4 ${
+                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                  }`}>Custom Message</h2>
                 )}
-                <p>{card.customMessage}</p>
+                <p className={card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
+                  {card.customMessage}
+                </p>
               </div>
             )}
 
             {/* Conditionally render the document section */}
             {showDocument && (
               <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">{card.cvHeader || 'Documents'}</h2>
-                {card.cvDescription && <p>{card.cvDescription}</p>}
+                <h2 className={`text-2xl font-bold mb-4 ${
+                  card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                }`}>{card.cvHeader || 'Documents'}</h2>
+                {card.cvDescription && (
+                  <p className={card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
+                    {card.cvDescription}
+                  </p>
+                )}
                 <a
                   href={card.cvUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-4 flex items-center hover:opacity-80"
                 >
-                  <FileText className="mr-3 text-[var(--link-icon-color)]" size={18} />
+                  <FileText className={`mr-3 ${
+                    card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                  }`} size={18} />
                   <span className="text-[var(--link-text-color)]">{card.cvDisplayText || 'View document'}</span>
                 </a>
               </div>
@@ -436,7 +503,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
         </div>
       </main>
 
-      <footer className="bg-[var(--end-card-bg)] text-white py-4 sm:py-5 lg:py-6 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
+      <footer className={`${themeClasses.footer} text-white py-4 sm:py-5 lg:py-6 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0`}>
         <div className="container mx-auto px-4 text-center">
           <p className="text-xs mb-3 text-[var(--header-footer-secondary-text)]">
             Create a modern, digital business card like this one for free.
@@ -445,7 +512,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-block bg-gray-300 hover:bg-gray-600 text-black font-bold py-1.5 px-5 rounded-full text-xs transition duration-300 mb-1"
+            className={`inline-block ${themeClasses.buttons} font-bold py-1.5 px-5 rounded-full text-xs transition duration-300 mb-1`}
           >
             Get Your Card
           </Link>

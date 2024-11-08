@@ -18,6 +18,7 @@ import LoadingSpinner from './LoadingSpinner';
 import Link from 'next/link';
 import { X as XIcon } from 'react-feather';
 import { MyXIcon } from './MyIcons';
+import { CardTheme } from '../types';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
@@ -65,6 +66,7 @@ export interface BusinessCardData {
   cvDisplayText?: string;
   imageUrl?: string;
   isActive: boolean;
+  theme: CardTheme;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
@@ -112,6 +114,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     cvDisplayText: initialData?.cvDisplayText || '',
     imageUrl: initialData?.imageUrl || '',
     isActive: initialData?.isActive ?? true, // Default to true if not provided
+    theme: initialData?.theme || 'classic',
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>(['linkedIn']);
@@ -910,6 +913,55 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)] ${!isPro && 'opacity-50 cursor-not-allowed'}`}
               disabled={!isPro}
             />
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Appearance" isOpen={true}>
+        <div className="space-y-4">
+          <label className="block text-xs mb-1 font-bold text-gray-400">Card Theme</label>
+          <div className="grid grid-cols-3 gap-4">
+            <div
+              className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                formData.theme === 'classic' 
+                  ? 'border-primary ring-2 ring-primary' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => handleChange({ target: { name: 'theme', value: 'classic' } } as any)}
+            >
+              <div className="text-center">
+                <div className="w-full h-24 bg-white border border-gray-200 rounded-lg mb-2"></div>
+                <span className="text-sm font-medium">Classic</span>
+              </div>
+            </div>
+            
+            <div
+              className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                formData.theme === 'modern' 
+                  ? 'border-primary ring-2 ring-primary' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => handleChange({ target: { name: 'theme', value: 'modern' } } as any)}
+            >
+              <div className="text-center">
+                <div className="w-full h-24 bg-[var(--card-header-bg)] border border-gray-200 rounded-lg mb-2"></div>
+                <span className="text-sm font-medium">Modern</span>
+              </div>
+            </div>
+            
+            <div
+              className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                formData.theme === 'dark' 
+                  ? 'border-primary ring-2 ring-primary' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => handleChange({ target: { name: 'theme', value: 'dark' } } as any)}
+            >
+              <div className="text-center">
+                <div className="w-full h-24 bg-[#323338] border border-gray-600 rounded-lg mb-2"></div>
+                <span className="text-sm font-medium">Dark</span>
+              </div>
+            </div>
           </div>
         </div>
       </CollapsibleSection>

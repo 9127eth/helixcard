@@ -46,7 +46,7 @@
   --primary: #7CCEDA;
   --primary-text: #dddee3;
   --card-header-bg: #2c2d31;
-  --card-footer-bg: #2c2d31;
+  --card-footer-bg: #323338;
   --card-grid-background: #2f3136;
   --end-card-bg: #323338;
   --sidebar-bg: #2c2d31;
@@ -179,4 +179,22 @@ h3 .business-card-form {
 
 .phone-input-custom .country-list .country:hover {
   background-color: var(--phone-input-hover) !important;
+}
+
+.classic-theme {
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary: #000000;
+  --primary-text: #ffffff;
+  --card-header-bg: #ffffff;
+  --card-footer-bg: #ffffff;
+  --social-tile-bg: #ffffff;
+  --social-icon-color: #000000;
+  --social-text-color: #000000;
+  --link-icon-color: #000000;
+  --link-text-color: #000000;
+  --save-contact-button-bg: #000000;
+  --save-contact-button-text: #ffffff;
+  --header-footer-secondary-text: #666666;
+  --end-card-bg: #ffffff;
 }

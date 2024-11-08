@@ -1,3 +1,5 @@
+export type CardTheme = 'classic' | 'modern' | 'dark';
+
 export interface BusinessCard {
   cvUrl?: string;
   cvHeader?: string;
@@ -38,6 +40,7 @@ export interface BusinessCard {
   isActive: boolean; // Add this line
   isPro?: boolean; // Add this line
   cardDepthColor?: string; // Add this line
+  theme?: CardTheme;
 }
 
 export interface BusinessCardData {
@@ -77,6 +80,7 @@ export interface BusinessCardData {
   isActive: boolean;
   isPro?: boolean;
   cardDepthColor?: string;
+  theme: CardTheme;
 }
 
 
