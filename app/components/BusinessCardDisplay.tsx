@@ -272,23 +272,23 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                 <div>
                   <h2 className="text-2xl font-bold mb-4">Contact</h2>
                   {card.phoneNumber && (
-                    <div className="flex items-center mb-2">
-                      <div className="flex items-center flex-grow">
+                    <>
+                      <div className="flex items-center mb-2">
                         <Phone className="mr-2 text-[var(--link-icon-color)]" size={18} />
                         <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
                           {formatPhoneNumberDisplay(card.phoneNumber)}
                         </a>
-                        <button
-                          className="bg-[var(--social-tile-bg)] text-[var(--social-text-color)] px-3 py-1 rounded-lg flex items-center hover:opacity-80 transition duration-300 text-sm ml-2"
-                          onClick={() => {
-                            window.location.href = `sms:${card.phoneNumber}`;
-                          }}
-                        >
-                          <Send className="mr-1" size={14} />
-                          Send a Text
-                        </button>
                       </div>
-                    </div>
+                      <div className="flex items-center mb-2">
+                        <MessageCircle className="mr-2 text-[var(--link-icon-color)]" size={18} />
+                        <a
+                          href={`sms:${card.phoneNumber}`}
+                          className="text-[var(--link-text-color)] hover:underline"
+                        >
+                          Send a text
+                        </a>
+                      </div>
+                    </>
                   )}
                   {card.email && (
                     <p className="flex items-center mb-2">
@@ -401,7 +401,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           {/* About Me and Custom Message */}
           <div className="lg:row-span-2">
             {card.aboutMe && (
-              <div>
+              <div className="mt-8 lg:mt-0">
                 <h2 className="text-2xl font-bold mb-4">About Me</h2>
                 <p>{card.aboutMe}</p>
               </div>
