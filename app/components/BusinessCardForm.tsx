@@ -197,7 +197,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     let updatedValue = value;
 
     // Add protocol to URL fields if necessary
-    if (name.toLowerCase().includes('url') || name === 'linkedIn') {
+    if (name.toLowerCase().includes('url') || name === 'linkedIn' || name === 'twitter') {
       updatedValue = addProtocolToUrl(value);
     }
 
