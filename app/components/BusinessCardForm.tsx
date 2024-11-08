@@ -7,8 +7,8 @@ import { uploadImage, deleteImage } from '../lib/uploadUtils';
 import Image from 'next/image';
 import CollapsibleSection from './CollapsibleSection';
 import { 
-  Linkedin, Twitter, Facebook, Instagram, Youtube, 
-  Link as LinkIcon, Plus, X, AtSign, Eye, Copy, Trash2, Phone,
+  Linkedin, Facebook, Instagram, Youtube, 
+  Link as LinkIcon, Plus, AtSign, Eye, Copy, Trash2, Phone,
 } from 'react-feather';
 import { FaTiktok, FaTwitch, FaSnapchatGhost, FaTelegram, FaDiscord } from 'react-icons/fa';
 import { parsePhoneNumberFromString } from 'libphonenumber-js'; // Import the library
@@ -16,6 +16,8 @@ import ReactPhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import LoadingSpinner from './LoadingSpinner';
 import Link from 'next/link';
+import { X as XIcon } from 'react-feather';
+import { MyXIcon } from './MyIcons';
 
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
@@ -272,11 +274,11 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
   const availableSocialLinks = [
     { name: 'linkedIn', label: 'LinkedIn', icon: Linkedin },
-    { name: 'twitter', label: 'Twitter', icon: Twitter },
+    { name: 'twitter', label: 'X/Twitter', icon: MyXIcon },
     { name: 'facebookUrl', label: 'Facebook', icon: Facebook },
     { name: 'instagramUrl', label: 'Instagram', icon: Instagram },
-    { name: 'tiktokUrl', label: 'TikTok', icon: FaTiktok },
     { name: 'youtubeUrl', label: 'YouTube', icon: Youtube },
+    { name: 'tiktokUrl', label: 'TikTok', icon: FaTiktok },
     { name: 'discordUrl', label: 'Discord', icon: FaDiscord },
     { name: 'twitchUrl', label: 'Twitch', icon: FaTwitch },
     { name: 'snapchatUrl', label: 'Snapchat', icon: FaSnapchatGhost },
@@ -614,7 +616,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                     onClick={() => removeSocialLink(link)}
                     className="text-gray-400 hover:text-[#FF6A42] transition-colors"
                   >
-                    <X size={16} />
+                    <XIcon size={16} className="text-gray-400" />
                   </button>
                 </div>
               );
@@ -641,7 +643,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               onClick={() => setShowSocialLinkDropdown(false)}
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-500 dark:text-[var(--body-primary-text)] dark:hover:text-[var(--primary-text)] focus:outline-none"
             >
-              <X size={20} />
+              <XIcon size={20} className="text-gray-400" />
             </button>
             <div className="sm:flex sm:items-start">
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
@@ -699,7 +701,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   onClick={() => removeWebLink(index)}
                   className="text-gray-400 hover:text-[#FF6A42] transition-colors"
                 >
-                  <X size={16} />
+                  <XIcon size={16} className="text-gray-400" />
                 </button>
               </div>
             ))}

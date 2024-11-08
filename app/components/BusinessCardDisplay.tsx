@@ -115,6 +115,18 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
   );
 };
 
+export const XIcon: React.FC<{ size?: number; className?: string }> = ({ size = 24, className = '' }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    className={className}
+    fill="currentColor"
+  >
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
 const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -302,8 +314,8 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                     )}
                     {card.twitter && (
                       <a href={card.twitter} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <Twitter size={29} className="mb-2 text-[var(--social-icon-color)]" />
-                        <span className="text-[var(--social-text-color)]">Twitter</span>
+                        <XIcon size={29} className="mb-2 text-[var(--social-icon-color)]" />
+                        <span className="text-[var(--social-text-color)]">X/Twitter</span>
                       </a>
                     )}
                     {card.facebookUrl && (
@@ -393,7 +405,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
       <footer className="bg-card-footer text-white py-4 sm:py-6 lg:py-8 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm mb-4 text-[var(--header-footer-secondary-text)]">Create a modern, digital business card like this one for free. Get started now!</p>
+          <p className="text-sm mb-4 text-[var(--header-footer-secondary-text)]">Create a modern, digital business card like this one for free.</p>
           <Link 
             href="/" 
             target="_blank" 
