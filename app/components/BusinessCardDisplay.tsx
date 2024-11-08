@@ -410,7 +410,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full text-sm transition duration-300 mb-6 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
+            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full text-sm transition duration-300 mb-2 dark:bg-[#40444b] dark:hover:bg-[#4a4f57]"
           >
             Get Your Card
           </Link>
