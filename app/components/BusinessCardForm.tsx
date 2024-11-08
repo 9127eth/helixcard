@@ -927,7 +927,12 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   ? 'border-primary ring-2 ring-primary' 
                   : 'border-gray-200 hover:border-gray-300'
               }`}
-              onClick={() => handleChange({ target: { name: 'theme', value: 'classic' } } as any)}
+              onClick={() => handleChange({ 
+                target: { 
+                  name: 'theme', 
+                  value: 'classic' 
+                } 
+              } as React.ChangeEvent<HTMLInputElement>)}
             >
               <div className="text-center">
                 <div className="w-full h-24 bg-white border border-gray-200 rounded-lg mb-2"></div>
@@ -941,7 +946,12 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   ? 'border-primary ring-2 ring-primary' 
                   : 'border-gray-200 hover:border-gray-300'
               }`}
-              onClick={() => handleChange({ target: { name: 'theme', value: 'modern' } } as any)}
+              onClick={() => handleChange({ 
+                target: { 
+                  name: 'theme', 
+                  value: 'modern' 
+                } 
+              } as React.ChangeEvent<HTMLInputElement>)}
             >
               <div className="text-center">
                 <div className="w-full h-24 bg-[var(--card-header-bg)] border border-gray-200 rounded-lg mb-2"></div>
@@ -955,7 +965,12 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   ? 'border-primary ring-2 ring-primary' 
                   : 'border-gray-200 hover:border-gray-300'
               }`}
-              onClick={() => handleChange({ target: { name: 'theme', value: 'dark' } } as any)}
+              onClick={() => handleChange({ 
+                target: { 
+                  name: 'theme', 
+                  value: 'dark' 
+                } 
+              } as React.ChangeEvent<HTMLInputElement>)}
             >
               <div className="text-center">
                 <div className="w-full h-24 bg-[#323338] border border-gray-600 rounded-lg mb-2"></div>

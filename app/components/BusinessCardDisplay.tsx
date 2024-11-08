@@ -28,6 +28,7 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
   const [note, setNote] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,6 +38,7 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
 
     if (!validateEmail(email)) {
       setError('Please enter a valid email address');
@@ -47,9 +49,14 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
     
     try {
       await onSubmit(email, note);
-      onClose();
-      setEmail('');
-      setNote('');
+      setSuccess(true);
+      // Wait 1.5 seconds before closing to show success message
+      setTimeout(() => {
+        onClose();
+        setEmail('');
+        setNote('');
+        setSuccess(false);
+      }, 3000);
     } catch (err) {
       setError('Failed to send email. Please try again.');
     } finally {
@@ -82,6 +89,9 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
               {error && (
                 <p className="text-red-500 text-sm">{error}</p>
               )}
+              {success && (
+                <p className="text-green-700 text-sm">Email sent successfully!</p>
+              )}
             </div>
             <div className="space-y-1">
               <textarea
@@ -103,10 +113,10 @@ const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSubmit }) =>
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || success}
               className="px-4 py-2 bg-[#7CCEDA] text-black rounded-lg hover:opacity-80 disabled:opacity-50"
             >
-              {isLoading ? 'Sending...' : 'Send'}
+              {isLoading ? 'Sending...' : success ? 'Sent!' : 'Send'}
             </button>
           </div>
         </form>
