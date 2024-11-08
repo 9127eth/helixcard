@@ -305,36 +305,71 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
               {(card.linkedIn || card.twitter || card.facebookUrl || card.instagramUrl || card.threadsUrl) && (
                 <div>
                   <h2 className="text-2xl font-bold mb-4">Social</h2>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-wrap gap-8 justify-center">
                     {card.linkedIn && (
-                      <a href={card.linkedIn} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <Linkedin size={29} className="mb-2 text-[var(--social-icon-color)]" />
-                        <span className="text-[var(--social-text-color)]">LinkedIn</span>
-                      </a>
+                      <div className="flex flex-col items-center">
+                        <a 
+                          href={card.linkedIn} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                        >
+                          <Linkedin size={24} className="text-[var(--social-icon-color)]" />
+                        </a>
+                        <span className="text-sm text-[var(--social-text-color)]">LinkedIn</span>
+                      </div>
                     )}
                     {card.twitter && (
-                      <a href={card.twitter} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <XIcon size={29} className="mb-2 text-[var(--social-icon-color)]" />
-                        <span className="text-[var(--social-text-color)]">X/Twitter</span>
-                      </a>
+                      <div className="flex flex-col items-center">
+                        <a 
+                          href={card.twitter} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                        >
+                          <XIcon size={24} className="text-[var(--social-icon-color)]" />
+                        </a>
+                        <span className="text-sm text-[var(--social-text-color)]">X/Twitter</span>
+                      </div>
                     )}
                     {card.facebookUrl && (
-                      <a href={card.facebookUrl} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <Facebook size={29} className="mb-2 text-[var(--social-icon-color)]" />
-                        <span className="text-[var(--social-text-color)]">Facebook</span>
-                      </a>
+                      <div className="flex flex-col items-center">
+                        <a 
+                          href={card.facebookUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                        >
+                          <Facebook size={24} className="text-[var(--social-icon-color)]" />
+                        </a>
+                        <span className="text-sm text-[var(--social-text-color)]">Facebook</span>
+                      </div>
                     )}
                     {card.instagramUrl && (
-                      <a href={card.instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <Instagram size={29} className="mb-2 text-[var(--social-icon-color)]" />
-                        <span className="text-[var(--social-text-color)]">Instagram</span>
-                      </a>
+                      <div className="flex flex-col items-center">
+                        <a 
+                          href={card.instagramUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                        >
+                          <Instagram size={24} className="text-[var(--social-icon-color)]" />
+                        </a>
+                        <span className="text-sm text-[var(--social-text-color)]">Instagram</span>
+                      </div>
                     )}
                     {card.threadsUrl && (
-                      <a href={card.threadsUrl} target="_blank" rel="noopener noreferrer" className="bg-[var(--social-tile-bg)] p-4 rounded-xl flex flex-col items-center justify-center h-28">
-                        <AtSign size={29} className="mb-2 text-[var(--social-icon-color)]" />
-                        <span className="text-[var(--social-text-color)]">Threads</span>
-                      </a>
+                      <div className="flex flex-col items-center">
+                        <a 
+                          href={card.threadsUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-14 h-14 bg-[var(--social-tile-bg)] rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2"
+                        >
+                          <AtSign size={24} className="text-[var(--social-icon-color)]" />
+                        </a>
+                        <span className="text-sm text-[var(--social-text-color)]">Threads</span>
+                      </div>
                     )}
                   </div>
                 </div>
