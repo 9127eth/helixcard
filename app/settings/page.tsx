@@ -11,6 +11,7 @@ import { User, CreditCard, Settings as SettingsIcon, AlertTriangle, Mail } from 
 import { FaApple } from 'react-icons/fa';
 import { ChangeEmailForm } from '../components/ChangeEmailForm';
 import { ChangePasswordForm } from '../components/ChangePasswordForm';
+import { sendEmailVerification } from 'firebase/auth';
 
 interface SubscriptionData {
   isPro: boolean;
@@ -22,6 +23,47 @@ interface AuthProviderInfo {
   icon: React.ReactNode;
   label: string;
 }
+
+const EmailVerificationWarning: React.FC<{ user: any }> = ({ user }) => {
+  const [isSending, setIsSending] = useState(false);
+
+  const handleResendVerification = async () => {
+    if (!user) return;
+    
+    try {
+      setIsSending(true);
+      await sendEmailVerification(user);
+      alert('Verification email sent successfully. Please check your inbox.');
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      alert('Failed to send verification email. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  if (!user || user.emailVerified || user.providerData[0]?.providerId !== 'password') {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900 rounded-lg">
+      <div className="flex items-center gap-2">
+        <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
+        <span className="text-sm text-yellow-800 dark:text-yellow-200">
+          Please verify your email address
+        </span>
+        <button
+          onClick={handleResendVerification}
+          disabled={isSending}
+          className="ml-auto text-sm text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-300"
+        >
+          {isSending ? 'Sending...' : 'Resend verification email'}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const SettingsPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -162,6 +204,8 @@ const SettingsPage: React.FC = () => {
               Manage your account details and authentication
             </p>
             
+            <EmailVerificationWarning user={user} />
+
             <div className="mb-6">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
               <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>

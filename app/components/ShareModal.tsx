@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { BusinessCard } from '@/app/types';
-import { Copy, ExternalLink, Download } from 'react-feather'; // Updated import
+import { Copy, ExternalLink, Download, ChevronRight } from 'react-feather'; // Updated import
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
   const [qrCodeSize, setQrCodeSize] = useState(400);
   const [copyFeedback, setCopyFeedback] = useState('');
   const [downloadFeedback, setDownloadFeedback] = useState('');
+  const [isQROptionsOpen, setIsQROptionsOpen] = useState(false);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://www.helixcard.app';
   const cardUrl = username ? (
@@ -132,48 +133,73 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, busines
           <p className="text-xs sm:text-sm mb-2 text-center break-all text-black">{cardUrl}</p>
           <button
             onClick={copyToClipboard}
-            className="bg-[#93DBD6] text-black px-4 py-2 rounded-full flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#7bcbc5]"
+            className="bg-[#B8EB41] text-black px-4 py-2 rounded-full flex items-center justify-center w-[200px] hover:opacity-90"
           >
-            <Copy className="mr-2 text-[#FF6A42]" size={16} /> Copy URL
+            <Copy className="mr-2 text-black" size={16} /> Copy Link
           </button>
           {copyFeedback && <p className="text-green-600 text-xs sm:text-sm">{copyFeedback}</p>}
+        </div>
+
+        <div className="w-full h-[1px] bg-gray-200 mb-4"></div>
+
+        <div className="w-full space-y-2">
           <button
             onClick={() => window.open(cardUrl, '_blank')}
-            className="bg-[#000000] text-white px-4 py-2 rounded-full flex items-center justify-center w-3/4 sm:w-2/3 hover:bg-[#333333]"
+            className="w-full bg-white text-black px-4 py-3 rounded-lg flex items-center justify-between hover:bg-gray-50"
           >
-            <ExternalLink className="mr-2" size={16} /> View in Browser
+            <div className="flex items-center">
+              <ExternalLink className="mr-3" size={20} /> View in Browser
+            </div>
           </button>
-        </div>
-        <div className="border-t border-gray-300 pt-6 mt-6">
-          <h3 className="text-base sm:text-lg font-semibold mb-4 text-center text-black">Download QR Code</h3>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-4">
-            <select
-              value={qrCodeFormat}
-              onChange={(e) => setQrCodeFormat(e.target.value as 'png' | 'jpeg' | 'svg')}
-              className="p-1 border rounded text-sm w-full sm:w-1/4 text-black bg-white"
-            >
-              <option value="png">PNG</option>
-              <option value="jpeg">JPEG</option>
-              <option value="svg">SVG</option>
-            </select>
-            <label className="flex items-center text-sm text-black">
-              <input
-                type="checkbox"
-                checked={isTransparent}
-                onChange={(e) => setIsTransparent(e.target.checked)}
-                className="mr-1"
-              />
-              No background
-            </label>
-          </div>
-          <div
-            onClick={downloadQRCode}
-            className="text-black cursor-pointer flex items-center justify-center"
+
+          <button
+            onClick={() => setIsQROptionsOpen(!isQROptionsOpen)}
+            className="w-full bg-white text-black px-4 py-3 rounded-lg flex items-center justify-between hover:bg-gray-50"
           >
-            <Download className="mr-2 text-[#FF6A42]" size={16} /> Download
-          </div>
-          {downloadFeedback && <p className="text-green-600 text-xs sm:text-sm text-center mt-2">{downloadFeedback}</p>}
+            <div className="flex items-center">
+              <Download className="mr-3" size={20} /> Share QR Code Image
+            </div>
+            <ChevronRight 
+              className={`transform transition-transform ${isQROptionsOpen ? 'rotate-90' : ''}`}
+              size={20}
+            />
+          </button>
+
+          {isQROptionsOpen && (
+            <div className="mt-2 border border-gray-300 rounded-lg bg-white p-4">
+              <div className="space-y-4">
+                <div className="flex flex-col space-y-2">
+                  <select
+                    value={qrCodeFormat}
+                    onChange={(e) => setQrCodeFormat(e.target.value as 'png' | 'jpeg' | 'svg')}
+                    className="p-1 border rounded text-sm text-black bg-white"
+                  >
+                    <option value="png">PNG</option>
+                    <option value="jpeg">JPEG</option>
+                    <option value="svg">SVG</option>
+                  </select>
+                  <label className="flex items-center text-sm text-black">
+                    <input
+                      type="checkbox"
+                      checked={isTransparent}
+                      onChange={(e) => setIsTransparent(e.target.checked)}
+                      className="mr-1"
+                    />
+                    No background
+                  </label>
+                  <button
+                    onClick={downloadQRCode}
+                    className="bg-[#93DBD6] text-black px-4 py-2 rounded-full flex items-center justify-center hover:bg-[#7bcbc5]"
+                  >
+                    <Download className="mr-2 text-[#FF6A42]" size={16} /> Download
+                  </button>
+                  {downloadFeedback && <p className="text-green-600 text-xs sm:text-sm text-center">{downloadFeedback}</p>}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+
         <button
           onClick={onClose}
           className="absolute top-4 right-4 sm:top-6 sm:right-6 text-gray-500 hover:text-gray-700 text-2xl p-2"
