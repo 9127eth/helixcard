@@ -198,3 +198,21 @@ h3 .business-card-form {
   --header-footer-secondary-text: #666666;
   --end-card-bg: #ffffff;
 }
+
+.dark .classic-theme {
+  --background: #323338;
+  --foreground: #dddee3;
+  --primary: #40444b;
+  --primary-text: #ffffff;
+  --card-header-bg: #2c2d31;
+  --card-footer-bg: #323338;
+  --social-tile-bg: #40444b;
+  --social-icon-color: #ffffff;
+  --social-text-color: #dcddde;
+  --link-icon-color: #ffffff;
+  --link-text-color: #dcddde;
+  --save-contact-button-bg: #40444b;
+  --save-contact-button-text: #ffffff;
+  --header-footer-secondary-text: #b9bbbe;
+  --end-card-bg: #323338;
+}

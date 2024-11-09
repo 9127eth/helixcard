@@ -216,12 +216,12 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
     switch (card.theme) {
       case 'classic':
         return {
-          container: 'classic-theme bg-white',
-          header: 'bg-white',
-          buttons: 'bg-black text-white hover:bg-gray-800',
-          icons: 'text-black',
-          socialIcons: 'bg-white border-[0.5px] border-gray-600',
-          footer: 'bg-white',
+          container: 'classic-theme bg-white dark:bg-[#323338]',
+          header: 'bg-white dark:bg-[#2c2d31]',
+          buttons: 'bg-black text-white dark:bg-[#40444b] hover:bg-gray-800 dark:hover:bg-[#4a5568]',
+          icons: 'text-black dark:text-white',
+          socialIcons: 'bg-white dark:bg-[#40444b] border-[0.5px] border-gray-600 dark:border-gray-700',
+          footer: 'bg-white dark:bg-[#323338]',
         };
       case 'dark':
         return {
@@ -366,7 +366,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
                         >
                           <Linkedin size={24} className={`${
-                            card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--social-icon-color)]'
+                            card.theme === 'classic' ? 'text-[var(--social-icon-color)]' : 'text-[var(--social-icon-color)]'
                           }`} />
                         </a>
                         <span className="text-sm text-[var(--social-text-color)]">LinkedIn</span>
