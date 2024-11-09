@@ -12,6 +12,7 @@ import { FaApple } from 'react-icons/fa';
 import { ChangeEmailForm } from '../components/ChangeEmailForm';
 import { ChangePasswordForm } from '../components/ChangePasswordForm';
 import { sendEmailVerification } from 'firebase/auth';
+import { User as FirebaseUser } from 'firebase/auth';
 
 interface SubscriptionData {
   isPro: boolean;
@@ -24,7 +25,7 @@ interface AuthProviderInfo {
   label: string;
 }
 
-const EmailVerificationWarning: React.FC<{ user: any }> = ({ user }) => {
+const EmailVerificationWarning: React.FC<{ user: FirebaseUser | null }> = ({ user }) => {
   const [isSending, setIsSending] = useState(false);
 
   const handleResendVerification = async () => {
