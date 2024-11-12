@@ -247,8 +247,8 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
   const themeClasses = getThemeClasses();
 
   return (
-    <div className={`${themeClasses.container} shadow-lg rounded-lg overflow-hidden max-w-full h-full flex flex-col`}>
-      <header className={`bg-card-header py-6 sm:py-8 lg:py-10 flex-shrink-0 ${
+    <div className={`${themeClasses.container} w-screen min-h-screen flex flex-col`}>
+      <header className={`bg-card-header py-6 sm:py-8 lg:py-10 ${
         card.theme === 'classic' ? 'border-b border-gray-300' : ''
       }`}>
         <div className="container mx-auto px-3 sm:px-4">
@@ -306,7 +306,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8 flex-grow overflow-y-auto">
+      <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 pt-4">
           {/* Social Links and Contact Info */}
           <div className="lg:col-span-2">
@@ -513,7 +513,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
         </div>
       </main>
 
-      <footer className={`${themeClasses.footer} text-white py-4 sm:py-5 lg:py-6 mt-4 sm:mt-6 lg:mt-8 flex-shrink-0`}>
+      <footer className={`${themeClasses.footer} text-white py-4 sm:py-5 lg:py-6 mt-auto`}>
         <div className="container mx-auto px-4 text-center">
           <p className="text-xs mb-3 text-[var(--header-footer-secondary-text)]">
             Create a modern, digital business card like this one for free.
