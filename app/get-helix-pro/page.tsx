@@ -51,7 +51,11 @@ const GetHelixProPage: React.FC = () => {
       case 'yearly':
         return '$12.99/year';
       case 'lifetime':
-        return '$19.99 one-time';
+        return (
+          <span>
+            $19.99 - pay once, get Helix Pro <strong>forever</strong>!
+          </span>
+        );
       default:
         return '';
     }
