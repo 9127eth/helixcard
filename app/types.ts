@@ -41,6 +41,7 @@ export interface BusinessCard {
   isPro?: boolean; // Add this line
   cardDepthColor?: string; // Add this line
   theme?: CardTheme;
+  enableTextMessage?: boolean;
 }
 
 export interface BusinessCardData {
@@ -81,7 +82,5 @@ export interface BusinessCardData {
   isPro?: boolean;
   cardDepthColor?: string;
   theme: CardTheme;
+  enableTextMessage?: boolean;
 }
-
-
-

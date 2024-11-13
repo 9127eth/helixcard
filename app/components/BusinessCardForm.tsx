@@ -67,6 +67,7 @@ export interface BusinessCardData {
   imageUrl?: string;
   isActive: boolean;
   theme: CardTheme;
+  enableTextMessage: boolean;
 }
 
 export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
@@ -115,6 +116,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     imageUrl: initialData?.imageUrl || '',
     isActive: initialData?.isActive ?? true, // Default to true if not provided
     theme: initialData?.theme || 'classic',
+    enableTextMessage: initialData?.enableTextMessage ?? false, // Default to false
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>(['linkedIn']);
@@ -592,6 +594,18 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
+          </div>
+          <div className="mt-2">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                name="enableTextMessage"
+                checked={formData.enableTextMessage}
+                onChange={(e) => setFormData({ ...formData, enableTextMessage: e.target.checked })}
+                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <span className="text-sm text-gray-600 dark:text-gray-400">Enable "Send a text" Button</span>
+            </label>
           </div>
         </div>
       </CollapsibleSection>

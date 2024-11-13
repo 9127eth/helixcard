@@ -327,14 +327,16 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           {formatPhoneNumberDisplay(card.phoneNumber)}
                         </a>
                       </div>
-                      <div className="flex items-center mb-3">
-                        <MessageCircle className={`mr-3 ${
-                          card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
-                        }`} size={18} />
-                        <a href={`sms:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
-                          Send a text
-                        </a>
-                      </div>
+                      {card.enableTextMessage && (
+                        <div className="flex items-center mb-3">
+                          <MessageCircle className={`mr-3 ${
+                            card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                          }`} size={18} />
+                          <a href={`sms:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
+                            Send a text
+                          </a>
+                        </div>
+                      )}
                     </>
                   )}
                   {card.email && (
