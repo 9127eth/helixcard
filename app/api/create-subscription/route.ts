@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const { priceId, idToken } = await req.json();
+    const { priceId, idToken, isLifetime } = await req.json();
 
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
@@ -30,16 +30,38 @@ export async function POST(req: Request) {
       stripeCustomerId: customer.id
     });
 
-    // Create the subscription
-    const subscription = await stripe.subscriptions.create({
-      customer: customer.id,
-      items: [{ price: priceId }],
-      payment_behavior: 'default_incomplete',
-      expand: ['latest_invoice.payment_intent'],
-    });
+    if (isLifetime) {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 1999,
+        currency: 'usd',
+        customer: customer.id,
+        payment_method_types: ['card'],
+        metadata: {
+          firebaseUID: uid,
+        },
+      });
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+      await db.collection('users').doc(uid).update({
+        isPro: true,
+        isLifetime: true,
+        stripeCustomerId: customer.id,
+      });
+
+      await auth.setCustomUserClaims(uid, { isPro: true, isLifetime: true });
+
+      return NextResponse.json({
+        clientSecret: paymentIntent.client_secret,
+      });
+    } else {
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{ price: priceId }],
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+      });
+
+      const invoice = subscription.latest_invoice as Stripe.Invoice;
+      const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
 
     // Update Firebase user document with subscription details
     await db.collection('users').doc(uid).update({
@@ -51,10 +73,11 @@ export async function POST(req: Request) {
     // Update custom claims
     await auth.setCustomUserClaims(uid, { isPro: true });
 
-    return NextResponse.json({
-      subscriptionId: subscription.id,
-      clientSecret: paymentIntent.client_secret,
-    });
+      return NextResponse.json({
+        subscriptionId: subscription.id,
+        clientSecret: paymentIntent.client_secret,
+      });
+    }
   } catch (error) {
     console.error('Error creating subscription:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -11,7 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const GetHelixProPage: React.FC = () => {
-  const [isYearly, setIsYearly] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime'>('lifetime');
   const { user } = useAuth();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,34 +44,64 @@ const GetHelixProPage: React.FC = () => {
     checkSubscription();
   }, [user]);
 
+  const getPriceDisplay = () => {
+    switch (selectedPlan) {
+      case 'monthly':
+        return '$2.99/month';
+      case 'yearly':
+        return '$12.99/year';
+      case 'lifetime':
+        return '$19.99 one-time';
+      default:
+        return '';
+    }
+  };
+
   return (
     <Layout title="Get Helix Pro - HelixCard" showSidebar={true}>
       <Elements stripe={stripePromise}>
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center p-8">
             <h1 className="text-4xl font-bold mb-6">Choose the plan that is right for you.</h1>
-            <div className="flex items-center space-x-4 mb-8">
-              <span className={`text-lg ${!isYearly ? 'font-bold' : ''}`}>Monthly</span>
+            
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-8">
               <button
-                className={`w-14 h-6 rounded-full p-0.5 ${
-                  isYearly ? 'bg-gray-600' : 'bg-gray-300'
+                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                  selectedPlan === 'lifetime'
+                    ? 'bg-white dark:bg-gray-700 shadow-sm border-2 border-gray-300 dark:border-gray-600'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
-                onClick={() => setIsYearly(!isYearly)}
+                onClick={() => setSelectedPlan('lifetime')}
               >
-                <div
-                  className={`w-5 h-5 rounded-full bg-white transform duration-300 ease-in-out ${
-                    isYearly ? 'translate-x-8' : ''
-                  }`}
-                ></div>
+                Lifetime
               </button>
-              <span className={`text-lg ${isYearly ? 'font-bold' : ''}`}>Yearly</span>
+              <button
+                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                  selectedPlan === 'yearly'
+                    ? 'bg-white dark:bg-gray-700 shadow-sm border-2 border-gray-300 dark:border-gray-600'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+                onClick={() => setSelectedPlan('yearly')}
+              >
+                Yearly
+              </button>
+              <button
+                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                  selectedPlan === 'monthly'
+                    ? 'bg-white dark:bg-gray-700 shadow-sm border-2 border-gray-300 dark:border-gray-600'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+                onClick={() => setSelectedPlan('monthly')}
+              >
+                Monthly
+              </button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
               <div className="bg-white dark:bg-[#2c2d31] rounded-[30px] shadow-md p-8 w-full border-2 border-gray-500 flex flex-col justify-between h-full order-2 md:order-1">
                 <div>
                   <h2 className="text-2xl font-bold mb-4">Free</h2>
-                  <p className="text-gray-500 mb-6">${isYearly ? '0/year' : '0/month'}</p>
+                  <p className="text-gray-500 mb-6">${selectedPlan === 'monthly' ? '0/month' : '0/year'}</p>
                   <ul className="space-y-2 mb-6">
                     <li className="flex items-center">
                       <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
@@ -103,7 +133,7 @@ const GetHelixProPage: React.FC = () => {
               <div className="bg-white dark:bg-[#2c2d31] rounded-[30px] shadow-md p-8 w-full border-2 border-gray-500 flex flex-col justify-between h-full order-1 md:order-2">
                 <div>
                   <h2 className="text-2xl font-bold mb-4">Pro</h2>
-                  <p className="text-gray-500 mb-6">${isYearly ? '12.99/year' : '2.99/month'}</p>
+                  <p className="text-gray-500 mb-6">{getPriceDisplay()}</p>
                   <ul className="space-y-2 mb-6">
                     <li className="flex items-center">
                       <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
@@ -137,7 +167,7 @@ const GetHelixProPage: React.FC = () => {
                     Current Plan
                   </button>
                 ) : (
-                  <StripePaymentForm isYearly={isYearly} />
+                  <StripePaymentForm selectedPlan={selectedPlan} isSubscribed={isSubscribed} />
                 )}
               </div>
             </div>
