@@ -604,7 +604,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 onChange={(e) => setFormData({ ...formData, enableTextMessage: e.target.checked })}
                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
               />
-              <span className="text-sm text-gray-600 dark:text-gray-400">Enable "Send a text" Button</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Enable &quot;Send a text&quot; Button</span>
             </label>
           </div>
         </div>
