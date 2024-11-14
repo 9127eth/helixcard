@@ -116,7 +116,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     imageUrl: initialData?.imageUrl || '',
     isActive: initialData?.isActive ?? true, // Default to true if not provided
     theme: initialData?.theme || 'classic',
-    enableTextMessage: initialData?.enableTextMessage ?? false, // Default to false
+    enableTextMessage: initialData ? (initialData.enableTextMessage ?? true) : false,
   });
 
   const [additionalSocialLinks, setAdditionalSocialLinks] = useState<string[]>(['linkedIn']);

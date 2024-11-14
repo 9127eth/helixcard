@@ -327,7 +327,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                           {formatPhoneNumberDisplay(card.phoneNumber)}
                         </a>
                       </div>
-                      {card.enableTextMessage && (
+                      {(card.enableTextMessage === undefined || card.enableTextMessage) && (
                         <div className="flex items-center mb-3">
                           <MessageCircle className={`mr-3 ${
                             card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
