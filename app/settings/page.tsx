@@ -35,7 +35,7 @@ const EmailVerificationWarning: React.FC<{ user: FirebaseUser | null }> = ({ use
       setIsSending(true);
       await sendEmailVerification(user);
       alert('Verification email sent successfully. Please check your inbox.');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error sending verification email:', error);
       alert('Failed to send verification email. Please try again.');
     } finally {
