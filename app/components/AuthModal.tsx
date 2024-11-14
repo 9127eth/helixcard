@@ -10,6 +10,7 @@ import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
 import { createUserDocument } from '../lib/firebaseOperations';
 import { FaApple } from 'react-icons/fa';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -40,8 +41,11 @@ export const AuthModal: React.FC = () => {
       const result = await signInWithPopup(auth, provider);
       console.log('Google Sign-In successful:', result.user.uid);
 
-      // Call createUserDocument to create the user document in Firestore
-      await createUserDocument(result.user);
+      // Get device info
+      const deviceInfo = getDeviceInfo();
+
+      // Create user document with device info
+      await createUserDocument(result.user, deviceInfo);
 
       handleSuccess();
     } catch (error) {
@@ -66,8 +70,11 @@ export const AuthModal: React.FC = () => {
       const result = await signInWithPopup(auth, provider);
       console.log('Apple Sign-In successful:', result.user.uid);
 
-      // Call createUserDocument to create the user document in Firestore
-      await createUserDocument(result.user);
+      // Get device info
+      const deviceInfo = getDeviceInfo();
+
+      // Create user document with device info
+      await createUserDocument(result.user, deviceInfo);
 
       handleSuccess();
     } catch (error) {

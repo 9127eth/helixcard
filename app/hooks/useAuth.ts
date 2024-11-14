@@ -3,6 +3,7 @@ import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
 import { useRouter } from 'next/navigation';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -55,8 +56,11 @@ export function useAuth() {
       );
       console.log('User authenticated:', userCredential.user.uid);
       
+      // Get device info
+      const deviceInfo = getDeviceInfo();
+      
       console.log('Attempting to create user document...');
-      await createUserDocument(userCredential.user);
+      await createUserDocument(userCredential.user, deviceInfo);
       console.log('User document created successfully');
       
       console.log('User signed up and document created successfully');

@@ -18,6 +18,7 @@ import { ref, deleteObject } from 'firebase/storage'; // Removed getStorage as i
 import { deleteField } from 'firebase/firestore';
 import { storage } from './firebase'; // Assuming you have a firebase.ts file with these exports
 import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from './constants';
+import { DeviceInfo } from '../utils/deviceDetection';
 
 // Added UserData interface
 interface UserData {
@@ -25,6 +26,13 @@ interface UserData {
   username: string | null;
   primaryCardId: string | null;
   primaryCardPlaceholder: boolean;
+}
+
+interface UserRegistrationData extends UserData {
+  sourceDevice: string;
+  sourceBrowser: string;
+  sourcePlatform: string;
+  registeredAt: any; // Firebase Timestamp
 }
 
 interface BusinessCardData {
@@ -236,7 +244,7 @@ export function validateCustomUsername(username: string): boolean {
   return usernameRegex.test(username);
 }
 
-export async function createUserDocument(user: User): Promise<void> {
+export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): Promise<void> {
   console.log('Entered createUserDocument function');
 
   if (!user || !user.uid) {
@@ -280,6 +288,12 @@ export async function createUserDocument(user: User): Promise<void> {
       primaryCardPlaceholder: true, // Set this to true initially
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+      // Add device info if provided
+      ...(deviceInfo && {
+        sourceDevice: deviceInfo.sourceDevice,
+        sourceBrowser: deviceInfo.sourceBrowser,
+        sourcePlatform: deviceInfo.sourcePlatform
+      })
     };
 
     await setDoc(userRef, userData);
@@ -467,4 +481,27 @@ export async function updateCardDepthColor(userId: string, cardSlug: string, col
   await updateDoc(cardRef, {
     cardDepthColor: color
   });
+}
+
+export async function createNewUser(
+  userId: string, 
+  email: string | null, 
+  deviceInfo: DeviceInfo
+): Promise<void> {
+  if (!db) throw new Error('Firestore is not initialized');
+
+  const username = await generateUniqueUsername();
+  
+  const userData: UserRegistrationData = {
+    username: username,
+    isPro: false,
+    primaryCardId: null,
+    primaryCardPlaceholder: true,
+    sourceDevice: deviceInfo.sourceDevice,
+    sourceBrowser: deviceInfo.sourceBrowser,
+    sourcePlatform: deviceInfo.sourcePlatform,
+    registeredAt: serverTimestamp()
+  };
+
+  await setDoc(doc(db, 'users', userId), userData);
 }
