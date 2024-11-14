@@ -19,6 +19,7 @@ import { deleteField } from 'firebase/firestore';
 import { storage } from './firebase'; // Assuming you have a firebase.ts file with these exports
 import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from './constants';
 import { DeviceInfo } from '../utils/deviceDetection';
+import { Timestamp } from 'firebase/firestore';
 
 // Added UserData interface
 interface UserData {
@@ -32,7 +33,7 @@ interface UserRegistrationData extends UserData {
   sourceDevice: string;
   sourceBrowser: string;
   sourcePlatform: string;
-  registeredAt: any; // Firebase Timestamp
+  registeredAt: FirebaseFirestore.Timestamp;
 }
 
 interface BusinessCardData {
@@ -500,7 +501,7 @@ export async function createNewUser(
     sourceDevice: deviceInfo.sourceDevice,
     sourceBrowser: deviceInfo.sourceBrowser,
     sourcePlatform: deviceInfo.sourcePlatform,
-    registeredAt: serverTimestamp()
+    registeredAt: Timestamp.fromDate(new Date())
   };
 
   await setDoc(doc(db, 'users', userId), userData);
