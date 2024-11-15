@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import { createUserDocument } from '../lib/firebaseOperations';
 import { FaApple } from 'react-icons/fa';
 import { getDeviceInfo } from '../utils/deviceDetection';
+import Image from 'next/image';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -106,6 +107,28 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md w-full max-w-md">
+      <div className="mb-8 flex flex-col items-center text-center">
+        <p className="mb-4 text-gray-600 dark:text-gray-300">
+          Download our iOS app on Mobile!
+        </p>
+        <a
+          href="https://apps.apple.com/us/app/helix-digital-business-card/id6736955244"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mb-8 hover:opacity-90 transition-opacity"
+        >
+          <Image
+            src="/downloadios.png"
+            alt="Download on the App Store"
+            width={160}
+            height={53}
+            priority
+            className="rounded-lg"
+          />
+        </a>
+        <div className="w-full border-b border-gray-300 dark:border-gray-600 mb-3"></div>
+      </div>
+
       <h4 className="text-2xl font-bold mb-6 text-center text-black dark:text-white">
         {isForgotPassword ? 'Reset Password' : isLogin ? 'Welcome Back' : 'Create Account'}
       </h4>
