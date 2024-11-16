@@ -48,6 +48,19 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
     }
   };
 
+  const getPriceInCents = () => {
+    switch (selectedPlan) {
+      case 'monthly':
+        return 299;
+      case 'yearly':
+        return 1299;
+      case 'lifetime':
+        return 1999;
+      default:
+        return 0;
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -197,12 +210,6 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
             {couponMessage}
           </p>
         )}
-        {discountedAmount && (
-          <div className="mt-2 text-sm">
-            <p className="text-gray-600 dark:text-gray-400">Original price: {getPriceDisplay()}</p>
-            <p className="text-green-600 font-medium">Discounted price: ${(discountedAmount / 100).toFixed(2)}</p>
-          </div>
-        )}
       </div>
 
       {errorMessage && <div className="text-red-500 mt-2">{errorMessage}</div>}
@@ -212,7 +219,9 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         disabled={!stripe || isLoading}
         className="w-full bg-blue-500 text-white dark:text-[#323338] font-bold py-2 px-4 rounded-[20px] mt-4 transition duration-200"
       >
-        {isLoading ? 'Processing...' : `Upgrade for ${discountedAmount ? `$${(discountedAmount / 100).toFixed(2)}` : getPriceDisplay()}`}
+        {isLoading
+          ? 'Processing...'
+          : `Upgrade for $${((discountedAmount !== null ? discountedAmount : getPriceInCents()) / 100).toFixed(2)}`}
       </button>
     </form>
   );
