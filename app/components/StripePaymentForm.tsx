@@ -74,6 +74,24 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
     setCouponMessage(null);
 
     try {
+      // First validate the card
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        throw new Error('Card element not found');
+      }
+
+      // Create a payment method first
+      const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+      });
+
+      if (paymentMethodError) {
+        throw paymentMethodError;
+      }
+
+      console.log('Created payment method:', paymentMethod.id);
+
       const idToken = await user.getIdToken();
       const priceId = getPriceId();
 
@@ -86,28 +104,33 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
           priceId,
           idToken,
           isLifetime: selectedPlan === 'lifetime',
-          couponCode: couponCode.trim() || undefined
+          couponCode: couponCode.trim() || undefined,
+          paymentMethodId: paymentMethod.id
         }),
       });
 
       const data = await response.json();
+      console.log('Subscription response:', data);
 
       if (!response.ok) {
-        if (data.error === 'Invalid or expired coupon code') {
-          setCouponMessage('Invalid coupon code');
-          throw new Error('Invalid coupon code');
-        } else if (response.status === 402) {
-          throw new Error('Payment failed. Please check your card details.');
-        } else {
-          throw new Error(data.error || 'Failed to create subscription');
-        }
+        console.error('Subscription creation failed:', data);
+        throw new Error(data.error || 'Failed to create subscription');
       }
 
-      const { clientSecret } = data;
+      // Handle free subscription
+      if (data.isFreeWithCard) {
+        router.push('/dashboard?subscription=success');
+        return;
+      }
 
-      const { error: paymentError } = await stripe.confirmCardPayment(clientSecret, {
+      // For paid subscriptions, confirm the payment
+      if (!data.clientSecret) {
+        throw new Error('No client secret returned');
+      }
+
+      const { error: paymentError } = await stripe.confirmCardPayment(data.clientSecret, {
         payment_method: {
-          card: elements.getElement(CardElement)!,
+          card: cardElement,
         },
       });
 
@@ -126,10 +149,14 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         }
       }
 
-      // Success case
       router.push('/dashboard?subscription=success');
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      if (error && (error.type === 'card_error' || error.type === 'validation_error')) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
