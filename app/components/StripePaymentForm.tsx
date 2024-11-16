@@ -13,6 +13,10 @@ interface StripePaymentFormProps {
 const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isSubscribed = false }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [discountedAmount, setDiscountedAmount] = useState<number | null>(null);
   const stripe = useStripe();
   const elements = useElements();
   const { user } = useAuth();
@@ -48,11 +52,13 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
     event.preventDefault();
 
     if (!stripe || !elements || !user) {
+      setErrorMessage('Payment system not initialized. Please try again.');
       return;
     }
 
     setIsLoading(true);
     setErrorMessage(null);
+    setCouponMessage(null);
 
     try {
       const idToken = await user.getIdToken();
@@ -66,31 +72,91 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         body: JSON.stringify({
           priceId,
           idToken,
-          isLifetime: selectedPlan === 'lifetime'
+          isLifetime: selectedPlan === 'lifetime',
+          couponCode: couponCode.trim() || undefined
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to create subscription');
+        if (data.error === 'Invalid or expired coupon code') {
+          setCouponMessage('Invalid coupon code');
+          throw new Error('Invalid coupon code');
+        } else if (response.status === 402) {
+          throw new Error('Payment failed. Please check your card details.');
+        } else {
+          throw new Error(data.error || 'Failed to create subscription');
+        }
       }
 
-      const { clientSecret } = await response.json();
+      const { clientSecret } = data;
 
-      const { error } = await stripe.confirmCardPayment(clientSecret, {
+      const { error: paymentError } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement)!,
         },
       });
 
-      if (error) {
-        setErrorMessage(error.message || 'An error occurred');
-      } else {
-        router.push('/dashboard');
+      if (paymentError) {
+        switch (paymentError.code) {
+          case 'card_declined':
+            throw new Error('Your card was declined. Please try another card.');
+          case 'expired_card':
+            throw new Error('Your card has expired. Please try another card.');
+          case 'incorrect_cvc':
+            throw new Error('Incorrect CVC code. Please check and try again.');
+          case 'insufficient_funds':
+            throw new Error('Insufficient funds. Please try another card.');
+          default:
+            throw new Error(paymentError.message || 'Payment failed. Please try again.');
+        }
       }
+
+      // Success case
+      router.push('/dashboard?subscription=success');
     } catch (error) {
-      setErrorMessage('An error occurred. Please try again.');
+      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !user) return;
+
+    setIsApplyingCoupon(true);
+    setErrorMessage(null);
+    setCouponMessage(null);
+
+    try {
+      const idToken = await user.getIdToken();
+      const response = await fetch('/api/verify-coupon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          couponCode: couponCode.trim(),
+          priceId: getPriceId(),
+          idToken,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setCouponMessage(data.error || 'Invalid coupon code');
+        setDiscountedAmount(null);
+      } else {
+        setCouponMessage('Coupon applied successfully!');
+        setDiscountedAmount(data.discountedAmount);
+      }
+    } catch (error) {
+      setCouponMessage('Error applying coupon');
+      setDiscountedAmount(null);
+    } finally {
+      setIsApplyingCoupon(false);
     }
   };
 
@@ -100,14 +166,53 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
 
   return (
     <form onSubmit={handleSubmit}>
-      <CardElement />
+      <div className="mb-4">
+        <CardElement className="p-3 border rounded-md" />
+      </div>
+      
+      <div className="mb-4">
+        <label htmlFor="couponCode" className="block text-sm font-medium mb-1">
+          Have a coupon code?
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            id="couponCode"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+            className="flex-1 w-full p-2 border rounded-md"
+            placeholder="Enter coupon code"
+          />
+          <button
+            type="button"
+            onClick={handleApplyCoupon}
+            disabled={!couponCode.trim() || isApplyingCoupon}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isApplyingCoupon ? 'Applying...' : 'Apply'}
+          </button>
+        </div>
+        {couponMessage && (
+          <p className={`text-sm mt-1 ${couponMessage.includes('Invalid') ? 'text-red-500' : 'text-green-500'}`}>
+            {couponMessage}
+          </p>
+        )}
+        {discountedAmount && (
+          <div className="mt-2 text-sm">
+            <p className="text-gray-600 dark:text-gray-400">Original price: {getPriceDisplay()}</p>
+            <p className="text-green-600 font-medium">Discounted price: ${(discountedAmount / 100).toFixed(2)}</p>
+          </div>
+        )}
+      </div>
+
       {errorMessage && <div className="text-red-500 mt-2">{errorMessage}</div>}
+      
       <button
         type="submit"
         disabled={!stripe || isLoading}
         className="w-full bg-blue-500 text-white dark:text-[#323338] font-bold py-2 px-4 rounded-[20px] mt-4 transition duration-200"
       >
-        {isLoading ? 'Processing...' : `Upgrade for ${getPriceDisplay()}`}
+        {isLoading ? 'Processing...' : `Upgrade for ${discountedAmount ? `$${(discountedAmount / 100).toFixed(2)}` : getPriceDisplay()}`}
       </button>
     </form>
   );
