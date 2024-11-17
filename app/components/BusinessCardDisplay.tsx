@@ -472,14 +472,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
             {card.customMessage && (
               <div className="mt-8">
-                {card.customMessageHeader ? (
+                {card.customMessageHeader && (
                   <h2 className={`text-2xl font-bold mb-4 ${
                     card.theme === 'dark' ? 'text-[#dddee3]' : ''
                   }`}>{card.customMessageHeader}</h2>
-                ) : (
-                  <h2 className={`text-2xl font-bold mb-4 ${
-                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
-                  }`}>Custom Message</h2>
                 )}
                 <p className={card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
                   {card.customMessage}
