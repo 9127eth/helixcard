@@ -288,6 +288,7 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
       primaryCardId: username, // Set primaryCardId to the generated username
       username,
       primaryCardPlaceholder: true, // Set this to true initially
+      isProType: 'free',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       // Add device info if provided

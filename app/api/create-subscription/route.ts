@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const { priceId, idToken, isLifetime, couponCode, paymentMethodId } = await req.json();
+    const { priceId, idToken, couponCode, paymentMethodId } = await req.json();
 
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
@@ -156,13 +156,4 @@ export async function POST(req: Request) {
       details: error
     }, { status: 400 });
   }
-}
-
-function calculateDiscountedAmount(originalAmount: number, coupon: Stripe.Coupon): number {
-  if (coupon.amount_off) {
-    return Math.max(0, originalAmount - coupon.amount_off);
-  } else if (coupon.percent_off) {
-    return Math.round(originalAmount * (1 - coupon.percent_off / 100));
-  }
-  return originalAmount;
 }

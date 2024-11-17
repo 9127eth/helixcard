@@ -137,10 +137,20 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       }
 
       router.push('/dashboard?subscription=success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Payment error:', error);
-      if (error && (error.type === 'card_error' || error.type === 'validation_error')) {
-        setErrorMessage(error.message);
+      interface StripeError {
+        type: string;
+        message: string;
+      }
+      
+      if (error && 
+          typeof error === 'object' && 
+          'type' in error &&
+          'message' in error &&
+          (error as StripeError).type === 'card_error' || 
+          (error as StripeError).type === 'validation_error') {
+        setErrorMessage((error as StripeError).message);
       } else {
         setErrorMessage('An unexpected error occurred. Please try again.');
       }
