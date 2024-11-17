@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const { priceId, idToken, isLifetime, couponCode } = await req.json();
+    const { priceId, idToken, isLifetime, couponCode, paymentMethodId } = await req.json();
 
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
@@ -26,13 +26,30 @@ export async function POST(req: Request) {
         },
       });
 
+      // Attach the payment method to the customer
+      await stripe.paymentMethods.attach(paymentMethodId, {
+        customer: customer.id,
+      });
+
+      // Set as default payment method
+      await stripe.customers.update(customer.id, {
+        invoice_settings: {
+          default_payment_method: paymentMethodId,
+        },
+      });
+
       console.log('Created Stripe customer:', customer.id);
 
       // Regular subscription handling
       const subscriptionData: Stripe.SubscriptionCreateParams = {
         customer: customer.id,
         items: [{ price: priceId }],
-        payment_behavior: 'allow_incomplete',
+        payment_behavior: 'default_incomplete',
+        payment_settings: {
+          payment_method_types: ['card'],
+          save_default_payment_method: 'on_subscription',
+        },
+        default_payment_method: paymentMethodId,
         expand: ['latest_invoice.payment_intent'],
       };
 
