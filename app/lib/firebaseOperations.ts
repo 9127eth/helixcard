@@ -24,6 +24,7 @@ import { Timestamp } from 'firebase/firestore';
 // Added UserData interface
 interface UserData {
   isPro: boolean;
+  isProType: 'monthly' | 'yearly' | 'lifetime' | 'free';
   username: string | null;
   primaryCardId: string | null;
   primaryCardPlaceholder: boolean;
@@ -501,7 +502,8 @@ export async function createNewUser(
     sourceDevice: deviceInfo.sourceDevice,
     sourceBrowser: deviceInfo.sourceBrowser,
     sourcePlatform: deviceInfo.sourcePlatform,
-    registeredAt: Timestamp.fromDate(new Date())
+    registeredAt: Timestamp.fromDate(new Date()),
+    isProType: 'free'
   };
 
   await setDoc(doc(db, 'users', userId), userData);

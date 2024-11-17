@@ -16,6 +16,7 @@ import { User as FirebaseUser } from 'firebase/auth';
 
 interface SubscriptionData {
   isPro: boolean;
+  isProType: 'monthly' | 'yearly' | 'lifetime' | 'free';
   isYearly: boolean;
 }
 
@@ -73,6 +74,7 @@ const SettingsPage: React.FC = () => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({
     isPro: false,
+    isProType: 'free',
     isYearly: false
   });
   const [authProvider, setAuthProvider] = useState<AuthProviderInfo>({
@@ -90,6 +92,7 @@ const SettingsPage: React.FC = () => {
         const userData = userDoc.data();
         setSubscriptionData({
           isPro: userData?.isPro || false,
+          isProType: userData?.isProType || 'free',
           isYearly: userData?.isYearly || false
         });
 
@@ -140,7 +143,7 @@ const SettingsPage: React.FC = () => {
 
   const getSubscriptionText = () => {
     if (!subscriptionData.isPro) return 'Free Plan';
-    return `Helix Pro - ${subscriptionData.isYearly ? 'Yearly' : 'Monthly'}`;
+    return `Helix Pro - ${subscriptionData.isProType?.charAt(0).toUpperCase()}${subscriptionData.isProType?.slice(1)}`;
   };
 
   const handleCancelSubscription = async () => {
@@ -167,6 +170,7 @@ const SettingsPage: React.FC = () => {
       setSubscriptionData(prev => ({
         ...prev,
         isPro: false,
+        isProType: 'free',
         isYearly: false
       }));
       

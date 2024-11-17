@@ -80,8 +80,20 @@ export async function POST(req: Request) {
       // For free subscriptions, we don't need payment intent
       if (invoice.amount_due === 0) {
         // Update Firebase user
+        let proType: 'monthly' | 'yearly' | 'lifetime';
+        if (priceId === 'price_1QEXRZ2Mf4JwDdD1pdam2mHo') {
+          proType = 'monthly';
+        } else if (priceId === 'price_1QEfJH2Mf4JwDdD1j2ME28Fw') {
+          proType = 'yearly';
+        } else if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+          proType = 'lifetime';
+        } else {
+          throw new Error('Invalid price ID');
+        }
+
         await db.collection('users').doc(uid).update({
           isPro: true,
+          isProType: proType,
           stripeSubscriptionId: subscription.id,
           stripeCustomerId: customer.id,
         });
@@ -103,8 +115,20 @@ export async function POST(req: Request) {
       }
 
       // Update Firebase user
+      let proType: 'monthly' | 'yearly' | 'lifetime';
+      if (priceId === 'price_1QEXRZ2Mf4JwDdD1pdam2mHo') {
+        proType = 'monthly';
+      } else if (priceId === 'price_1QEfJH2Mf4JwDdD1j2ME28Fw') {
+        proType = 'yearly';
+      } else if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+        proType = 'lifetime';
+      } else {
+        throw new Error('Invalid price ID');
+      }
+
       await db.collection('users').doc(uid).update({
         isPro: true,
+        isProType: proType,
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: customer.id,
       });

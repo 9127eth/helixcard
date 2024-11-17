@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db, auth } from '@/app/lib/firebase-admin';  // Add auth here
 import { updateCardActiveStatus } from '@/app/lib/firebaseOperations';  // Add import here
+import { deleteField } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -99,6 +100,7 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
 
   await db.collection('users').doc(userRecord.uid).update({
     isPro,
+    isProType: isPro ? null : deleteField(),
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: customerId,
   });

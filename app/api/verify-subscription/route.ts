@@ -8,15 +8,20 @@ export async function POST(req: Request) {
     const decodedToken = await auth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
-    // Removed: const userRecord = await auth.getUser(uid);
     const db = getFirestore();
     const userDoc = await db.collection('users').doc(uid).get();
     const userData = userDoc.data();
 
     if (userData?.isPro) {
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ 
+        success: true,
+        subscriptionType: userData.isProType || 'free'
+      });
     } else {
-      return NextResponse.json({ success: false }, { status: 402 });
+      return NextResponse.json({ 
+        success: false, 
+        subscriptionType: 'free' 
+      }, { status: 402 });
     }
   } catch (error) {
     console.error('Error verifying subscription:', error);
