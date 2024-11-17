@@ -35,19 +35,6 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
     }
   };
 
-  const getPriceDisplay = () => {
-    switch (selectedPlan) {
-      case 'monthly':
-        return '$2.99';
-      case 'yearly':
-        return '$12.99';
-      case 'lifetime':
-        return '$19.99';
-      default:
-        return '';
-    }
-  };
-
   const getPriceInCents = () => {
     switch (selectedPlan) {
       case 'monthly':
