@@ -4,14 +4,25 @@ import nodemailer from 'nodemailer';
 export async function POST(request: Request) {
   try {
     if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-      console.error('Missing email configuration');
+      console.error('Missing email configuration:', {
+        hasGmailUser: !!process.env.GMAIL_USER,
+        hasGmailPassword: !!process.env.GMAIL_APP_PASSWORD
+      });
       return NextResponse.json(
-        { error: 'Email service not configured' },
+        { error: 'Email service not configured properly' },
         { status: 500 }
       );
     }
 
     const { email, cardUrl, cardOwner, ownerEmail, note } = await request.json();
+    
+    console.log('Attempting to send email with config:', {
+      to: email,
+      from: process.env.GMAIL_USER,
+      hasPassword: !!process.env.GMAIL_APP_PASSWORD,
+      cardOwner,
+      hasOwnerEmail: !!ownerEmail
+    });
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -62,9 +73,9 @@ export async function POST(request: Request) {
     await transporter.sendMail(mailOptions);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Detailed error in email sending:', error);
     return NextResponse.json(
-      { error: 'Failed to send email' },
+      { error: error instanceof Error ? error.message : 'Unknown error occurred' },
       { status: 500 }
     );
   }
