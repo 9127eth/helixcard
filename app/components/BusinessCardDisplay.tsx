@@ -153,15 +153,26 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
-    vCard += `FN:${card.firstName}${card.lastName ? ' ' + card.lastName : ''}\n`;
-    vCard += `ORG:${card.company}\n`;
-    vCard += `TITLE:${card.jobTitle}\n`;
+    
+    // Properly format the name fields
+    const formattedName = `${card.prefix || ''}${card.prefix ? ' ' : ''}${card.firstName}${card.middleName ? ' ' + card.middleName : ''}${card.lastName ? ' ' + card.lastName : ''}${card.credentials ? ' ' + card.credentials : ''}`.trim();
+    
+    // N property should be: lastName;firstName;middleName;prefix;suffix
+    vCard += `N:${card.lastName || ''};${card.firstName};${card.middleName || ''};${card.prefix || ''};${card.credentials || ''}\n`;
+    
+    // FN is the formatted name for display
+    vCard += `FN:${formattedName}\n`;
+    
+    // Add remaining fields
+    if (card.company) vCard += `ORG:${card.company}\n`;
+    if (card.jobTitle) vCard += `TITLE:${card.jobTitle}\n`;
     if (card.phoneNumber) vCard += `TEL;TYPE=WORK,VOICE:${card.phoneNumber}\n`;
     if (card.email) vCard += `EMAIL;TYPE=PREF,INTERNET:${card.email}\n`;
     if (card.linkedIn) vCard += `URL;TYPE=LinkedIn:${card.linkedIn}\n`;
     if (card.twitter) vCard += `URL;TYPE=Twitter:${card.twitter}\n`;
     if (card.facebookUrl) vCard += `URL;TYPE=Facebook:${card.facebookUrl}\n`;
     if (card.instagramUrl) vCard += `URL;TYPE=Instagram:${card.instagramUrl}\n`;
+    
     vCard += 'END:VCARD';
     return vCard;
   };
