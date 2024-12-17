@@ -84,3 +84,28 @@ export interface BusinessCardData {
   theme: CardTheme;
   enableTextMessage?: boolean;
 }
+
+export interface Contact {
+  id: string
+  firstName: string
+  lastName: string
+  name: string // Full name
+  phone?: string
+  position?: string
+  company?: string
+  address?: string
+  email?: string
+  note?: string
+  tags: string[]
+  dateAdded: string
+  dateModified: string
+  contactSource: 'manual' | 'imported' | 'scanned'
+  imageUrl?: string
+}
+
+export interface Tag {
+  id: string
+  name: string
+  color: string
+  username: string
+}

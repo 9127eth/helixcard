@@ -1,0 +1,714 @@
+Users need to be able to create, edit and delete a contact. We will add a new contact button in the bottom navigation bar that will be between the cards and settings buttons. 
+
+The top left of the page should have a large ''Contacts" similar to the business card page. 
+
+Users should be able to add a tag to a card. The purpose of the tag would be so people can put people into groups and filter them. A use case here would be like when a user went to a conference so they would tag everyone with they met at that conference and it would be filterable. They would be able to freeform in a new tag, and then it should be available to them as a drop-down for the contact.  The last used tag for a contact should be the default tag for the next contact being created. There should be an indicator that a particular filter is 
+
+We will need a tag manager view, so users would be able to view, rename, or delete unused ones. If a tag is deleted, it should not be removed the contacts. It should just be removed from the list an unable to add to other contacts.
+
+Users should be able to search by name, company.  
+
+Make sure when deleting a tag or a contact there are confirmation modals that marks it cant be undone. 
+
+Users should be able to upload a photo (this will typically be an image of a business card)
+
+When inputting email addresses and phone numbers, the fields should be validated
+
+we need to implement proper error handling for exports and deletions
+
+Users should be able to select all, or multiple contacts for actions to either 1) delete all the selected contacts or 2) add/change a tag to the contact, 3) export as a csv. Filtering by tags or a search should also allow for these actions to be completed.
+
+Exporting as csv: When a user exports as a csv, it should organize the content accordingly as it is stored. It should then provide a pop up confirming where they want the export to be emailed to. It should default to the email the user signed up with, but allow the user to change the email it is sent to. 
+
+When emailing the export file, The email should have a similar style as our email this card template, but the messaging should be appropriate stating their export from Helix is attached. 
+
+When looking at the list of contacts, all that should be visible is the contacts name, position and company. Also for each contact there should be an ellipses menu to the right of it, which would allow a user to edit, share or delete the card. Sharing the contact should open a modal similar to our "email this card" feature that opens a modal and lets a user input an email address to share the contact. The email would just include the name position, company, email and phone number for the contact.
+
+The contact list should be able to be sorted in two ways, alphabetical order based on first name or date recently added
+
+Data Model
+The folder in the user document should be ''Contacts"
+
+I want to add an actions section for each contact that would allow a user to call text or email. I also want an easy way to copy phone number, email address of a contact.
+
+Each contact should have the following optional fields:
+contact ID
+Name
+Phone
+Position
+Company
+address
+Email
+Note
+Tag (will be drop down an an options to create a new tag)
+date added
+date last modified
+Contact source: manual, imported, scanned
+
+Detailed info for tags:
+Here are the logic and business requirements for implementing a separate collection for tags using Firestore, aligned with the use case of a digital business card app:
+
+Business Logic for Tags Collection
+
+	1.	Tags Creation:
+	•	Users should be able to create a new tag when adding or editing a contact.
+	•	Each tag should be unique to the user to prevent duplicate tags (e.g., two “Conference2024” tags for the same user).
+	•	Tags should have a user reference (e.g., username) for multi-user environments.
+	2.	Tag Assignment:
+	•	A user can assign one or more tags to a contact. Tags should be stored as a reference (e.g., tag ID) in the contact object.
+	•	When assigning tags, display a list of existing tags the user has created, with an option to add a new one if it doesn’t already exist.
+	3.	Tag Management:
+	•	Users can rename tags, which automatically updates the associated references for all contacts using that tag.
+	•	Users can delete tags. When a tag is deleted:
+	•	Prompt the user to confirm the deletion.
+	•	Automatically remove the tag from all associated contacts.
+	4.	Filtering by Tags:
+	•	Users can filter their contact list by one or more tags.
+	•	The filter should allow multi-tag selection to display all contacts associated with any of the selected tags.
+	5.	Export by Tags:
+	•	Provide the ability to export contacts filtered by one or more tags. For example, if a user selects the tag “Conference2024,” only contacts associated with that tag will be included in the CSV export.
+
+Firestore Collections and Relationships
+
+Contacts Collection
+
+	•	Each contact document stores the contact details, including a list of tag references (tag IDs).
+
+{
+  "id": "contact1",
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "phone": "123-456-7890",
+  "tags": ["tag1", "tag2"], // References to tag IDs
+  "date_added": "2024-11-28",
+  "username": "user123" // Owner of the contact
+}
+
+Tags Collection
+
+	•	Each tag document stores the tag name and a reference to the user who created it.
+
+{
+  "id": "tag1",
+  "name": "Conference2024",
+  "username": "user123" // Owner of the tag
+}
+
+Business Requirements for Operations
+
+Tag CRUD Operations
+
+	1.	Create a Tag:
+	•	When a user adds a new tag, check if a tag with the same name already exists for that user.
+	•	If the tag exists, reuse its ID. If not, create a new tag document in the Tags collection.
+	2.	Read Tags:
+	•	When a user accesses the tag dropdown or filter options, fetch all tags associated with their username.
+	3.	Update a Tag:
+	•	When a user renames a tag, update the name field in the Tags collection.
+	•	Propagate the change to all contacts referencing that tag (not strictly necessary but ensures data consistency if the tag names are visible in the UI).
+	4.	Delete a Tag:
+	•	When a user deletes a tag, remove its reference from all associated contacts in the Contacts collection.
+
+Contact Tagging Workflow
+
+	1.	Assign Tags to a Contact:
+	•	While adding or editing a contact, allow users to select one or more tags from a dropdown.
+	•	Display an option to add a new tag directly from the dropdown. If a new tag is added:
+	•	Create the tag in the Tags collection.
+	•	Add its reference to the contact.
+	2.	Remove Tags from a Contact:
+	•	When editing a contact, allow users to deselect tags from the contact.
+
+Filtering Contacts by Tags
+
+	1.	When a user selects tags to filter, query the Contacts collection:
+	•	Use a Firestore where clause to match any contact whose tags array contains the selected tag IDs.
+
+Error Handling
+
+	1.	Duplicate Tags:
+	•	Prevent duplicate tags by checking the Tags collection for existing tags with the same name before creation.
+	2.	Orphaned Tags:
+	•	Periodically check for unused tags (e.g., tags not referenced by any contact) and prompt users to clean up their tag list if needed.
+	3.	Missing Tags:
+	•	Handle cases where a tag referenced in a contact no longer exists (e.g., if the user deletes a tag but an edge case misses removing it from a contact).
+
+Scenarios and Use Cases
+
+	1.	Scenario: Tagging New Contacts
+	•	User meets attendees at a conference and adds “Conference2024” as a tag while creating new contacts. The tag becomes available in the dropdown for subsequent contacts.
+	2.	Scenario: Filtering for Follow-Up
+	•	User filters contacts by “VIP” and “Conference2024” tags to find high-priority leads from the event.
+	3.	Scenario: Exporting by Tags
+	•	User exports all “VIP” contacts into a CSV file for an email campaign.
+	4.	Scenario: Renaming Tags
+	•	User renames “VIP” to “High Priority,” and all contacts using the “VIP” tag are updated to “High Priority.”
+	5.	Scenario: Cleaning Up Tags
+	•	User deletes an unused tag “Old Event 2023,” and it is removed from the dropdown and all contacts.
+
+Benefits of This Structure
+
+	•	Scalability: Adding tags, filtering, and exporting remain efficient even as the database grows.
+	•	Centralized Management: Tags can be renamed or deleted easily without manually editing every contact.
+	•	Flexibility: The same tag can be reused across multiple contacts, reducing duplication and improving usability.
+
+This logic ensures your app remains user-friendly, efficient, and scalable for managing and filtering contacts by tags.
+
+Tags should be color coded, however, I want the color indication to be minimal in nature. There will be a predefined color for tags, defaulting at gray. And then there should be a custom color choice. All will be in hex colors. 
+
+
+Detailed Requirements for Name Handling in Contacts
+
+Below are the functional and technical requirements you can pass to your developer based on the recommendation:
+
+Functional Requirements
+
+1. User Input
+
+	•	Provide a single “Name” input field in the user interface where users can enter the contact’s full name. Just as it is now
+
+2. Name Parsing
+
+	•	The system should split the entered “Name” into firstName and lastName before saving it in the database.
+	•	First Name: The first word or segment of the entered name.
+	•	Last Name: The remaining words or segments after the first separated by a space.
+
+3. Display Name
+
+	•	When displaying a contact, reconstruct the full name as first_name + " " + last_name.
+	•	If last_name is empty, display only the first_name.
+
+Storage Requirements
+
+1. Database Structure
+
+Each contact document in the database should include:
+	•	firstName: A string for the contact’s first name.
+	•	lastName: A string for the contact’s last name.
+
+2. Name Input Fallback
+
+	•	If the name cannot be split (e.g., a single word is entered):
+	•	Store the entered name in first_name and leave last_name empty.
+
+Edge Case Handling
+
+	1.	Single-Word Names:
+	•	If the user enters a single word (e.g., “Prince”):
+	•	Store it as first_name.
+	•	Leave last_name empty.
+	2.	Multi-Part Names:
+	•	If the user enters a name with multiple parts (e.g., “Jean-Luc Picard”):
+	•	Store the first segment as firstName (e.g., “Jean-Luc”).
+	•	Combine the remaining segments into last_name (e.g., “Picard”).
+	3.	No Name Provided:
+	•	Name will be a required field.
+	4.	Special Characters or Unusual Formatting:
+	•	Allow names with special characters (e.g., “O’Connor,” “Anne-Marie”).
+	•	Trim leading and trailing spaces before splitting.
+	•	Handle hyphenated or multi-word first names and last names as entered.
+
+Search and Sorting Requirements
+
+	1.	Search:
+	•	Support searching by first_name, last_name, or the reconstructed full name.
+	•	Partial matches should be supported (e.g., searching “Jean” should return “Jean-Luc Picard”).
+	2.	Sorting:
+	•	Provide sorting by:
+	•	firstName (alphabetical).
+	•	lastName (alphabetical).
+
+User Experience Requirements
+
+	1.	Default Handling:
+	•	When users enter a name, automatically split and store it in the appropriate fields.
+	•	Users should not be required to manually input separate first_name and last_name fields.
+
+
+Developer Notes
+
+	1.	Consistency Across Systems:
+	•	Ensure the stored first_name and last_name format aligns with external integrations (e.g., CRMs or email tools) to avoid conflicts in future developments.
+	2.	Error Handling:
+	•	Validate the name input to ensure it doesn’t cause issues (e.g., excessively long names, unsupported characters).
+	•	Notify users if the input is invalid and provide guidance (e.g., “Name should be under 100 characters”).
+
+For web version
+
+Firestore Database Structure Requirements (this should override anything above it if conflicts)
+
+
+Main Collections Path
+
+
+Contacts: /users/{userId}/contacts/{contactId}
+
+
+Tags: /users/{userId}/tags/{tagId}
+
+2. Contact Document Required Fields
+
+
+id (auto-generated)
+
+
+name (string, required)
+
+
+firstName (string, optional)
+
+
+lastName (string, optional)
+
+
+phone (string, optional)
+
+
+position (string, optional)
+
+
+company (string, optional)
+
+
+address (string, optional)
+
+
+email (string, optional)
+
+
+website (string, optional)
+
+
+note (string, optional)
+
+
+tags (array of tag IDs, optional)
+
+
+dateAdded (timestamp)
+
+
+dateModified (timestamp)
+
+
+contactSource (string: 'manual' or 'imported' only)
+
+
+imageUrl (string, optional)
+
+
+3. Tag Document Required Fields
+
+
+id (auto-generated)
+
+
+name (string, required)
+
+
+username (string, required - owner reference)
+
+
+Firebase Storage Structure
+
+The contact images are stored in the following path: /contacts/{userId}/{imageId}.jpg
+Where:
+userId: The Firebase Auth user ID
+imageId: A UUID generated for each image
+Key Implementation Details:
+Images are stored as JPEG format with 0.8 compression quality
+Each image gets a unique UUID filename
+
+
+Core Functionality Requirements
+
+
+Contact Management
+
+
+Create new contacts manually
+
+
+Edit existing contacts
+
+
+Delete contacts (with confirmation dialog)
+
+
+Bulk selection and actions
+
+
+Support for contact images
+
+
+Real-time updates when changes occur
+
+
+Tag System
+
+
+Create, edit, and delete tags
+
+
+Assign multiple tags to contacts
+
+
+Filter contacts by selected tags
+
+
+Save last used tag for convenience
+
+
+Search and Organization
+
+
+Search contacts by name, company, or email
+
+
+Sort contacts by name or date added
+
+
+Filter contacts by tags
+
+
+Support for bulk operations on filtered results
+
+
+Data Validation
+
+
+Check for duplicate emails before creating/updating contacts
+
+
+Validate email format
+
+
+Validate phone number format
+
+
+Parse full names into first and last names
+
+
+Ensure required fields are filled
+
+
+Export Functionality
+
+
+Export selected contacts to CSV
+
+
+Email export capability
+
+
+Include all relevant contact fields in export
+
+
+Sort exported contacts alphabetically
+
+
+Sync Requirements
+
+
+Real-time data synchronization with iOS app
+
+
+Maintain consistent data structure with iOS version
+
+
+Handle offline/online state appropriately
+
+
+Update modification timestamps on changes
+
+
+Security Requirements
+
+
+User authentication required
+
+
+Users can only access their own contacts
+
+
+Validate all operations server-side
+
+
+Secure image upload and storage
+
+Here is how we handle Names
+Name Input and Storage Requirements for Contacts
+
+
+Input Field Requirements
+
+
+Single unified input field for full name
+
+
+Name is a required field - cannot be empty
+
+
+Trim all whitespace before processing
+
+
+Maximum length of 100 characters
+
+
+Allow special characters and international names
+
+
+No validation beyond empty check
+
+
+Name Parsing Logic
+
+
+Split full name into firstName and lastName components
+
+
+First word becomes firstName
+
+
+All remaining words combined become lastName
+
+
+Preserve special characters and hyphenation
+
+
+Handle edge cases:
+
+
+Single word names (firstName only)
+
+
+Multi-part names (e.g., "Jean-Luc Picard")
+
+
+Names with special characters (e.g., O'Connor)
+
+
+Multiple spaces between name parts
+
+
+Leading/trailing spaces
+
+
+Firestore Storage Structure
+
+
+Store three distinct name fields:
+
+
+name: Complete original input string (required)
+
+
+firstName: Parsed first name component (optional)
+
+
+lastName: Parsed remaining name components (optional)
+
+
+Name Processing Requirements
+
+
+Parse name before every Firestore save
+
+
+Process during both creation and updates
+
+
+Maintain original full name string
+
+
+Update both first/last components when full name changes
+
+
+Preserve case as entered by user
+
+
+Edge Case Requirements
+
+
+Empty names: Not allowed
+
+
+Single word names: Store in firstName only
+
+
+Multi-part first names: First word is firstName
+
+
+Special characters: Preserve as entered
+
+
+Whitespace: Trim external, preserve internal
+
+
+Maximum length: 100 characters total
+
+
+Search Functionality Requirements
+
+
+Enable searching by complete name
+
+
+Support partial name matches
+
+
+Case-insensitive searching
+
+
+Search across both first and last names
+
+
+Match against original full name string
+
+
+Support special character variations
+
+
+Display Requirements
+
+
+Show full original name in contact lists
+
+
+Use parsed components for sorting
+
+
+Support alphabetical sorting by lastName, firstName
+
+
+Generate initials from parsed components
+
+
+Handle missing lastName in displays
+
+
+Preserve original capitalization
+
+
+Validation Requirements
+
+
+Required field validation
+
+
+No empty strings allowed
+
+
+Whitespace trimming
+
+
+Special character preservation
+
+
+Length constraints (max 100 chars)
+
+
+No numeric characters allowed
+
+
+No email addresses allowed
+
+
+9. Data Integrity
+
+
+Always maintain original input
+
+
+Keep parsed components in sync
+
+
+Update all name fields together
+
+
+Preserve formatting and special characters
+
+
+Handle migration of existing records
+
+
+Maintain search optimization
+
+
+10. Performance Considerations
+
+
+Parse names at save time, not query time
+
+
+Index all name fields for search
+
+
+Optimize for sorting operations
+
+
+Cache parsed components
+
+
+Handle large contact lists efficiently
+
+We also have Contact Source Tracking
+
+
+Track how each contact was created using ContactSource enum
+
+
+Three possible sources: manual, imported, scanned
+
+
+Store this information in Firestore
+
+
+Use this for analytics and UI differentiation
+
+we also have Field Validation Requirements
+
+
+Email validation using regex pattern
+
+
+Phone numbers must be at least 10 digits
+
+
+Prevent save if validation fails
+
+For Image Management
+Support JPEG format with 0.8 compression
+Clean up old images when updating contacts
+Handle image deletion when contact is deleted, however, the deleting of an image should not happen in firebase storage until the user hits save. 
+Proper error handling for missing images
+
+When hitting enter or return it should go to the next field.
+We have a Last Used Tag Feature
+
+
+Remember last used tag
+
+
+Auto-select last used tag for new contacts
+
+
+Clear last used tag when explicitly deselected
+
+
+Persist last used tag preference
+
+
+10. Batch Operations
+
+
+Support for batch deletions
+
+
+Batch tag assignments
+
+
+Handle image cleanup in batch operations
+
+
+Proper error handling for batch operations

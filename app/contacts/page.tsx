@@ -1,0 +1,182 @@
+'use client'
+
+import { useState } from 'react'
+import { Plus, Search, Download, Tags } from 'lucide-react'
+import Layout from '../components/Layout'
+import ContactList from '../components/contacts/ContactList'
+import CreateContactModal from '../components/contacts/CreateContactModal'
+import ManageTagsModal from '../components/contacts/ManageTagsModal'
+import TagSelector from '../components/contacts/TagSelector'
+import BulkTagModal from '../components/contacts/BulkTagModal'
+import ViewContactModal from '../components/contacts/ViewContactModal'
+import EditContactModal from '../components/contacts/EditContactModal'
+import { Contact } from '../types'
+
+export default function ContactsPage() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isManageTagsOpen, setIsManageTagsOpen] = useState(false)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([])
+  const [isBulkTagModalOpen, setIsBulkTagModalOpen] = useState(false)
+  const [contactListKey, setContactListKey] = useState(Date.now().toString())
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+
+  const handleSelectionChange = (selectedIds: string[]) => {
+    setSelectedContacts(selectedIds)
+  }
+
+  const handleBulkDelete = async () => {
+    if (!selectedContacts.length) return
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedContacts.length} contact(s)? This action cannot be undone.`
+    )
+    if (!confirmed) return
+
+    // TODO: Implement bulk delete
+    console.log('Deleting contacts:', selectedContacts)
+  }
+
+  const handleBulkExport = () => {
+    // TODO: Implement export modal
+    console.log('Exporting contacts:', selectedContacts)
+  }
+
+  const handleBulkAddTag = () => {
+    setIsBulkTagModalOpen(true)
+  }
+
+  const handleViewContact = (contact: Contact) => {
+    setSelectedContact(contact)
+    setIsViewModalOpen(true)
+  }
+
+  const handleEditContact = (contact: Contact) => {
+    setSelectedContact(contact)
+    setIsEditModalOpen(true)
+  }
+
+  return (
+    <Layout title="Contacts - HelixCard" showSidebar={true}>
+      <div className="flex">
+        <div className="w-full lg:w-[70%] pl-4 lg:pl-8 pr-4 lg:pr-12">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-5xl font-bold mb-6">Contacts</h1>
+            
+            {/* Search and Filters Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search contacts..."
+                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <TagSelector 
+                  selectedTags={selectedTags}
+                  onChange={setSelectedTags}
+                />
+                <button
+                  onClick={() => setIsManageTagsOpen(true)}
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 min-w-[80px]"
+                >
+                  <Tags className="h-3.5 w-3.5" />
+                  <span>Tags</span>
+                </button>
+                <button 
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 min-w-[80px]"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Export</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact List */}
+          <ContactList 
+            key={contactListKey}
+            searchQuery={searchQuery} 
+            tagFilter={selectedTags}
+            onSelectionChange={handleSelectionChange}
+            onBulkAddTag={handleBulkAddTag}
+            onBulkExport={handleBulkExport}
+            onBulkDelete={handleBulkDelete}
+            onView={handleViewContact}
+            onEdit={handleEditContact}
+          />
+
+          {/* Create Contact Button (Fixed Position) */}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 shadow-lg"
+          >
+            <Plus className="h-4 w-4" />
+            Add Contact
+          </button>
+        </div>
+        <div className="hidden lg:block lg:w-[30%] bg-background"></div>
+      </div>
+
+      {/* Modals */}
+      <CreateContactModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      <ManageTagsModal 
+        isOpen={isManageTagsOpen}
+        onClose={() => setIsManageTagsOpen(false)}
+      />
+
+      <BulkTagModal
+        isOpen={isBulkTagModalOpen}
+        onClose={() => setIsBulkTagModalOpen(false)}
+        selectedContactIds={selectedContacts}
+        onSuccess={() => {
+          // Force refresh the contact list
+          const contactListKey = Date.now().toString();
+          setContactListKey(contactListKey);
+          setSelectedContacts([]); // Clear selection after successful update
+        }}
+      />
+
+      {selectedContact && (
+        <>
+          <ViewContactModal
+            isOpen={isViewModalOpen}
+            onClose={() => setIsViewModalOpen(false)}
+            contact={selectedContact}
+            onEdit={() => {
+              setIsViewModalOpen(false)
+              setIsEditModalOpen(true)
+            }}
+            onShare={(contactId) => {
+              // TODO: Implement share functionality
+              console.log('Share contact:', contactId)
+            }}
+          />
+
+          <EditContactModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            contact={selectedContact}
+            onSuccess={() => {
+              setIsEditModalOpen(false)
+              // Force refresh the contact list
+              setContactListKey(Date.now().toString())
+            }}
+          />
+        </>
+      )}
+    </Layout>
+  )
+} 
