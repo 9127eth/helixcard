@@ -83,6 +83,8 @@ export default function ContactsPage() {
                 <TagSelector 
                   selectedTags={selectedTags}
                   onChange={setSelectedTags}
+                  isFilter={true}
+                  allowCreate={false}
                 />
                 <button
                   onClick={() => setIsManageTagsOpen(true)}
@@ -167,11 +169,16 @@ export default function ContactsPage() {
 
           <EditContactModal
             isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            contact={selectedContact}
-            onSuccess={() => {
+            onClose={() => {
               setIsEditModalOpen(false)
-              // Force refresh the contact list
+              setIsViewModalOpen(true)
+            }}
+            contact={selectedContact}
+            onSuccess={(updatedContact) => {
+              setIsEditModalOpen(false)
+              setIsViewModalOpen(true)
+              setSelectedContact(updatedContact)
+              // Force refresh the contact list in background
               setContactListKey(Date.now().toString())
             }}
           />

@@ -1,9 +1,13 @@
 'use client'
 
-import { Contact } from '@/app/types'
-import { X, Phone, Mail, MessageCircle, Copy, ExternalLink, MapPin } from 'react-feather'
+import { Contact, Tag } from '@/app/types'
+import { X, Phone, Mail, MessageCircle, Copy, ExternalLink, MapPin, ZoomIn } from 'react-feather'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import ImageViewerModal from './ImageViewerModal'
+import { useAuth } from '@/app/hooks/useAuth'
+import { getTags } from '@/app/lib/contacts'
 
 interface ViewContactModalProps {
   isOpen: boolean
@@ -20,7 +24,29 @@ export default function ViewContactModal({
   onEdit,
   onShare
 }: ViewContactModalProps) {
+  const { user } = useAuth()
+  const [tags, setTags] = useState<Tag[]>([])
   const [copySuccess, setCopySuccess] = useState<'phone' | 'email' | 'address' | null>(null)
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false)
+
+  useEffect(() => {
+    const loadTags = async () => {
+      if (!user || !isOpen) return
+      try {
+        const userTags = await getTags(user.uid)
+        setTags(userTags)
+      } catch (error) {
+        console.error('Error loading tags:', error)
+      }
+    }
+    loadTags()
+  }, [user, isOpen])
+
+  // Get tag names from IDs
+  const tagNames = contact.tags.map(tagId => {
+    const tag = tags.find(t => t.id === tagId)
+    return tag?.name || tagId
+  })
 
   if (!isOpen) return null
 
@@ -151,14 +177,31 @@ export default function ViewContactModal({
             <div>
               <h4 className="font-medium mb-2">Tags</h4>
               <div className="flex flex-wrap gap-2">
-                {contact.tags.map(tag => (
+                {tagNames.map((tagName, index) => (
                   <span
-                    key={tag}
+                    key={contact.tags[index]}
                     className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-sm"
                   >
-                    {tag}
+                    {tagName}
                   </span>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Business Card Image */}
+          {contact.imageUrl && (
+            <div>
+              <h4 className="font-medium mb-2">Business Card Image</h4>
+              <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                <Image
+                  src={contact.imageUrl}
+                  alt="Business card"
+                  fill
+                  className="object-contain cursor-pointer"
+                  sizes="(max-width: 500px) 100vw, 500px"
+                  onClick={() => setIsImageViewerOpen(true)}
+                />
               </div>
             </div>
           )}

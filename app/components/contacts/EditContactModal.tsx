@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { X, Trash2 } from 'react-feather'
+import Image from 'next/image'
 import TagSelector from './TagSelector'
 import { Contact } from '@/app/types'
 import { updateContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
-import { X } from 'react-feather'
+import { deleteImage, uploadContactImage } from '@/app/lib/storage'
 
 // Reuse the same validation schema from CreateContactModal
 const contactSchema = z.object({
@@ -41,6 +43,10 @@ export default function EditContactModal({
   const [selectedTags, setSelectedTags] = useState<string[]>(contact.tags)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [showImageUpload, setShowImageUpload] = useState(!contact.imageUrl)
+  const [isImageDeleted, setIsImageDeleted] = useState(false)
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors } } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -55,11 +61,35 @@ export default function EditContactModal({
     }
   })
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setImageFile(e.target.files[0])
+  const handleImageDelete = async () => {
+    setIsImageDeleted(true)
+    setShowImageUpload(true)
+    setImageFile(null)
+    if (contact.imageUrl) {
+      setImageToDelete(contact.imageUrl)
     }
   }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0]
+      setImageFile(file)
+      setIsImageDeleted(false)
+      setShowImageUpload(false)
+      
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file)
+      setImagePreview(previewUrl)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }, [imagePreview])
 
   const onSubmit = async (data: ContactFormData) => {
     if (!user) return
@@ -74,6 +104,20 @@ export default function EditContactModal({
         }
       }
 
+      // Handle image updates
+      let newImageUrl = contact.imageUrl
+      
+      // Delete old image if marked for deletion
+      if (imageToDelete) {
+        await deleteImage(imageToDelete)
+        newImageUrl = ''
+      }
+
+      // Upload new image if provided
+      if (imageFile) {
+        newImageUrl = await uploadContactImage(user.uid, contact.id, imageFile)
+      }
+
       const updates: Partial<Contact> = {
         name: data.name.trim(),
         email: data.email || '',
@@ -82,7 +126,12 @@ export default function EditContactModal({
         company: data.company || '',
         address: data.address || '',
         note: data.note || '',
-        tags: selectedTags,
+        tags: selectedTags
+      }
+
+      // Only include imageUrl in updates if it has changed
+      if (newImageUrl !== contact.imageUrl) {
+        updates.imageUrl = newImageUrl
       }
 
       await updateContact(user.uid, contact.id, updates)
@@ -209,26 +258,61 @@ export default function EditContactModal({
             <TagSelector
               selectedTags={selectedTags}
               onChange={setSelectedTags}
+              isFilter={false}
+              allowCreate={true}
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="image" className="block text-sm font-medium">
+            <label className="block text-sm font-medium">
               Business Card Image
             </label>
-            <input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
-            />
+            
+            {!showImageUpload && (imagePreview || contact.imageUrl) && contact.imageUrl !== undefined && (
+              <div className="relative">
+                <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                  <Image
+                    src={imagePreview || contact.imageUrl || ''}
+                    alt="Business card"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 500px) 100vw, 500px"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleImageDelete}
+                  className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            )}
+
+            {(showImageUpload || isImageDeleted) && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+              />
+            )}
           </div>
 
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                onClose()
+                // Any pending image changes will be discarded
+                setImageFile(null)
+                setIsImageDeleted(false)
+                setShowImageUpload(!contact.imageUrl)
+                if (imagePreview) {
+                  URL.revokeObjectURL(imagePreview)
+                  setImagePreview(null)
+                }
+              }}
               className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Cancel

@@ -180,21 +180,29 @@ export default function ContactList({
           key={contact.id}
           className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow h-[72px] flex items-center"
         >
+          {isSelectionMode && (
+            <div 
+              className="pr-4 pl-2 -my-4 py-4 cursor-pointer flex items-center h-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleSelection(contact.id);
+              }}
+            >
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedContacts.includes(contact.id)}
+                  onChange={() => toggleSelection(contact.id)}
+                  className="h-4 w-4 rounded border-gray-300"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            </div>
+          )}
           <div 
             className="flex items-center gap-4 flex-1 cursor-pointer"
             onClick={() => handleView(contact.id)}
           >
-            {isSelectionMode && (
-              <input
-                type="checkbox"
-                checked={selectedContacts.includes(contact.id)}
-                onChange={(e) => {
-                  e.stopPropagation() // Prevent view modal from opening
-                  toggleSelection(contact.id)
-                }}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-            )}
             <div className="min-w-0">
               <h3 className="font-medium truncate">{contact.name}</h3>
               {contact.company && (
