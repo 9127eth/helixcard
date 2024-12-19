@@ -11,6 +11,8 @@ import BulkTagModal from '../components/contacts/BulkTagModal'
 import ViewContactModal from '../components/contacts/ViewContactModal'
 import EditContactModal from '../components/contacts/EditContactModal'
 import { Contact } from '../types'
+import { batchDeleteContacts } from '../lib/contacts'
+import { useAuth } from '../hooks/useAuth'
 
 export default function ContactsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -23,22 +25,30 @@ export default function ContactsPage() {
   const [isBulkTagModalOpen, setIsBulkTagModalOpen] = useState(false)
   const [contactListKey, setContactListKey] = useState(Date.now().toString())
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const { user } = useAuth()
 
   const handleSelectionChange = (selectedIds: string[]) => {
     setSelectedContacts(selectedIds)
   }
-
   const handleBulkDelete = async () => {
-    if (!selectedContacts.length) return
+    if (!user || !selectedContacts.length) return;
     
     const confirmed = window.confirm(
       `Are you sure you want to delete ${selectedContacts.length} contact(s)? This action cannot be undone.`
-    )
-    if (!confirmed) return
+    );
+    
+    if (!confirmed) return;
 
-    // TODO: Implement bulk delete
-    console.log('Deleting contacts:', selectedContacts)
-  }
+    try {
+      await batchDeleteContacts(user.uid, selectedContacts);
+      // Force refresh the contact list
+      setContactListKey(Date.now().toString());
+      setSelectedContacts([]);
+    } catch (error) {
+      console.error('Error deleting contacts:', error);
+      // TODO: Show error toast
+    }
+  };
 
   const handleBulkExport = () => {
     // TODO: Implement export modal

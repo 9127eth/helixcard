@@ -128,7 +128,11 @@ export default function ViewContactModal({
                   onClick={() => copyToClipboard(contact.phone!, 'phone')}
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  {copySuccess === 'phone' ? 'Copied!' : <Copy size={16} />}
+                  {copySuccess === 'phone' ? (
+                    <span className="text-xs">Copied!</span>
+                  ) : (
+                    <Copy size={16} />
+                  )}
                 </button>
               </div>
             )}
@@ -142,7 +146,11 @@ export default function ViewContactModal({
                   onClick={() => copyToClipboard(contact.email!, 'email')}
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  {copySuccess === 'email' ? 'Copied!' : <Copy size={16} />}
+                  {copySuccess === 'email' ? (
+                    <span className="text-xs">Copied!</span>
+                  ) : (
+                    <Copy size={16} />
+                  )}
                 </button>
               </div>
             )}
@@ -156,7 +164,11 @@ export default function ViewContactModal({
                   onClick={() => copyToClipboard(contact.address!, 'address')}
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  {copySuccess === 'address' ? 'Copied!' : <Copy size={16} />}
+                  {copySuccess === 'address' ? (
+                    <span className="text-xs">Copied!</span>
+                  ) : (
+                    <Copy size={16} />
+                  )}
                 </button>
               </div>
             )}
@@ -223,6 +235,16 @@ export default function ViewContactModal({
           </div>
         </div>
       </div>
+
+      {/* Image Viewer Modal */}
+      {contact.imageUrl && (
+        <ImageViewerModal
+          isOpen={isImageViewerOpen}
+          onClose={() => setIsImageViewerOpen(false)}
+          imageUrl={contact.imageUrl}
+          altText={contact.name}
+        />
+      )}
     </div>
   )
 } 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Filter, ChevronDown, Check } from 'lucide-react'
+import { Filter, ChevronDown, Check, X } from 'lucide-react'
 import { Tag } from '@/app/types'
 import { useAuth } from '@/app/hooks/useAuth'
 import { getTags, createTag } from '@/app/lib/contacts'
@@ -81,9 +81,18 @@ export default function TagSelector({
           {selectedTagObjects.map((tag) => (
             <span
               key={tag.id}
-              className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-sm"
+              className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-sm"
             >
               {tag.name}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleTag(tag.id)
+                }}
+                className="ml-1.5 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full"
+              >
+                <X size={12} />
+              </button>
             </span>
           ))}
           {selectedTagObjects.length === 0 && (
@@ -125,7 +134,7 @@ export default function TagSelector({
               onClick={() => setIsFilterOpen(false)}
               className="text-gray-500 hover:text-gray-700"
             >
-              ���
+              <X size={16} />
             </button>
           </div>
           

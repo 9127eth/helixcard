@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Contact } from '@/app/types'
-import { getContacts } from '@/app/lib/contacts'
+import { getContacts, deleteContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
 import LoadingSpinner from '../LoadingSpinner'
 import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
@@ -99,22 +99,30 @@ export default function ContactList({
     }
   }
 
-  const handleDelete = (contactId: string) => {
+  const handleDelete = async (contactId: string) => {
+    if (!user) return;
+    
     const confirmed = window.confirm(
       'Are you sure you want to delete this contact? This action cannot be undone.'
-    )
-    if (confirmed) {
-      // TODO: Implement delete functionality
-      console.log('Delete contact:', contactId)
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      await deleteContact(user.uid, contactId);
+      setContacts(prev => prev.filter(c => c.id !== contactId));
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      // TODO: Show error toast
     }
-  }
+  };
 
   if (isLoading) {
     return <LoadingSpinner />
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24">
       {filteredContacts.length > 0 && (
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-4">

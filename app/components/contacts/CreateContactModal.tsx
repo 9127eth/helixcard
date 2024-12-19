@@ -111,7 +111,7 @@ export default function CreateContactModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-[500px] p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Create New Contact</h2>
+          <h2 className="text-xl font-semibold mb-4">Create New Contact</h2>
           <button 
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
@@ -129,7 +129,7 @@ export default function CreateContactModal({
               id="name"
               {...register('name')}
               placeholder="Enter full name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
             {errors.name && (
               <p className="text-sm text-red-500">{errors.name.message}</p>
@@ -146,7 +146,7 @@ export default function CreateContactModal({
                 type="email"
                 {...register('email')}
                 placeholder="Email address"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
 
@@ -158,7 +158,7 @@ export default function CreateContactModal({
                 id="phone"
                 {...register('phone')}
                 placeholder="Phone number"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function CreateContactModal({
                 id="position"
                 {...register('position')}
                 placeholder="Job title"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
 
@@ -184,7 +184,7 @@ export default function CreateContactModal({
                 id="company"
                 {...register('company')}
                 placeholder="Company name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
           </div>
@@ -197,20 +197,7 @@ export default function CreateContactModal({
               id="address"
               {...register('address')}
               placeholder="Address"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="note" className="block text-sm font-medium">
-              Notes
-            </label>
-            <textarea
-              id="note"
-              {...register('note')}
-              placeholder="Add a note..."
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
           </div>
 
@@ -231,7 +218,20 @@ export default function CreateContactModal({
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="note" className="block text-sm font-medium">
+              Notes
+            </label>
+            <textarea
+              id="note"
+              {...register('note')}
+              placeholder="Add a note..."
+              rows={3}
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
           </div>
 

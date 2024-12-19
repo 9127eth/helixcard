@@ -160,17 +160,16 @@ export default function EditContactModal({
           </button>
         </div>
 
-        {/* Reuse the form structure from CreateContactModal */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="block text-sm font-medium">
+            <label htmlFor="name" className="block text-xs mb-1 font-bold text-gray-400">
               Name *
             </label>
             <input
               id="name"
               {...register('name')}
               placeholder="Enter full name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
             {errors.name && (
               <p className="text-sm text-red-500">{errors.name.message}</p>
@@ -179,7 +178,7 @@ export default function EditContactModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium">
+              <label htmlFor="email" className="block text-xs mb-1 font-bold text-gray-400">
                 Email
               </label>
               <input
@@ -187,61 +186,63 @@ export default function EditContactModal({
                 type="email"
                 {...register('email')}
                 placeholder="Email address"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="phone" className="block text-sm font-medium">
+              <label htmlFor="phone" className="block text-xs mb-1 font-bold text-gray-400">
                 Phone
               </label>
               <input
                 id="phone"
                 {...register('phone')}
                 placeholder="Phone number"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="position" className="block text-sm font-medium">
+              <label htmlFor="position" className="block text-xs mb-1 font-bold text-gray-400">
                 Position
               </label>
               <input
                 id="position"
                 {...register('position')}
                 placeholder="Job title"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="company" className="block text-sm font-medium">
+              <label htmlFor="company" className="block text-xs mb-1 font-bold text-gray-400">
                 Company
               </label>
               <input
                 id="company"
                 {...register('company')}
                 placeholder="Company name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="address" className="block text-sm font-medium">
+            <label htmlFor="address" className="block text-xs mb-1 font-bold text-gray-400">
               Address
             </label>
             <input
               id="address"
               {...register('address')}
               placeholder="Address"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
           </div>
+
           <div className="space-y-2">
-            <label htmlFor="note" className="block text-sm font-medium">
+            <label htmlFor="note" className="block text-xs mb-1 font-bold text-gray-400">
               Notes
             </label>
             <textarea
@@ -249,12 +250,12 @@ export default function EditContactModal({
               {...register('note')}
               placeholder="Add a note..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">Tags</label>
+            <label className="block text-xs mb-1 font-bold text-gray-400">Tags</label>
             <TagSelector
               selectedTags={selectedTags}
               onChange={setSelectedTags}
@@ -265,7 +266,7 @@ export default function EditContactModal({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium">
-              Business Card Image
+              Image
             </label>
             
             {!showImageUpload && (imagePreview || contact.imageUrl) && contact.imageUrl !== undefined && (
@@ -294,7 +295,7 @@ export default function EditContactModal({
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
               />
             )}
           </div>
