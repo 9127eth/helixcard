@@ -1,7 +1,7 @@
 'use client'
 
 import { Contact, Tag } from '@/app/types'
-import { X, Phone, Mail, MessageCircle, Copy, ExternalLink, MapPin, ZoomIn } from 'react-feather'
+import { X, Phone, Mail, MessageCircle, Copy, MapPin } from 'react-feather'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
@@ -14,7 +14,7 @@ interface ViewContactModalProps {
   onClose: () => void
   contact: Contact
   onEdit: (contactId: string) => void
-  onShare: (contactId: string) => void
+  onExport: (contactId: string) => void
 }
 
 export default function ViewContactModal({
@@ -22,7 +22,7 @@ export default function ViewContactModal({
   onClose,
   contact,
   onEdit,
-  onShare
+  onExport
 }: ViewContactModalProps) {
   const { user } = useAuth()
   const [tags, setTags] = useState<Tag[]>([])
@@ -42,13 +42,13 @@ export default function ViewContactModal({
     loadTags()
   }, [user, isOpen])
 
-  // Get tag names from IDs
-  const tagNames = contact.tags.map(tagId => {
+  if (!isOpen || !contact) return null
+
+  // Get tag names from IDs with null check
+  const tagNames = contact.tags?.map(tagId => {
     const tag = tags.find(t => t.id === tagId)
     return tag?.name || tagId
-  })
-
-  if (!isOpen) return null
+  }) || []
 
   const formatPhoneNumber = (phone: string) => {
     const parsed = parsePhoneNumberFromString(phone, 'US')
@@ -221,14 +221,14 @@ export default function ViewContactModal({
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4">
             <button
-              onClick={() => onShare(contact.id)}
+              onClick={() => onExport(contact.id)}
               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
-              Share
+              Export
             </button>
             <button
               onClick={() => onEdit(contact.id)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              className="px-4 py-2 bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-md hover:opacity-90"
             >
               Edit
             </button>

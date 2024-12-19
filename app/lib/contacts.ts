@@ -273,4 +273,9 @@ export async function deleteTag(userId: string, tagId: string) {
   
   await batch.commit();
 }
- 
+export async function updateTag(userId: string, tagId: string, updates: Partial<Tag>) {
+  if (!db) throw new Error('Firestore is not initialized');
+  
+  const tagRef = doc(db, 'users', userId, 'tags', tagId);
+  await updateDoc(tagRef, updates);
+}

@@ -25,7 +25,7 @@
   --header-footer-secondary-text: #000000;
   --send-text-button-bg: #7CCEDA;
   --send-text-button-text: #000000;
-  --save-contact-button-bg: #B8EB41;
+  --save-contact-button-bg: #7CCEDA;
   --save-contact-button-text: #000000;
   --link-icon-color: #FC9A99;  /* New variable for link icons */
   --link-text-color: #333333;  /* New variable for link text */
@@ -38,6 +38,7 @@
   --phone-input-bg: white;
   --phone-input-text: black;
   --phone-input-hover: #f3f4f6;
+  --contact-depth: #E1DBC6;  /* Add this line for contact depth color */
 }
 
 .dark {
@@ -64,20 +65,21 @@
   --header-footer-secondary-text: #b9bbbe;
   --send-text-button-bg: #40444b;
   --send-text-button-text: #dddee3;
-  --save-contact-button-bg: #40444b;
-  --save-contact-button-text: #dddee3;
+  --save-contact-button-bg: #7CCEDA;
+  --save-contact-button-text: #323338;
   --link-icon-color: #FF6A42;  /* Changed to reddish color */
   --link-text-color: #dcddde;
   --end-card-header-secondary-text-color: #b9bbbe;
   --share-modal-bg: #2f3136;
   --card-grid-icon-button-bg: #2f3136;  /* Added this line */
   --card-grid-icon-button-text: #dddee3;  /* Added this line */
-  --primary-hover: #323338;  /* Slightly darker shade of primary for dark mode */
-  --primary-text-hover: #ffffff;
+  --primary-hover: #7CCEDA;  /* Slightly darker shade of primary for dark mode */
+  --primary-text-hover: #323338;
   --collapsible-header-hover: #323338;
   --preview-button-text: #323338;  /* Add this line inside the .dark selector */
   --card-grid-secondary-text: #a5a6aa;
   --button-text: #323338;   /* Add new variable specifically for button text */
+  --contact-depth: #E1DBC6;  /* Add this line for dark mode */
 }
 
 body {

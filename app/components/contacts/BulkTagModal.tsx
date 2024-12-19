@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAuth } from '@/app/hooks/useAuth'
-import { Tag } from '@/app/types'
 import { batchUpdateContactTags } from '@/app/lib/contacts'
 import TagSelector from './TagSelector'
 

@@ -42,7 +42,6 @@ export default function CreateContactModal({
     lastUsedTag ? [lastUsedTag] : []
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [imageFile, setImageFile] = useState<File | null>(null)
 
   const { 
     register, 
@@ -52,12 +51,6 @@ export default function CreateContactModal({
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema)
   })
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setImageFile(e.target.files[0])
-    }
-  }
 
   const onSubmit = async (data: ContactFormData) => {
     if (!user) return
@@ -206,19 +199,6 @@ export default function CreateContactModal({
             <TagSelector
               selectedTags={selectedTags}
               onChange={setSelectedTags}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="image" className="block text-sm font-medium">
-              Business Card Image
-            </label>
-            <input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
             />
           </div>
 

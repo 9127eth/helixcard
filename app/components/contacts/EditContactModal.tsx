@@ -321,7 +321,7 @@ export default function EditContactModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+              className="px-4 py-2 bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-md hover:opacity-90 disabled:opacity-50"
             >
               {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
             </button>

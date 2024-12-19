@@ -13,14 +13,13 @@ interface DropdownOption {
 
 interface DropdownMenuProps {
   options: DropdownOption[];
-  trigger?: React.ReactNode;
 }
 
 const IconWrapper: React.FC<{ icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }> = ({ icon: Icon }) => {
   return <Icon className="mr-3 h-5 w-5" />;
 };
 
-const DropdownMenu: React.FC<DropdownMenuProps> = ({ options, trigger }) => {
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ options }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

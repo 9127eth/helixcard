@@ -5,13 +5,16 @@ import { Contact } from '@/app/types'
 import { getContacts, deleteContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
 import LoadingSpinner from '../LoadingSpinner'
-import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react'
+import { Eye, Edit, Trash2 } from 'lucide-react'
 import DropdownMenu from '../DropdownMenu'
+import ViewContactModal from './ViewContactModal'
 
 interface ContactListProps {
   searchQuery: string
   tagFilter: string[]
+  isSelectionMode: boolean
   onSelectionChange: (selectedIds: string[]) => void
+  onContactsChange: (contacts: Contact[]) => void
   onBulkAddTag: () => void
   onBulkExport: () => void
   onBulkDelete: () => void
@@ -22,7 +25,9 @@ interface ContactListProps {
 export default function ContactList({ 
   searchQuery, 
   tagFilter, 
+  isSelectionMode,
   onSelectionChange,
+  onContactsChange,
   onBulkAddTag,
   onBulkExport,
   onBulkDelete,
@@ -33,7 +38,8 @@ export default function ContactList({
   const [contacts, setContacts] = useState<Contact[]>([])
   const [selectedContacts, setSelectedContacts] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [selectedContact] = useState<Contact | null>(null)
 
   useEffect(() => {
     const loadContacts = async () => {
@@ -42,6 +48,7 @@ export default function ContactList({
       try {
         const userContacts = await getContacts(user.uid)
         setContacts(userContacts)
+        onContactsChange(userContacts)
       } catch (error) {
         console.error('Error loading contacts:', error)
         // TODO: Show error toast
@@ -51,7 +58,7 @@ export default function ContactList({
     }
 
     loadContacts()
-  }, [user])
+  }, [user, onContactsChange])
 
   const toggleSelection = (contactId: string) => {
     setSelectedContacts(prev => {
@@ -117,6 +124,11 @@ export default function ContactList({
     }
   };
 
+  const handleExport = (contactId: string) => {
+    setSelectedContacts([contactId]);
+    onBulkExport();
+  };
+
   if (isLoading) {
     return <LoadingSpinner />
   }
@@ -126,31 +138,21 @@ export default function ContactList({
       {filteredContacts.length > 0 && (
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSelectionMode(!isSelectionMode)}
-              className={`text-sm px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md transition-colors ${
-                isSelectionMode 
-                  ? 'bg-gray-200 dark:bg-gray-700' 
-                  : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600'
-              }`}
-            >
-              Select
-            </button>
             {isSelectionMode && (
               <>
                 <button
                   onClick={toggleSelectAll}
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  className="text-sm hover:text-gray-900"
                 >
                   {selectedContacts.length === filteredContacts.length
                     ? 'Deselect All'
                     : 'Select All'}
                 </button>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm">
                     {selectedContacts.length} selected
                   </span>
-                  <span className="text-sm text-gray-600 font-medium">
+                  <span className="text-sm font-medium">
                     Bulk Actions:
                   </span>
                   <div className="flex gap-2">
@@ -186,50 +188,65 @@ export default function ContactList({
       {filteredContacts.map((contact) => (
         <div 
           key={contact.id}
-          className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow h-[72px] flex items-center"
+          className="w-full relative mb-4"
         >
-          {isSelectionMode && (
+          <div 
+            className="absolute top-1 left-1 w-full h-full rounded-xl" 
+            style={{ backgroundColor: '#d1d5dc' }}
+          />
+          
+          <div className="relative w-full bg-white dark:bg-[var(--card-grid-background)] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow border flex items-center gap-4">
+            {isSelectionMode && (
+              <div 
+                className="pr-4 pl-2 -my-4 py-4 cursor-pointer flex items-center h-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelection(contact.id);
+                }}
+              >
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedContacts.includes(contact.id)}
+                    onChange={() => toggleSelection(contact.id)}
+                    className="h-4 w-4 rounded border-gray-300"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </div>
+            )}
             <div 
-              className="pr-4 pl-2 -my-4 py-4 cursor-pointer flex items-center h-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleSelection(contact.id);
-              }}
+              className="flex items-center gap-4 flex-1 cursor-pointer"
+              onClick={() => handleView(contact.id)}
             >
-              <div className="relative flex items-center">
-                <input
-                  type="checkbox"
-                  checked={selectedContacts.includes(contact.id)}
-                  onChange={() => toggleSelection(contact.id)}
-                  className="h-4 w-4 rounded border-gray-300"
-                  onClick={(e) => e.stopPropagation()}
-                />
+              <div className="min-w-0">
+                <h3 className="font-medium truncate">{contact.name}</h3>
+                {contact.company && (
+                  <p className="text-sm text-gray-500 truncate">{contact.company}</p>
+                )}
               </div>
             </div>
-          )}
-          <div 
-            className="flex items-center gap-4 flex-1 cursor-pointer"
-            onClick={() => handleView(contact.id)}
-          >
-            <div className="min-w-0">
-              <h3 className="font-medium truncate">{contact.name}</h3>
-              {contact.company && (
-                <p className="text-sm text-gray-500 truncate">{contact.company}</p>
-              )}
+            
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu
+                options={[
+                  { label: 'View', onClick: () => handleView(contact.id), icon: Eye },
+                  { label: 'Edit', onClick: () => handleEdit(contact.id), icon: Edit },
+                  { label: 'Delete', onClick: () => handleDelete(contact.id), icon: Trash2, danger: true },
+                ]}
+              />
             </div>
-          </div>
-          
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu
-              options={[
-                { label: 'View', onClick: () => handleView(contact.id), icon: Eye },
-                { label: 'Edit', onClick: () => handleEdit(contact.id), icon: Edit },
-                { label: 'Delete', onClick: () => handleDelete(contact.id), icon: Trash2, danger: true },
-              ]}
-            />
           </div>
         </div>
       ))}
+
+      <ViewContactModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        contact={selectedContact as Contact}
+        onEdit={handleEdit}
+        onExport={handleExport}
+      />
     </div>
   )
 } 

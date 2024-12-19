@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Tag } from '@/app/types'
 import { useAuth } from '@/app/hooks/useAuth'
-import { getTags, createTag, deleteTag } from '@/app/lib/contacts'
-import { Trash2, Plus, X } from 'lucide-react'
+import { getTags, createTag, deleteTag, updateTag } from '@/app/lib/contacts'
+import { Trash2, Plus, X, Edit2 } from 'lucide-react'
 import LoadingSpinner from '../LoadingSpinner'
 
 interface ManageTagsModalProps {
@@ -14,15 +14,12 @@ export default function ManageTagsModal({ isOpen, onClose }: ManageTagsModalProp
   const { user } = useAuth()
   const [tags, setTags] = useState<Tag[]>([])
   const [newTagName, setNewTagName] = useState('')
+  const [editingTagId, setEditingTagId] = useState<string | null>(null)
+  const [editingTagName, setEditingTagName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!user || !isOpen) return
-    loadTags()
-  }, [user, isOpen])
-
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     if (!user) return
     setIsLoading(true)
     try {
@@ -34,7 +31,12 @@ export default function ManageTagsModal({ isOpen, onClose }: ManageTagsModalProp
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (!user || !isOpen) return
+    loadTags()
+  }, [user, isOpen, loadTags])
 
   const handleCreateTag = async () => {
     if (!user || !newTagName.trim()) return
@@ -72,6 +74,31 @@ export default function ManageTagsModal({ isOpen, onClose }: ManageTagsModalProp
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleEditTag = async (tagId: string) => {
+    if (!user || !editingTagName.trim()) return
+    setIsLoading(true)
+    setError('')
+
+    try {
+      await updateTag(user.uid, tagId, { name: editingTagName.trim() })
+      setTags(prev => prev.map(tag => 
+        tag.id === tagId ? { ...tag, name: editingTagName.trim() } : tag
+      ))
+      setEditingTagId(null)
+      setEditingTagName('')
+    } catch (error) {
+      console.error('Error updating tag:', error)
+      setError('Failed to update tag')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const startEditing = (tag: Tag) => {
+    setEditingTagId(tag.id)
+    setEditingTagName(tag.name)
   }
 
   if (!isOpen) return null
@@ -123,19 +150,51 @@ export default function ManageTagsModal({ isOpen, onClose }: ManageTagsModalProp
                   key={tag.id}
                   className="flex items-center justify-between p-2 border border-gray-200 rounded-md dark:border-gray-700"
                 >
-                  <span className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                    />
-                    {tag.name}
-                  </span>
-                  <button
-                    onClick={() => handleDeleteTag(tag.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {editingTagId === tag.id ? (
+                    <div className="flex-1 flex gap-2">
+                      <input
+                        type="text"
+                        value={editingTagName}
+                        onChange={(e) => setEditingTagName(e.target.value)}
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleEditTag(tag.id)}
+                        disabled={!editingTagName.trim()}
+                        className="px-2 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingTagId(null)
+                          setEditingTagName('')
+                        }}
+                        className="px-2 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{tag.name}</span>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => startEditing(tag)}
+                          className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTag(tag.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))
             )}

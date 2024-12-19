@@ -106,7 +106,11 @@ export default function TagSelector({
       <button
         type="button"
         onClick={() => setIsFilterOpen(!isFilterOpen)}
-        className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 min-w-[80px] h-12"
+        className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-md dark:border-gray-600 min-w-[80px] h-12 ${
+          isFilter && selectedTags.length > 0
+            ? 'bg-gray-300 dark:bg-gray-700'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+        }`}
       >
         {isFilter && <Filter className="h-3.5 w-3.5" />}
         <span>
@@ -177,10 +181,6 @@ export default function TagSelector({
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                    />
                     {tag.name}
                   </span>
                   {selectedTags.includes(tag.id) && (
