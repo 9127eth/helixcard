@@ -123,7 +123,7 @@ export default function ManageTagsModal({ isOpen, onClose }: ManageTagsModalProp
               type="text"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
-              placeholder="Enter new tag name"
+              placeholder="Add new"
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
             />
             <button

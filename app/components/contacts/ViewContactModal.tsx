@@ -91,14 +91,14 @@ export default function ViewContactModal({
               <>
                 <a
                   href={`tel:${contact.phone}`}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200"
                 >
                   <Phone size={16} />
                   <span>Call</span>
                 </a>
                 <a
                   href={`sms:${contact.phone}`}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200"
+                  className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full hover:bg-green-200"
                 >
                   <MessageCircle size={16} />
                   <span>Text</span>
@@ -108,7 +108,7 @@ export default function ViewContactModal({
             {contact.email && (
               <a
                 href={`mailto:${contact.email}`}
-                className="flex items-center gap-2 px-3 py-2 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200"
               >
                 <Mail size={16} />
                 <span>Email</span>
@@ -222,13 +222,13 @@ export default function ViewContactModal({
           <div className="flex justify-end gap-2 pt-4">
             <button
               onClick={() => onExport(contact.id)}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="px-4 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Export
             </button>
             <button
               onClick={() => onEdit(contact.id)}
-              className="px-4 py-2 bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-md hover:opacity-90"
+              className="px-4 py-1.5 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90"
             >
               Edit
             </button>

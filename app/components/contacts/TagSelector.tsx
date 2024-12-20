@@ -106,7 +106,7 @@ export default function TagSelector({
       <button
         type="button"
         onClick={() => setIsFilterOpen(!isFilterOpen)}
-        className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-md dark:border-gray-600 min-w-[80px] h-12 ${
+        className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full dark:border-gray-600 min-w-[80px] h-12 ${
           isFilter && selectedTags.length > 0
             ? 'bg-gray-300 dark:bg-gray-700'
             : 'hover:bg-gray-100 dark:hover:bg-gray-700'

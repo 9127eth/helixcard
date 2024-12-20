@@ -79,7 +79,16 @@ export default function ContactsPage() {
           <div className="w-full lg:w-[70%] pl-4 lg:pl-8 pr-4 lg:pr-12">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-6">Contacts</h1>
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-5xl font-bold">Contacts</h1>
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 h-12 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Add Contact</span>
+                </button>
+              </div>
               
               {/* Search and Filters Bar */}
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -102,14 +111,14 @@ export default function ContactsPage() {
                   />
                   <button
                     onClick={() => setIsManageTagsOpen(true)}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 min-w-[80px]"
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 min-w-[80px]"
                   >
                     <Tags className="h-3.5 w-3.5" />
                     <span>Tags</span>
                   </button>
                   <button
                     onClick={() => setIsSelectionMode(!isSelectionMode)}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-md dark:border-gray-600 min-w-[80px] ${
+                    className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full dark:border-gray-600 min-w-[80px] ${
                       isSelectionMode 
                         ? 'bg-gray-300 dark:bg-gray-700'
                         : 'hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -136,15 +145,6 @@ export default function ContactsPage() {
               onView={handleViewContact}
               onEdit={handleEditContact}
             />
-
-            {/* Create Contact Button (Fixed Position) */}
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-md hover:opacity-90 shadow-lg"
-            >
-              <Plus className="h-4 w-4" />
-              Add Contact
-            </button>
           </div>
           <div className="hidden lg:block lg:w-[30%] bg-background"></div>
         </div>
