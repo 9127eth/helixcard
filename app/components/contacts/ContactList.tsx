@@ -13,6 +13,7 @@ interface ContactListProps {
   searchQuery: string
   tagFilter: string[]
   isSelectionMode: boolean
+  sortOption: 'firstName' | 'dateAdded'
   onSelectionChange: (selectedIds: string[]) => void
   onContactsChange: (contacts: Contact[]) => void
   onBulkAddTag: () => void
@@ -25,6 +26,7 @@ interface ContactListProps {
 export default function ContactList({ 
   searchQuery, 
   tagFilter, 
+  sortOption,
   isSelectionMode,
   onSelectionChange,
   onContactsChange,
@@ -78,8 +80,22 @@ export default function ContactList({
     onSelectionChange(newSelection)
   }
 
+  // Add sorting logic
+  const sortContacts = (contacts: Contact[]) => {
+    return [...contacts].sort((a, b) => {
+      if (sortOption === 'firstName') {
+        return a.name.localeCompare(b.name);
+      } else { // dateAdded
+        // Convert string dates to timestamps for comparison
+        const dateA = a.dateAdded ? new Date(a.dateAdded).getTime() : 0;
+        const dateB = b.dateAdded ? new Date(b.dateAdded).getTime() : 0;
+        return dateB - dateA;
+      }
+    });
+  };
+
   // Filter contacts based on search query and tags
-  const filteredContacts = contacts.filter(contact => {
+  const filteredContacts = sortContacts(contacts.filter(contact => {
     const matchesSearch = searchQuery.toLowerCase() === '' || 
       contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contact.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -90,7 +106,7 @@ export default function ContactList({
       tagFilter.every(tag => contact.tags.includes(tag))
 
     return matchesSearch && matchesTags
-  })
+  }))
 
   const handleView = (contactId: string) => {
     const contact = contacts.find(c => c.id === contactId)

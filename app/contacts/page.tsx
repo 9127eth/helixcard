@@ -14,6 +14,7 @@ import ExportContactsModal from '../components/contacts/ExportContactsModal'
 import { Contact } from '../types'
 import { batchDeleteContacts } from '../lib/contacts'
 import { useAuth } from '../hooks/useAuth'
+import SortButton from '../components/contacts/SortButton'
 
 export default function ContactsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -30,6 +31,7 @@ export default function ContactsPage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const { user } = useAuth()
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [sortOption, setSortOption] = useState<'firstName' | 'dateAdded'>('dateAdded')
 
   const handleSelectionChange = (selectedIds: string[]) => {
     setSelectedContacts(selectedIds)
@@ -116,6 +118,10 @@ export default function ContactsPage() {
                     <Tags className="h-3.5 w-3.5" />
                     <span>Tags</span>
                   </button>
+                  <SortButton 
+                    currentSort={sortOption}
+                    onSort={setSortOption}
+                  />
                   <button
                     onClick={() => setIsSelectionMode(!isSelectionMode)}
                     className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full dark:border-gray-600 min-w-[80px] ${
@@ -136,6 +142,7 @@ export default function ContactsPage() {
               key={contactListKey}
               searchQuery={searchQuery} 
               tagFilter={selectedTags}
+              sortOption={sortOption}
               isSelectionMode={isSelectionMode}
               onSelectionChange={handleSelectionChange}
               onContactsChange={setContacts}
