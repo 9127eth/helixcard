@@ -80,8 +80,8 @@ export default function ContactsPage() {
         <div className="w-full max-w-[1200px] flex">
           <div className="w-full lg:w-[70%] pl-4 lg:pl-8 pr-4 lg:pr-12">
             {/* Header */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-6">
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-4">
                 <h1 className="text-5xl font-bold">Contacts</h1>
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
@@ -93,7 +93,7 @@ export default function ContactsPage() {
               </div>
               
               {/* Search and Filters Bar */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row gap-4 mb-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <input
