@@ -1,0 +1,141 @@
+# OCR Contact Creation Feature Requirements
+
+## Overview
+Implement a feature that allows users to create new contacts by scanning business cards or trade show badges using the device camera or uploading existing photos. The system should use Googles for OCR text recognition and automatically populate the existing contact creation form. When "scanning" a card, this means users will take an image of the card, which would be saved as the contact image in firebase in addition to getting the text data. 
+
+## Technical Requirements
+
+### Core Features
+
+1. Image upload
+   - Implement a way for users to upload a photo to be processed
+
+2. OCR Implementation
+   - Utilize googles OCR API for text recognition
+   - Support both accurate and fast text recognition modes
+   - Implement error handling for failed text recognition, prompt users to enter manual if there is an error
+   - Add progress indication during processing
+   - Support multiple languages based on device settings
+
+3. Text Processing
+   - pass the text to open ai to get a structured response
+   - here is the open api prompt:
+    func processBusinessCard(text: String) async throws -> OpenAIResponse {
+        // Check rate limit before proceeding
+        guard await rateLimiter.shouldAllowRequest() else {
+            throw OpenAIError.rateLimitExceeded
+        }
+        
+        let prompt = """
+        You are an AI designed to extract and organize information from text. The text will be either a business card or a tradeshow badge. Extract key details from this business card text and present them in a structured format. Also some general rules:
+         - do not include prefixes like "Mr.", "Ms.", "Dr.", etc. Names should just start with the first name. You can include suffixes like "Jr.", "Sr.", "III", pharmd, md, bsn, rn, md, etc. 
+         - if multiple phone numbers are found, prioritize cell/mobile numbers. Then office numbers if no cell. Defininitely dont want fax numbers. But only extract one phone number.
+         - if a website is not present, but an email address is, we can assume the domain from the email address is the website.
+         - do not include registerd trademark symbols.
+         - phone numbers should be in the format of (123) 456-7890
+         - Ensure that all caps text is converted to proper upper and lower case formatting for a clean appearance, while preserving accurate capitalization for company names and personal names. However, do not alter someone's credentials e.g. PharmD, MD, BSN, RN, CPhT, etc.
+
+        \(text)
+        
+        Return only a JSON object with these fields:
+        {
+          "name": "Full Name",
+          "position": "Job Title",
+          "company": "Company Name",
+          "phone": "Phone Number",
+          "email": "Email Address",
+          "address": "Full Address",
+          "website": "Website URL"
+        }
+        """
+        
+        let messages: [[String: Any]] = [
+            ["role": "system", "content": "You are a precise business card information extractor."],
+            ["role": "user", "content": prompt]
+        ]
+        
+        let requestBody: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": messages,
+            "temperature": 0.3
+        ]
+        
+        var request = URLRequest(url: URL(string: endpoint)!)
+        request.httpMethod = "POST"
+        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw OpenAIError.invalidResponse
+        }
+
+4. Contact Form Integration
+   - Auto-populate existing contact creation form with response from open ai
+   - Highlight fields that were automatically filled
+   - Allow manual editing of all auto-filled fields
+   - Preserve existing form validation rules
+
+### User Flow
+
+1. Entry Points
+   - There is currently a create new button, This button should now launch the view that starts the with the option to enter manually or upload a photo to be scanned.
+   - Handle permission requests gracefully
+
+3. Processing
+   - Display processing indicator
+   - Allow user to confirm or retake image
+
+4. Data Review
+   -  once text is captured, present user with fields filled out in the create contact form view
+   - Highlight auto-filled fields in our blue from our colors
+   - Allow easy editing of any field
+   - Preserve existing save/cancel functionality
+
+### Error Handling
+
+1. Camera/Photo Library
+   - Handle permission denials, 
+
+2. OCR Processing
+   - Handle poor image quality
+   - Manage timeout scenarios
+   - Handle unsupported text/languages
+   - Provide user feedback for failed recognition
+
+3. Data Extraction
+   - Handle ambiguous or incomplete data
+   - Manage conflicts in extracted information. The most common example will like be phone numbers. I want us to try to get cell numbers so we should code for extracting that, but if fails, we should capture the first phone number listed
+   - Provide fallbacks for unrecognized fields
+
+### UI/UX Requirements
+
+2. Processing Interface
+   - Clear progress indication
+   - Cancel option during processing
+   - Preview of recognized text regions
+
+3. Form Integration
+   - Visual distinction for auto-filled fields
+   - Easy editing capabilities
+   - Clear success/failure states
+   - Smooth transition to existing form
+
+### Security Considerations
+
+1. Data Privacy
+   - Secure handling of captured images
+   - Proper cleanup of temporary files - if a user doesn't save a contact, we should not save an image. Also, if the user starts over and adds another image, the previous image should be deleted. 
+   - Compliance with privacy guidelines
+ 
+
+2. Permission Management
+   - Photo library access handling
+   - Proper permission states management
+
+Improve the user feedback mechanism by detailing error messages, such as "Text not recognized due to low image quality" instead of generic failure notices.
+
+Incorporate mechanisms to gather anonymized usage statistics (e.g., recognition success rate, average processing time) to improve the feature over time.

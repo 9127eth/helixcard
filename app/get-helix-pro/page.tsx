@@ -70,7 +70,7 @@ const GetHelixProPage: React.FC = () => {
             
             <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-8">
               <button
-                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                className={`px-6 py-2 rounded-[20px] transition-all duration-200 ${
                   selectedPlan === 'lifetime'
                     ? 'bg-white dark:bg-gray-700 shadow-sm border-2 border-gray-300 dark:border-gray-600'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -80,7 +80,7 @@ const GetHelixProPage: React.FC = () => {
                 Lifetime
               </button>
               <button
-                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                className={`px-6 py-2 rounded-[20px] transition-all duration-200 ${
                   selectedPlan === 'yearly'
                     ? 'bg-white dark:bg-gray-700 shadow-sm border-2 border-gray-300 dark:border-gray-600'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -90,7 +90,7 @@ const GetHelixProPage: React.FC = () => {
                 Yearly
               </button>
               <button
-                className={`px-6 py-2 rounded-md transition-all duration-200 ${
+                className={`px-6 py-2 rounded-[20px] transition-all duration-200 ${
                   selectedPlan === 'monthly'
                     ? 'bg-white dark:bg-gray-700 shadow-sm border-2 border-gray-300 dark:border-gray-600'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -121,6 +121,10 @@ const GetHelixProPage: React.FC = () => {
                     </li>
                     <li className="flex items-center text-gray-400">
                       <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      AI powered business card scanning
+                    </li>
+                    <li className="flex items-center text-gray-400">
+                      <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                       Up to 10 business cards
                     </li>
                     <li className="flex items-center text-gray-400">
@@ -139,6 +143,10 @@ const GetHelixProPage: React.FC = () => {
                   <h2 className="text-2xl font-bold mb-4">Pro</h2>
                   <p className="text-gray-500 mb-6">{getPriceDisplay()}</p>
                   <ul className="space-y-2 mb-6">
+                    <li className="flex items-center">
+                      <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                      AI powered business card scanning
+                    </li>
                     <li className="flex items-center">
                       <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                       Up to 10 business cards
