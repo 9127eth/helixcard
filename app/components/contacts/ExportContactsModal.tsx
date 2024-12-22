@@ -99,7 +99,7 @@ export default function ExportContactsModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+              className="px-3 py-1.5 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-md hover:opacity-90 disabled:opacity-50"
             >
               {isSubmitting ? 'Exporting...' : 'Export'}
             </button>

@@ -155,7 +155,7 @@ export default function TagSelector({
                 <button
                   onClick={handleCreateTag}
                   disabled={!newTagName.trim() || isLoading}
-                  className="px-2 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+                  className="px-2 py-1 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-md hover:opacity-90 disabled:opacity-50"
                 >
                   Add
                 </button>
