@@ -1,7 +1,7 @@
 # OCR Contact Creation Feature Requirements
 
 ## Overview
-Implement a feature that allows users to create new contacts by scanning business cards or trade show badges using the device camera or uploading existing photos. The system should use Googles for OCR text recognition and automatically populate the existing contact creation form. When "scanning" a card, this means users will take an image of the card, which would be saved as the contact image in firebase in addition to getting the text data. 
+Implement a feature that allows users to create new contacts by uploading existing photos from their library. The system should use Googles for OCR text recognition and automatically populate the existing contact creation form. When "scanning" a card, this means users will upload an image of the card, which would be saved as the contact image in firebase in addition to getting the text data. When a user first goes to create a contact, they should be able to select the option to upload a card or enter the data manually. 
 
 ## Technical Requirements
 
