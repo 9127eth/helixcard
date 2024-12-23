@@ -161,6 +161,11 @@ export default function ContactsPage() {
       <CreateContactModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          // Force refresh the contact list
+          setContactListKey(Date.now().toString())
+        }}
+        lastUsedTag={selectedTags[0]}
       />
 
       <ManageTagsModal 

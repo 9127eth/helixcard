@@ -111,7 +111,10 @@ export default function CreateContactModal({
   }
 
   const onSubmit = async (data: ContactFormData) => {
-    if (!user) return
+    if (!user) {
+      console.error('No user found')
+      return
+    }
 
     setIsSubmitting(true)
     try {
@@ -140,17 +143,20 @@ export default function CreateContactModal({
         address: data.address || '',
         note: data.note || '',
         tags: selectedTags,
-        contactSource: 'manual',
+        contactSource: entryMethod === 'scan' ? 'scanned' : entryMethod || 'manual',
       }
 
+      console.log('Creating contact:', newContact)
       const createdContact = await createContact(user.uid, newContact)
+      console.log('Contact created:', createdContact)
+      
       onSuccess?.(createdContact)
       reset()
       setSelectedTags(lastUsedTag ? [lastUsedTag] : [])
       onClose()
     } catch (error) {
       console.error('Error creating contact:', error)
-      // TODO: Show error toast
+      alert('Failed to create contact. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
