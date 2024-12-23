@@ -99,7 +99,7 @@ export default function ContactsPage() {
                   <input
                     type="text"
                     placeholder="Search contacts..."
-                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-full dark:border-gray-600 dark:bg-gray-700"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />

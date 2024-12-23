@@ -68,7 +68,7 @@ const GetHelixProPage: React.FC = () => {
           <div className="flex flex-col items-center p-8">
             <h1 className="text-4xl font-bold mb-6">Choose the plan that is right for you.</h1>
             
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mb-8">
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-full p-1 mb-8">
               <button
                 className={`px-6 py-2 rounded-[20px] transition-all duration-200 ${
                   selectedPlan === 'lifetime'

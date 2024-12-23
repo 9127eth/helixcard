@@ -109,6 +109,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                         </Link>
                       </li>
                       <li>
+                        <Link href="/contacts" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
+                          <Users className="w-4 h-4" />
+                          {isSidebarOpen && <span className="text-sm">Contacts</span>}
+                        </Link>
+                      </li>
+                      <li>
                         <Link href="/how-it-works" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
                           <List className="w-4 h-4" />
                           {isSidebarOpen && <span className="text-sm">How It Works</span>}
@@ -118,12 +124,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
                         <Link href="/get-helix-pro" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
                           <Zap className="w-4 h-4" />
                           {isSidebarOpen && <span className="text-sm">Get Helix Pro</span>}
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/contacts" className="flex items-center space-x-2 p-2 rounded hover:bg-background">
-                          <Users className="w-4 h-4" />
-                          {isSidebarOpen && <span className="text-sm">Contacts</span>}
                         </Link>
                       </li>
                       <li className="opacity-50 cursor-not-allowed">
