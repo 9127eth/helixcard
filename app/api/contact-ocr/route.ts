@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth, storage } from '@/app/lib/firebase-admin';
+import { auth } from '@/app/lib/firebase-admin';
 import vision from '@google-cloud/vision';
 import OpenAI from 'openai';
-import { v4 as uuidv4 } from 'uuid';
 
 // Initialize Vision client
 const client = new vision.ImageAnnotatorClient({
@@ -24,9 +23,8 @@ export async function POST(req: Request) {
 
     // Extract and verify the ID token
     const idToken = authHeader.split('Bearer ')[1];
-    let decodedToken;
     try {
-      decodedToken = await auth.verifyIdToken(idToken);
+      await auth.verifyIdToken(idToken);
     } catch (error) {
       console.error('Token verification failed:', error);
       return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
