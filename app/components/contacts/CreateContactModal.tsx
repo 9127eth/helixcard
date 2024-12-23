@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import TagSelector from './TagSelector'
 import { Contact } from '@/app/types'
-import { createContact } from '@/app/lib/contacts'
+import { createContact, uploadContactImage, updateContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { X } from 'react-feather'
@@ -35,6 +35,10 @@ interface CreateContactModalProps {
 
 type EntryMethod = 'manual' | 'scan' | null;
 
+interface ScannedData extends Partial<Contact> {
+  imageFile?: File;
+}
+
 export default function CreateContactModal({ 
   isOpen, 
   onClose, 
@@ -49,6 +53,7 @@ export default function CreateContactModal({
   const [entryMethod, setEntryMethod] = useState<EntryMethod>(null)
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set())
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [scannedData, setScannedData] = useState<ScannedData | null>(null)
 
   const { 
     register, 
@@ -61,7 +66,8 @@ export default function CreateContactModal({
     resolver: zodResolver(contactSchema)
   })
 
-  const handleOCRComplete = (contactData: Partial<Contact>) => {
+  const handleOCRComplete = (contactData: Partial<Contact> & { imageFile?: File }) => {
+    setScannedData(contactData)
     // Set form values with OCR data
     const fields = new Set<string>()
     
@@ -143,13 +149,19 @@ export default function CreateContactModal({
         address: data.address || '',
         note: data.note || '',
         tags: selectedTags,
-        contactSource: entryMethod === 'scan' ? 'scanned' : entryMethod || 'manual',
+        contactSource: entryMethod === 'scan' ? 'scanned' : 'manual'
       }
 
-      console.log('Creating contact:', newContact)
+      // First create the contact
       const createdContact = await createContact(user.uid, newContact)
-      console.log('Contact created:', createdContact)
-      
+
+      // Then upload image if exists and update contact
+      if (scannedData?.imageFile) {
+        const imageUrl = await uploadContactImage(user.uid, createdContact.id, scannedData.imageFile)
+        await updateContact(user.uid, createdContact.id, { imageUrl })
+        createdContact.imageUrl = imageUrl
+      }
+
       onSuccess?.(createdContact)
       reset()
       setSelectedTags(lastUsedTag ? [lastUsedTag] : [])

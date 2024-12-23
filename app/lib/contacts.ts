@@ -21,7 +21,7 @@ import { Contact, Tag } from '@/app/types';
 export async function createContact(userId: string, contactData: Partial<Contact>) {
   if (!db) throw new Error('Firestore is not initialized');
   
-  const contactsRef = collection(db, `users/${userId}/contacts`);
+  const contactsRef = collection(db, 'users', userId, 'contacts');
   
   // Ensure name is always present
   if (!contactData.name) {
@@ -76,7 +76,7 @@ export async function updateContact(
 ) {
   if (!db) throw new Error('Firestore is not initialized');
   
-  const contactRef = doc(db, `users/${userId}/contacts/${contactId}`);
+  const contactRef = doc(db, 'users', userId, 'contacts', contactId);
   
   if (updates.name) {
     const nameParts = updates.name.split(' ');
@@ -92,7 +92,7 @@ export async function updateContact(
 export async function deleteContact(userId: string, contactId: string) {
   if (!db || !storage) throw new Error('Firebase services are not initialized');
   
-  const contactRef = doc(db, `users/${userId}/contacts/${contactId}`);
+  const contactRef = doc(db, 'users', userId, 'contacts', contactId);
   
   // Delete associated image if it exists
   const contact = await getDoc(contactRef);
@@ -108,7 +108,7 @@ export async function deleteContact(userId: string, contactId: string) {
 export async function getContacts(userId: string) {
   if (!db) throw new Error('Firestore is not initialized');
   
-  const contactsRef = collection(db, `users/${userId}/contacts`);
+  const contactsRef = collection(db, 'users', userId, 'contacts');
   const q = query(contactsRef, orderBy('dateModified', 'desc'));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Contact));
@@ -137,7 +137,7 @@ export async function uploadContactImage(
   
   // Update contact with new image URL
   if (!db) throw new Error('Firestore is not initialized');
-  const contactRef = doc(db, `users/${userId}/contacts/${contactId}`);
+  const contactRef = doc(db, 'users', userId, 'contacts', contactId);
   await updateDoc(contactRef, { imageUrl });
   
   return imageUrl;
@@ -175,7 +175,7 @@ export async function batchDeleteContacts(userId: string, contactIds: string[]) 
   const batch = writeBatch(db);
   
   for (const contactId of contactIds) {
-    const contactRef = doc(db, `users/${userId}/contacts/${contactId}`);
+    const contactRef = doc(db, 'users', userId, 'contacts', contactId);
     batch.delete(contactRef);
   }
   
@@ -192,7 +192,7 @@ export async function batchUpdateContactTags(
   const batch = writeBatch(db);
   
   for (const contactId of contactIds) {
-    const contactRef = doc(db, `users/${userId}/contacts/${contactId}`);
+    const contactRef = doc(db, 'users', userId, 'contacts', contactId);
     batch.update(contactRef, { 
       tags: tagIds,
       dateModified: serverTimestamp()
@@ -210,7 +210,7 @@ export async function searchContacts(
 ) {
   if (!db) throw new Error('Firestore is not initialized');
   
-  const contactsRef = collection(db, `users/${userId}/contacts`);
+  const contactsRef = collection(db, 'users', userId, 'contacts');
   let q = query(contactsRef);
   
   if (tagFilter && tagFilter.length > 0) {
