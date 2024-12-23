@@ -48,13 +48,15 @@ export default function CreateContactModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [entryMethod, setEntryMethod] = useState<EntryMethod>(null)
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set())
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
   const { 
     register, 
     handleSubmit, 
     formState: { errors },
     reset,
-    setValue 
+    setValue,
+    getValues 
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema)
   })
@@ -72,7 +74,9 @@ export default function CreateContactModal({
       fields.add('email')
     }
     if (contactData.phone) {
-      setValue('phone', contactData.phone)
+      // Parse and format the phone number
+      const phoneNumber = parsePhoneNumberFromString(String(contactData.phone), 'US')
+      setValue('phone', phoneNumber ? phoneNumber.format('NATIONAL') : String(contactData.phone))
       fields.add('phone')
     }
     if (contactData.position) {
@@ -152,18 +156,43 @@ export default function CreateContactModal({
     }
   }
 
+  const handleCancel = () => {
+    if (autoFilledFields.size > 0 || Object.values(getValues()).some(value => value)) {
+      setShowConfirmation(true)
+    } else {
+      handleConfirmedCancel()
+    }
+  }
+
+  const handleConfirmedCancel = () => {
+    reset() // Clear form data
+    setSelectedTags(lastUsedTag ? [lastUsedTag] : [])
+    setAutoFilledFields(new Set())
+    setEntryMethod(null)
+    setShowConfirmation(false)
+    onClose()
+  }
+
+  const handleClose = () => {
+    if (autoFilledFields.size > 0 || Object.values(getValues()).some(value => value)) {
+      setShowConfirmation(true)
+    } else {
+      handleConfirmedCancel()
+    }
+  }
+
   if (!isOpen) return null
 
   // Show entry method selection if no method chosen
   if (entryMethod === null) {
     return (
       <div className="fixed inset-0 z-50">
-        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow-lg">
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">Create New Contact</h2>
-              <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -200,7 +229,7 @@ export default function CreateContactModal({
   // Show OCR upload or form based on selected method
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow-lg">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
@@ -212,7 +241,7 @@ export default function CreateContactModal({
               >
                 Change Method
               </button>
-              <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -330,7 +359,7 @@ export default function CreateContactModal({
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleCancel}
                 className="px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 Cancel
@@ -346,6 +375,33 @@ export default function CreateContactModal({
           </form>
         </div>
       </div>
+
+      {/* Add confirmation dialog */}
+      {showConfirmation && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirmation(false)} />
+          <div className="relative bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h3 className="text-lg font-semibold mb-4">Discard Changes?</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to cancel? All unsaved changes will be lost.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirmation(false)}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+              >
+                Keep Editing
+              </button>
+              <button
+                onClick={handleConfirmedCancel}
+                className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-full hover:bg-red-600"
+              >
+                Discard Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
