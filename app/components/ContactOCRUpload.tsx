@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, Camera } from 'react-feather';
+import { Upload } from 'react-feather';
 import { Contact } from '../types';
 import { useAuth } from '@/app/hooks/useAuth';
 
