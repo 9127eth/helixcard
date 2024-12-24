@@ -16,6 +16,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { Contact, Tag } from '@/app/types';
+import { FREE_USER_CONTACT_LIMIT } from './constants';
 
 // Create a new contact
 export async function createContact(userId: string, contactData: Partial<Contact>) {
@@ -278,4 +279,17 @@ export async function updateTag(userId: string, tagId: string, updates: Partial<
   
   const tagRef = doc(db, 'users', userId, 'tags', tagId);
   await updateDoc(tagRef, updates);
+}
+
+export async function canCreateContact(userId: string) {
+  if (!db) throw new Error('Firestore is not initialized');
+  
+  const userDoc = await getDoc(doc(db, 'users', userId));
+  const isPro = userDoc.data()?.isPro || false;
+  
+  const contactsRef = collection(db, 'users', userId, 'contacts');
+  const contactsSnapshot = await getDocs(contactsRef);
+  const contactCount = contactsSnapshot.size;
+  
+  return isPro || contactCount < FREE_USER_CONTACT_LIMIT;
 }

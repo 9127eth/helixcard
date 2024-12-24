@@ -1,17 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import TagSelector from './TagSelector'
 import { Contact } from '@/app/types'
-import { createContact, uploadContactImage, updateContact } from '@/app/lib/contacts'
+import { createContact, uploadContactImage, updateContact, canCreateContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { X } from 'react-feather'
 import { ContactOCRUpload } from '../ContactOCRUpload'
 import { Camera, Edit } from 'react-feather'
+import { FREE_USER_CONTACT_LIMIT } from '@/app/lib/constants'
+import CardLimitModal from '../CardLimitModal'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/app/lib/firebase'
 
 // Validation schema
 const contactSchema = z.object({
@@ -54,6 +58,8 @@ export default function CreateContactModal({
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set())
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [scannedData, setScannedData] = useState<ScannedData | null>(null)
+  const [showLimitModal, setShowLimitModal] = useState(false)
+  const [isPro, setIsPro] = useState(false)
 
   const { 
     register, 
@@ -65,6 +71,27 @@ export default function CreateContactModal({
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema)
   })
+
+  useEffect(() => {
+    const checkCanCreate = async () => {
+      if (user && db) {
+        try {
+          const canCreate = await canCreateContact(user.uid)
+          if (!canCreate) {
+            const userDoc = await getDoc(doc(db, 'users', user.uid))
+            setIsPro(userDoc.data()?.isPro || false)
+            setShowLimitModal(true)
+          }
+        } catch (error) {
+          console.error('Error checking contact creation limit:', error)
+        }
+      }
+    }
+
+    if (isOpen) {
+      checkCanCreate()
+    }
+  }, [isOpen, user])
 
   const handleOCRComplete = (contactData: Partial<Contact> & { imageFile?: File }) => {
     setScannedData(contactData)
@@ -197,6 +224,11 @@ export default function CreateContactModal({
     } else {
       handleConfirmedCancel()
     }
+  }
+
+  const handleLimitModalClose = () => {
+    setShowLimitModal(false)
+    onClose()
   }
 
   if (!isOpen) return null
@@ -419,6 +451,15 @@ export default function CreateContactModal({
             </div>
           </div>
         </div>
+      )}
+
+      {showLimitModal && (
+        <CardLimitModal
+          isPro={isPro}
+          limit={FREE_USER_CONTACT_LIMIT}
+          onClose={handleLimitModalClose}
+          type="contact"
+        />
       )}
     </div>
   )
