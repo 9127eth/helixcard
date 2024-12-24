@@ -257,7 +257,7 @@ export default function ContactsPage() {
               </div>
               <h3 className="text-lg font-medium mb-2 text-center">Simple Export</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                Easily export your contacts. They'll be ready to import into your favorite CRM.
+                Effortlessly export your contacts, making them ready for seamless import into your favorite CRM.
               </p>
             </div>
 
