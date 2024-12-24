@@ -117,10 +117,10 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
         <div className="w-full mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-700 font-medium">{scanError.error}</p>
           {scanError.details && (
-            <p className="mt-2 text-red-600">{scanError.details}</p>
+            <p className="mt-2 text-gray-700">{scanError.details}</p>
           )}
           {scanError.suggestions && (
-            <ul className="mt-2 list-disc list-inside text-red-600 text-sm">
+            <ul className="mt-2 list-disc list-inside text-gray-600 text-sm">
               {scanError.suggestions.map((suggestion, index) => (
                 <li key={index}>{suggestion}</li>
               ))}
