@@ -3,6 +3,7 @@
 import React from 'react';
 import Layout from '../components/Layout';
 import { CreditCardIcon, QrCodeIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { Cpu } from 'react-feather';
 
 const HowItWorksPage: React.FC = () => {
   return (
@@ -39,6 +40,16 @@ const HowItWorksPage: React.FC = () => {
               <div>
                 <h2 className="text-2xl font-semibold mb-2">Update Anytime</h2>
                 <p>Keep your information current by updating your card whenever you need. Changes are reflected instantly for all your contacts.</p>
+              </div>
+            </section>
+
+            <section className="flex items-start gap-6">
+              <div className="w-16 h-16 flex-shrink-0 bg-[#8B9FBF] rounded-full flex items-center justify-center">
+                <Cpu size={24} className="text-black" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold mb-2">AI-Powered Contact Management</h2>
+                <p>Scan business cards using our advanced AI technology to instantly create digital contacts. Organize and manage your professional network with ease, and keep track of all your connections in one place.</p>
               </div>
             </section>
           </div>
