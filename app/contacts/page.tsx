@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Search, Tags, CheckSquare } from 'lucide-react'
+import { Plus, Search, Tags, CheckSquare, Cpu, Save, Download, Lock } from 'lucide-react'
 import Layout from '../components/Layout'
 import ContactList from '../components/contacts/ContactList'
 import CreateContactModal from '../components/contacts/CreateContactModal'
@@ -95,10 +95,10 @@ export default function ContactsPage() {
               {/* Search and Filters Bar */}
               <div className="flex flex-col sm:flex-row gap-4 mb-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-[50%] -translate-y-[70%] text-gray-400 h-4 w-4" />
                   <input
                     type="text"
-                    placeholder="Search contacts..."
+                    placeholder="Search"
                     className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-full dark:border-gray-600 dark:bg-gray-700"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -224,6 +224,56 @@ export default function ContactsPage() {
         onClose={() => setIsExportModalOpen(false)}
         selectedContacts={contacts.filter((c: Contact) => selectedContacts.includes(c.id))}
       />
+
+      {contacts.length <= 2 && (
+        <div className="w-full lg:w-[70%] pl-4 lg:pl-8 pr-4 lg:pr-12 -mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-24">
+            {/* AI Scanning */}
+            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
+              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                <Cpu className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-medium mb-2 text-center">AI-Powered Scanning</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                Quickly scan business cards with our advanced AI and vision technology.
+              </p>
+            </div>
+
+            {/* Contacts Access */}
+            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
+              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-green-100 dark:bg-green-900/20 rounded-full">
+                <Save className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="text-lg font-medium mb-2 text-center">Contacts Always at Your Fingertips</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                Your scanned contacts are always at your fingertips. Never lose a contact again.
+              </p>
+            </div>
+
+            {/* Export Feature */}
+            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
+              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-purple-100 dark:bg-purple-900/20 rounded-full">
+                <Download className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-lg font-medium mb-2 text-center">Simple Export</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                Easily export your contacts. They'll be ready to import into your favorite CRM.
+              </p>
+            </div>
+
+            {/* Security */}
+            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
+              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-amber-100 dark:bg-amber-900/20 rounded-full">
+                <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h3 className="text-lg font-medium mb-2 text-center">Secure Storage</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                Your contacts are securely stored and protected.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 } 
