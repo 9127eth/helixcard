@@ -9,9 +9,16 @@ interface ContactOCRUploadProps {
   onError: (error: string) => void;
 }
 
+interface ErrorResponse {
+  error: string;
+  details?: string;
+  suggestions?: string[];
+}
+
 export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<ErrorResponse | null>(null);
   const { user } = useAuth();
 
   const handleImageUpload = async (file: File) => {
@@ -22,6 +29,7 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
 
     try {
       setIsProcessing(true);
+      setScanError(null);
       // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
@@ -41,15 +49,18 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to process image');
+        const errorData: ErrorResponse = await response.json();
+        setScanError(errorData);
+        onError(errorData.error);
+        return;
       }
 
       const contactData = await response.json();
-      // Pass the file along with the contact data
       onScanComplete({ ...contactData, imageFile: file });
     } catch (error) {
-      onError(error instanceof Error ? error.message : 'Failed to process image');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+      setScanError({ error: errorMessage });
+      onError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -81,7 +92,7 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
       <div className="flex gap-4">
         <label className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none cursor-pointer">
           <Upload className="w-5 h-5" />
-          Upload Image
+          {isProcessing ? 'Processing...' : 'Upload Image'}
           <input
             type="file"
             className="hidden"
@@ -99,6 +110,22 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
           Processing image...
+        </div>
+      )}
+
+      {scanError && (
+        <div className="w-full mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-700 font-medium">{scanError.error}</p>
+          {scanError.details && (
+            <p className="mt-2 text-red-600">{scanError.details}</p>
+          )}
+          {scanError.suggestions && (
+            <ul className="mt-2 list-disc list-inside text-red-600 text-sm">
+              {scanError.suggestions.map((suggestion, index) => (
+                <li key={index}>{suggestion}</li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>

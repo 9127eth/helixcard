@@ -45,7 +45,16 @@ export async function POST(req: Request) {
     const detectedText = result.fullTextAnnotation?.text || '';
 
     if (!detectedText) {
-      return NextResponse.json({ error: 'No text detected in image' }, { status: 400 });
+      return NextResponse.json({
+        error: 'No text detected in image',
+        details: 'The image processing service could not detect any readable text. Please ensure:',
+        suggestions: [
+          'The image is clear and well-lit',
+          'Text is clearly visible and not blurry',
+          'The business card or badge is properly aligned',
+          'There are no reflections or glare on the surface'
+        ]
+      }, { status: 400 });
     }
 
     // Process text with OpenAI
