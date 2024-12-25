@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Upload } from 'react-feather';
 import { Contact } from '../types';
 import { useAuth } from '@/app/hooks/useAuth';
@@ -19,7 +19,18 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
   const [isProcessing, setIsProcessing] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [scanError, setScanError] = useState<ErrorResponse | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+
+  // Add useEffect to trigger file input on mount
+  useEffect(() => {
+    // Small delay to ensure the input is mounted
+    const timer = setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleImageUpload = async (file: File) => {
     if (!user) {
@@ -94,6 +105,7 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
           <Upload className="w-5 h-5" />
           {isProcessing ? 'Processing...' : 'Upload Image'}
           <input
+            ref={fileInputRef}
             type="file"
             className="hidden"
             accept="image/*"
