@@ -280,149 +280,151 @@ export default function CreateContactModal({
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Create New Contact</h2>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setEntryMethod(null)}
-                className="text-sm text-blue-500 hover:text-blue-600"
-              >
-                Change Method
-              </button>
-              <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
-                <X className="h-5 w-5" />
-              </button>
+      <div className="absolute inset-0 flex items-start justify-center overflow-y-auto pt-4 px-4 pb-4">
+        <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow-lg my-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Create New Contact</h2>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setEntryMethod(null)}
+                  className="text-sm text-blue-500 hover:text-blue-600"
+                >
+                  Change Method
+                </button>
+                <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
+
+            {entryMethod === 'scan' && (
+              <ContactOCRUpload
+                onScanComplete={handleOCRComplete}
+                onError={handleOCRError}
+              />
+            )}
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="block text-sm font-medium">
+                  Name *
+                </label>
+                <input
+                  id="name"
+                  {...register('name')}
+                  placeholder="Enter full name"
+                  className={getInputClassName('name')}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-sm font-medium">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    {...register('email')}
+                    placeholder="Email address"
+                    className={getInputClassName('email')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="block text-sm font-medium">
+                    Phone
+                  </label>
+                  <input
+                    id="phone"
+                    {...register('phone')}
+                    placeholder="Phone number"
+                    className={getInputClassName('phone')}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="position" className="block text-sm font-medium">
+                    Position
+                  </label>
+                  <input
+                    id="position"
+                    {...register('position')}
+                    placeholder="Job title"
+                    className={getInputClassName('position')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="company" className="block text-sm font-medium">
+                    Company
+                  </label>
+                  <input
+                    id="company"
+                    {...register('company')}
+                    placeholder="Company name"
+                    className={getInputClassName('company')}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="address" className="block text-sm font-medium">
+                  Address
+                </label>
+                <input
+                  id="address"
+                  {...register('address')}
+                  placeholder="Address"
+                  className={getInputClassName('address')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Tags</label>
+                <TagSelector
+                  selectedTags={selectedTags}
+                  onChange={setSelectedTags}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="note" className="block text-sm font-medium">
+                  Notes
+                </label>
+                <textarea
+                  id="note"
+                  {...register('note')}
+                  placeholder="Add a note..."
+                  rows={3}
+                  className={getInputClassName('note')}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-3 py-1.5 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90 disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Contact'}
+                </button>
+              </div>
+            </form>
           </div>
-
-          {entryMethod === 'scan' && (
-            <ContactOCRUpload
-              onScanComplete={handleOCRComplete}
-              onError={handleOCRError}
-            />
-          )}
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium">
-                Name *
-              </label>
-              <input
-                id="name"
-                {...register('name')}
-                placeholder="Enter full name"
-                className={getInputClassName('name')}
-              />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  {...register('email')}
-                  placeholder="Email address"
-                  className={getInputClassName('email')}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="phone" className="block text-sm font-medium">
-                  Phone
-                </label>
-                <input
-                  id="phone"
-                  {...register('phone')}
-                  placeholder="Phone number"
-                  className={getInputClassName('phone')}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="position" className="block text-sm font-medium">
-                  Position
-                </label>
-                <input
-                  id="position"
-                  {...register('position')}
-                  placeholder="Job title"
-                  className={getInputClassName('position')}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="company" className="block text-sm font-medium">
-                  Company
-                </label>
-                <input
-                  id="company"
-                  {...register('company')}
-                  placeholder="Company name"
-                  className={getInputClassName('company')}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="address" className="block text-sm font-medium">
-                Address
-              </label>
-              <input
-                id="address"
-                {...register('address')}
-                placeholder="Address"
-                className={getInputClassName('address')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Tags</label>
-              <TagSelector
-                selectedTags={selectedTags}
-                onChange={setSelectedTags}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="note" className="block text-sm font-medium">
-                Notes
-              </label>
-              <textarea
-                id="note"
-                {...register('note')}
-                placeholder="Add a note..."
-                rows={3}
-                className={getInputClassName('note')}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-3 py-1.5 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90 disabled:opacity-50"
-              >
-                {isSubmitting ? 'Creating...' : 'Create Contact'}
-              </button>
-            </div>
-          </form>
         </div>
       </div>
 
