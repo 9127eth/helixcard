@@ -80,8 +80,8 @@ export default function ContactsPage() {
         <div className="w-full max-w-[1200px] flex">
           <div className="w-full lg:w-[70%] pl-4 lg:pl-8 pr-4 lg:pr-12">
             {/* Header */}
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-4">
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-6">
                 <h1 className="text-5xl font-bold">Contacts</h1>
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
@@ -92,9 +92,9 @@ export default function ContactsPage() {
                 </button>
               </div>
               
-              {/* Search and Filters Bar */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-2">
-                <div className="relative flex-1">
+              {/* Search Bar with fixed width */}
+              <div className="mb-4">
+                <div className="relative w-[400px]">
                   <Search className="absolute left-3 top-[50%] -translate-y-[70%] text-gray-400 h-4 w-4" />
                   <input
                     type="text"
@@ -104,36 +104,38 @@ export default function ContactsPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <div className="flex gap-2">
-                  <TagSelector 
-                    selectedTags={selectedTags}
-                    onChange={setSelectedTags}
-                    isFilter={true}
-                    allowCreate={false}
-                  />
-                  <button
-                    onClick={() => setIsManageTagsOpen(true)}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 min-w-[80px]"
-                  >
-                    <Tags className="h-3.5 w-3.5" />
-                    <span>Tags</span>
-                  </button>
-                  <SortButton 
-                    currentSort={sortOption}
-                    onSort={setSortOption}
-                  />
-                  <button
-                    onClick={() => setIsSelectionMode(!isSelectionMode)}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full dark:border-gray-600 min-w-[80px] ${
-                      isSelectionMode 
-                        ? 'bg-gray-300 dark:bg-gray-700'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <CheckSquare className="h-3.5 w-3.5" />
-                    <span>Select</span>
-                  </button>
-                </div>
+              </div>
+
+              {/* Filters Row - Left aligned with consistent button heights */}
+              <div className="flex items-center gap-2">
+                <TagSelector 
+                  selectedTags={selectedTags}
+                  onChange={setSelectedTags}
+                  isFilter={true}
+                  allowCreate={false}
+                />
+                <button
+                  onClick={() => setIsManageTagsOpen(true)}
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 h-12 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700 min-w-[80px]"
+                >
+                  <Tags className="h-3.5 w-3.5" />
+                  <span>Tags</span>
+                </button>
+                <SortButton 
+                  currentSort={sortOption}
+                  onSort={setSortOption}
+                />
+                <button
+                  onClick={() => setIsSelectionMode(!isSelectionMode)}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-1.5 h-12 text-sm border border-gray-300 rounded-full dark:border-gray-600 min-w-[80px] ${
+                    isSelectionMode 
+                      ? 'bg-gray-300 dark:bg-gray-700'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  <span>Select</span>
+                </button>
               </div>
             </div>
             
