@@ -85,9 +85,9 @@ export default function ContactsPage() {
                 <h1 className="text-5xl font-bold">Contacts</h1>
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 h-12 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 h-9 text-xs bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-3 w-3" />
                   <span>Add Contact</span>
                 </button>
               </div>
