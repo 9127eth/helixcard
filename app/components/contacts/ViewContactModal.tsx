@@ -204,7 +204,6 @@ export default function ViewContactModal({
           {/* Business Card Image */}
           {contact.imageUrl && (
             <div>
-              <h4 className="font-medium mb-2">Business Card Image</h4>
               <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                 <Image
                   src={contact.imageUrl}

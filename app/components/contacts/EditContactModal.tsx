@@ -269,7 +269,7 @@ export default function EditContactModal({
               Image
             </label>
             
-            {!showImageUpload && (imagePreview || contact.imageUrl) && contact.imageUrl !== undefined && (
+            {!showImageUpload && (imagePreview || contact.imageUrl) && (
               <div className="relative">
                 <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                   <Image
