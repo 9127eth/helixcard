@@ -85,8 +85,13 @@ export async function updateContact(
     updates.lastName = nameParts.slice(1).join(' ');
   }
 
-  updates.dateModified = new Date().toISOString();
-  await updateDoc(contactRef, updates);
+  // Use serverTimestamp for consistent formatting with dateAdded
+  const updatesWithTimestamp = {
+    ...updates,
+    dateModified: serverTimestamp()
+  };
+
+  await updateDoc(contactRef, updatesWithTimestamp);
 }
 
 // Delete a contact
