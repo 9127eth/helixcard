@@ -208,6 +208,7 @@ export default function ContactsPage() {
             onClose={() => {
               setIsEditModalOpen(false)
               setIsViewModalOpen(true)
+              setSelectedContact(null)
             }}
             contact={selectedContact}
             onSuccess={(updatedContact) => {
