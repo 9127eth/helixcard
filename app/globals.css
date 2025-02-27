@@ -39,51 +39,59 @@
   --phone-input-text: black;
   --phone-input-hover: #f3f4f6;
   --contact-depth: #E1DBC6;  /* Add this line for contact depth color */
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
-.dark {
-  --background: #323338;
-  --foreground: #dddee3;
-  --primary: #7CCEDA;
-  --primary-text: #dddee3;
-  --card-header-bg: #2c2d31;
-  --card-footer-bg: #323338;
-  --card-grid-background: #2f3136;
-  --end-card-bg: #323338;
-  --sidebar-bg: #2c2d31;
-  --input-bg: #1e1f23;
-  --phone-input-bg: #374051;
-  --phone-input-text: white;
-  --phone-input-hover: #4a5568;
-  --card-depth: #7CCEDA; /* Add this line for dark mode */
-  
-  --social-tile-bg: #40444b;
-  --social-icon-color: #ffffff;
-  --social-text-color: #dcddde;
-  --body-primary-text: #dcddde;
-  --header-footer-primary-text: #dddee3;
-  --header-footer-secondary-text: #b9bbbe;
-  --send-text-button-bg: #40444b;
-  --send-text-button-text: #dddee3;
-  --save-contact-button-bg: #7CCEDA;
-  --save-contact-button-text: #323338;
-  --link-icon-color: #FF6A42;  /* Changed to reddish color */
-  --link-text-color: #dcddde;
-  --end-card-header-secondary-text-color: #b9bbbe;
-  --share-modal-bg: #2f3136;
-  --card-grid-icon-button-bg: #2f3136;  /* Added this line */
-  --card-grid-icon-button-text: #dddee3;  /* Added this line */
-  --primary-hover: #7CCEDA;  /* Slightly darker shade of primary for dark mode */
-  --primary-text-hover: #323338;
-  --collapsible-header-hover: #323338;
-  --preview-button-text: #323338;  /* Add this line inside the .dark selector */
-  --card-grid-secondary-text: #a5a6aa;
-  --button-text: #323338;   /* Add new variable specifically for button text */
-  --contact-depth: #E1DBC6;  /* Add this line for dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #323338;
+    --foreground: #dddee3;
+    --primary: #7CCEDA;
+    --primary-text: #dddee3;
+    --card-header-bg: #2c2d31;
+    --card-footer-bg: #323338;
+    --card-grid-background: #2f3136;
+    --end-card-bg: #323338;
+    --sidebar-bg: #2c2d31;
+    --input-bg: #1e1f23;
+    --phone-input-bg: #374051;
+    --phone-input-text: white;
+    --phone-input-hover: #4a5568;
+    --card-depth: #7CCEDA; /* Add this line for dark mode */
+    
+    --social-tile-bg: #40444b;
+    --social-icon-color: #ffffff;
+    --social-text-color: #dcddde;
+    --body-primary-text: #dcddde;
+    --header-footer-primary-text: #dddee3;
+    --header-footer-secondary-text: #b9bbbe;
+    --send-text-button-bg: #40444b;
+    --send-text-button-text: #dddee3;
+    --save-contact-button-bg: #7CCEDA;
+    --save-contact-button-text: #323338;
+    --link-icon-color: #FF6A42;  /* Changed to reddish color */
+    --link-text-color: #dcddde;
+    --end-card-header-secondary-text-color: #b9bbbe;
+    --share-modal-bg: #2f3136;
+    --card-grid-icon-button-bg: #2f3136;  /* Added this line */
+    --card-grid-icon-button-text: #dddee3;  /* Added this line */
+    --primary-hover: #7CCEDA;  /* Slightly darker shade of primary for dark mode */
+    --primary-text-hover: #323338;
+    --collapsible-header-hover: #323338;
+    --preview-button-text: #323338;  /* Add this line inside the .dark selector */
+    --card-grid-secondary-text: #a5a6aa;
+    --button-text: #323338;   /* Add new variable specifically for button text */
+    --contact-depth: #E1DBC6;  /* Add this line for dark mode */
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
 }
 
 body {
-  color: var(--foreground);
+  color: rgb(var(--foreground-rgb));
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
   letter-spacing: theme('letterSpacing.tight');
@@ -97,6 +105,40 @@ body {
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Animation for the scanning effect */
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(100%);
+    }
+  }
+  
+  .animate-scan {
+    animation: scan 2s ease-in-out infinite;
+  }
+  
+  /* Animation for pulse with delay option */
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .delay-300 {
+    animation-delay: 300ms;
   }
 }
 
