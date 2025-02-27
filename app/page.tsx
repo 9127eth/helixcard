@@ -7,7 +7,7 @@ import { AuthModal } from './components/AuthModal';
 import DashboardPage from './dashboard/page';
 import LoadingSpinner from './components/LoadingSpinner';
 import Image from 'next/image';
-import { FaArrowRight, FaApple } from 'react-icons/fa';
+import { FaArrowRight, FaApple, FaMagic } from 'react-icons/fa';
 import { Cpu, Users, CreditCard } from 'react-feather';
 
 export default function Home() {
@@ -84,7 +84,7 @@ export default function Home() {
             
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-[#F5FDFD] dark:bg-gray-700 p-8 rounded-xl text-center">
-                <div className="bg-[#E1DBC6] dark:bg-gray-600 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <div className="bg-[#B8EB41] dark:bg-gray-600 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
                   <CreditCard className="text-gray-800 dark:text-[#7CCEDA] text-2xl" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Digital First</h3>
@@ -93,14 +93,14 @@ export default function Home() {
               
               <div className="bg-[#F5FDFD] dark:bg-gray-700 p-8 rounded-xl text-center">
                 <div className="bg-[#7CCEDA] dark:bg-gray-600 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
-                  <Cpu className="text-gray-800 dark:text-[#7CCEDA] text-2xl" />
+                  <FaMagic className="text-gray-800 dark:text-[#7CCEDA] text-2xl" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">AI-Powered Scanning</h3>
                 <p className="text-gray-600 dark:text-gray-300">Quickly scan business cards with our advanced AI technology to instantly create digital contacts.</p>
               </div>
               
               <div className="bg-[#F5FDFD] dark:bg-gray-700 p-8 rounded-xl text-center">
-                <div className="bg-[#E1DBC6] dark:bg-gray-600 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <div className="bg-[#FC9A99] dark:bg-gray-600 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
                   <Users className="text-gray-800 dark:text-[#7CCEDA] text-2xl" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Build Connections</h3>
@@ -122,6 +122,15 @@ export default function Home() {
               Create Your Card Now
               <FaArrowRight className="ml-2" />
             </a>
+          </div>
+        </div>
+
+        {/* Copyright Footer */}
+        <div className="bg-white dark:bg-gray-900 py-6">
+          <div className="container mx-auto px-4 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              © {new Date().getFullYear()} Helix Business Card. All rights reserved.
+            </p>
           </div>
         </div>
       </div>
