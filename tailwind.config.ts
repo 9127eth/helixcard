@@ -46,6 +46,15 @@ const config: Config = {
       backgroundColor: {
         'card-grid-background': 'var(--card-grid-background)',
       },
+      animation: {
+        'pulse-glow': 'pulse-glow 2s infinite',
+      },
+      keyframes: {
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 0 rgba(124, 206, 218, 0)' },
+          '50%': { boxShadow: '0 0 20px rgba(124, 206, 218, 0.5)' },
+        },
+      },
     },
   },
   plugins: [],

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import { AuthModal } from './components/AuthModal';
@@ -14,6 +14,47 @@ import { Users, CreditCard, Smartphone } from 'react-feather';
 
 export default function Home() {
   const { user, loading } = useAuth();
+
+  // Add smooth scrolling behavior to the page
+  useEffect(() => {
+    // Add smooth scrolling to the HTML element
+    document.documentElement.style.scrollBehavior = 'smooth';
+    
+    // Handle anchor clicks with offset
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a[href^="#"]');
+      
+      if (anchor) {
+        e.preventDefault();
+        const targetId = anchor.getAttribute('href');
+        if (targetId && targetId.startsWith('#')) {
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            const headerOffset = 80; // Adjust based on your header height
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+            
+            // Update URL without causing a jump
+            history.pushState(null, '', targetId);
+          }
+        }
+      }
+    };
+    
+    document.addEventListener('click', handleAnchorClick);
+    
+    // Clean up when component unmounts
+    return () => {
+      document.documentElement.style.scrollBehavior = '';
+      document.removeEventListener('click', handleAnchorClick);
+    };
+  }, []);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -109,14 +150,24 @@ export default function Home() {
                 <p className="text-gray-600 dark:text-gray-300">Manage your network effectively with our built-in contact management system.</p>
               </div>
             </div>
+            
+            <div className="mt-12 text-center">
+              <a 
+                href="#pricing"
+                className="px-8 py-3 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg inline-flex items-center justify-center transition-colors duration-300"
+              >
+                View Pricing
+                <FaArrowRight className="ml-2" />
+              </a>
+            </div>
           </div>
         </div>
 
         {/* Detailed Features Section */}
-        <div className="bg-[#F5FDFD] dark:bg-gray-900 py-20">
+        <div id="features" className="bg-[#F5FDFD] dark:bg-gray-900 py-20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800 dark:text-white">Powerful Features for Modern Networking</h2>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800 dark:text-white">Powerful Features for <span className="text-[#7CCEDA] dark:text-[#7CCEDA]">Modern Networking</span></h2>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
                 Discover all the ways Helix can transform your professional connections and streamline your networking experience.
               </p>
@@ -392,6 +443,341 @@ export default function Home() {
                   <h4 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">NFC Capabilities</h4>
                   <p className="text-gray-600 dark:text-gray-300">
                     Add your digital card to physical NFC devices for instant sharing with a simple tap.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Comparison Section */}
+        <div id="pricing" className="bg-gradient-to-b from-white to-[#F5FDFD] dark:from-gray-800 dark:to-gray-700 py-24">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800 dark:text-white">Smart Networking, <span className="text-[#7CCEDA] dark:text-[#7CCEDA]">Smart Pricing</span></h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                See how Helix transforms not just your networking experience, but your budget too.
+              </p>
+            </div>
+
+            {/* Pricing Cards - 3 Column Layout */}
+            <div className="grid md:grid-cols-3 gap-8 mb-16 max-w-6xl mx-auto">
+              {/* Traditional Cards */}
+              <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div className="bg-gray-500 text-white py-4 px-4 text-center font-medium">
+                  Traditional Cards
+                </div>
+                <div className="p-8">
+                  <div className="flex justify-center mb-6">
+                    <div className="bg-red-100 dark:bg-red-900/30 w-20 h-20 rounded-full flex items-center justify-center">
+                      <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center mb-8">
+                    <div className="text-5xl font-bold text-gray-800 dark:text-white mb-2">$320<span className="text-2xl">+</span></div>
+                    <p className="text-gray-500 dark:text-gray-400">per year</p>
+                  </div>
+                  
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-red-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Constant reordering costs</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-red-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Limited information space</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-red-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Easy to forget or run out</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-red-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Environmental waste</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-red-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Manual contact management</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Helix Basic */}
+              <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div className="bg-[#B8EB41] text-gray-800 py-4 px-4 text-center font-medium">
+                  Helix Basic
+                </div>
+                <div className="p-8">
+                  <div className="flex justify-center mb-6">
+                    <div className="bg-[#B8EB41]/20 dark:bg-[#B8EB41]/30 w-20 h-20 rounded-full flex items-center justify-center">
+                      <svg className="w-10 h-10 text-[#B8EB41]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center mb-8">
+                    <div className="text-5xl font-bold text-gray-800 dark:text-white mb-2">$0</div>
+                    <p className="text-gray-500 dark:text-gray-400">forever</p>
+                  </div>
+                  
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#B8EB41] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">1 digital business card</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#B8EB41] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Basic contact information</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#B8EB41] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Link to physical NFC card</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#B8EB41] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Add to Apple Wallet</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#B8EB41] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Unlimited sharing</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto">
+                    <a 
+                      href="#auth"
+                      className="block w-full py-3 bg-[#B8EB41] hover:bg-[#a6d53a] text-gray-800 font-medium rounded-lg text-center transition-colors duration-300"
+                    >
+                      Get Started Free
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Helix Pro - Highlighted */}
+              <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative border-2 border-[#7CCEDA] animate-pulse-glow">
+                <div className="absolute top-4 right-4">
+                  <div className="bg-[#FC9A99] text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                    Most Popular
+                  </div>
+                </div>
+                <div className="bg-[#7CCEDA] text-gray-800 py-4 px-4 text-center font-medium">
+                  Helix Pro
+                </div>
+                <div className="p-8">
+                  <div className="flex justify-center mb-6">
+                    <div className="bg-[#7CCEDA]/20 dark:bg-[#7CCEDA]/30 w-20 h-20 rounded-full flex items-center justify-center">
+                      <svg className="w-10 h-10 text-[#7CCEDA]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center mb-8">
+                    <div className="text-5xl font-bold text-gray-800 dark:text-white mb-2">$19.99</div>
+                    <p className="text-gray-500 dark:text-gray-400">lifetime access</p>
+                    <div className="mt-2 text-sm">
+                      <span className="text-[#7CCEDA] font-medium">Also available:</span> $2.99/month or $12.99/year
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4 mb-8">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#7CCEDA] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300"><strong>Everything in Basic</strong></p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#7CCEDA] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Up to 10 business cards</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#7CCEDA] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">AI card scanning</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#7CCEDA] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">CV/Resume upload</p>
+                    </div>
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-[#7CCEDA] mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <p className="text-gray-600 dark:text-gray-300">Advanced analytics</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto">
+                    <a 
+                      href="#auth"
+                      className="block w-full py-3 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg text-center transition-colors duration-300"
+                    >
+                      Get Started
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Add See Features button after pricing cards */}
+            <div className="text-center mt-8 mb-16">
+              <a 
+                href="#features"
+                className="px-6 py-2 bg-white hover:bg-gray-50 text-gray-800 font-medium rounded-lg inline-flex items-center justify-center transition-colors duration-300 border border-gray-300"
+              >
+                See All Features
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                </svg>
+              </a>
+            </div>
+            
+            {/* ROI Calculator */}
+            <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
+              <h3 className="text-2xl font-bold mb-8 text-center text-gray-800 dark:text-white">Your Savings with Helix Pro</h3>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-700 dark:text-gray-200 mb-3">Traditional Card Costs</h4>
+                    <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 dark:text-gray-300">Initial order (250 cards)</span>
+                        <span className="font-medium text-gray-800 dark:text-white">$50</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 dark:text-gray-300">Reordering (3x per year)</span>
+                        <span className="font-medium text-gray-800 dark:text-white">$150</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 dark:text-gray-300">Card holders & storage</span>
+                        <span className="font-medium text-gray-800 dark:text-white">$20</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 dark:text-gray-300">Time spent managing</span>
+                        <span className="font-medium text-gray-800 dark:text-white">$100+</span>
+                      </div>
+                      <div className="h-px bg-gray-200 dark:bg-gray-500 my-2"></div>
+                      <div className="flex justify-between items-center font-bold">
+                        <span className="text-gray-800 dark:text-white">Annual cost</span>
+                        <span className="text-gray-800 dark:text-white">$320+</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-700 dark:text-gray-200 mb-3">Helix Pro Costs</h4>
+                    <div className="bg-[#F5FDFD] dark:bg-gray-600 rounded-lg p-4 border border-[#7CCEDA]">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 dark:text-gray-300">Lifetime Pro subscription</span>
+                        <span className="font-medium text-gray-800 dark:text-white">$19.99</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 dark:text-gray-300">Annual maintenance</span>
+                        <span className="font-medium text-gray-800 dark:text-white">$0</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600 dark:text-gray-300">Time spent managing</span>
+                        <span className="font-medium text-gray-800 dark:text-white">$0</span>
+                      </div>
+                      <div className="h-px bg-gray-200 dark:bg-gray-500 my-2"></div>
+                      <div className="flex justify-between items-center font-bold">
+                        <span className="text-gray-800 dark:text-white">Lifetime cost</span>
+                        <span className="text-gray-800 dark:text-white">$19.99</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col justify-center">
+                  <div className="text-center p-6 bg-gradient-to-br from-[#F5FDFD] to-white dark:from-gray-600 dark:to-gray-700 rounded-xl border border-[#7CCEDA] shadow-md">
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">Your savings with Helix Pro:</p>
+                    <div className="text-6xl font-bold text-[#7CCEDA] mb-4">$1,580+</div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Based on $320+ annual cost of traditional cards over 5 years ($1,600+) minus the one-time $19.99 Helix Pro lifetime subscription</p>
+                    
+                    <div className="mt-6">
+                      <a 
+                        href="#auth"
+                        className="inline-block px-6 py-3 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg transition-colors duration-300"
+                      >
+                        Start Saving Today
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Additional Benefits */}
+            <div className="mt-16 text-center">
+              <h3 className="text-2xl font-bold mb-8 text-gray-800 dark:text-white">Beyond the Savings</h3>
+              
+              <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md">
+                  <div className="bg-[#7CCEDA]/20 dark:bg-[#7CCEDA]/30 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-[#7CCEDA]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Increased Reach</h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    Share your digital card with anyone, anywhere, anytime - no physical limitations
+                  </p>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md">
+                  <div className="bg-[#B8EB41]/20 dark:bg-[#B8EB41]/30 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-[#B8EB41]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Time Efficiency</h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    No more manual data entry or organizing physical cards in holders
+                  </p>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md">
+                  <div className="bg-[#FC9A99]/20 dark:bg-[#FC9A99]/30 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-[#FC9A99]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Professional Image</h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    Stand out with modern networking technology that impresses connections
                   </p>
                 </div>
               </div>
