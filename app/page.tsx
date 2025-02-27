@@ -8,9 +8,9 @@ import DashboardPage from './dashboard/page';
 import LoadingSpinner from './components/LoadingSpinner';
 import Image from 'next/image';
 import { FaArrowRight, FaApple, FaMagic, FaUserTie, FaFileAlt, FaCamera, FaWallet, FaLayerGroup, FaPalette, FaLink, FaFileExport, 
-  FaLinkedin, FaInstagram, FaGlobe, FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaQrcode, FaIdCard, FaFacebook, FaYoutube } from 'react-icons/fa';
+  FaLinkedin, FaInstagram, FaGlobe, FaPhoneAlt, FaEnvelope, FaIdCard, FaFacebook, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import { Users, CreditCard, Smartphone, Zap } from 'react-feather';
+import { Users, CreditCard, Smartphone } from 'react-feather';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -129,7 +129,7 @@ export default function Home() {
                   <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Personalized Digital Cards</h3>
                   <div className="h-1 w-20 bg-[#7CCEDA] mb-6"></div>
                   <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                    Create your perfect digital identity with Helix's powerful customization tools. Design cards that truly represent you and your brand.
+                    Create your perfect digital identity with Helix&apos;s powerful customization tools. Design cards that truly represent you and your brand.
                   </p>
                   <div className="space-y-4">
                     <div className="flex items-start">
@@ -395,16 +395,6 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-            </div>
-            
-            <div className="mt-16 text-center">
-              <a 
-                href="#auth"
-                className="px-8 py-4 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg inline-flex items-center justify-center transition-colors duration-300 shadow-md hover:shadow-lg"
-              >
-                Create Your Digital Card
-                <FaArrowRight className="ml-2" />
-              </a>
             </div>
           </div>
         </div>

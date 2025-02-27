@@ -25,6 +25,7 @@
     "clsx": "^2.1.1",
     "firebase": "^10.13.1",
     "firebase-admin": "^12.5.0",
+    "framer-motion": "^12.4.7",
     "googleapis": "^144.0.0",
     "libphonenumber-js": "^1.11.9",
     "lucide-react": "^0.468.0",
