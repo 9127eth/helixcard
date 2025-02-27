@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Layout from '../components/Layout';
 import { BusinessCardList } from '../components/BusinessCardList';
-import { CreateCardIcon } from '../components/smallcreatecardbutton';
 import CardLimitModal from '../components/CardLimitModal';
 import { useAuth } from '../hooks/useAuth';
 import { canCreateCard } from '../lib/firebaseOperations';
@@ -11,6 +10,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from '../lib/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { PlusIcon } from '@heroicons/react/24/solid';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -47,8 +47,14 @@ const DashboardPage: React.FC = () => {
       <div className="p-6">
         <div className="flex items-center mb-6">
           <h1 className="text-6xl font-bold">Business Cards</h1>
-          <div className="pl-2">
-            <CreateCardIcon onClick={handleCreateCard} />
+          <div className="pl-4">
+            <button
+              onClick={handleCreateCard}
+              className="flex items-center justify-center gap-1 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--primary-text)] font-medium py-1.5 px-3 rounded-md text-sm transition-colors duration-200"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span>New Card</span>
+            </button>
           </div>
         </div>
         <BusinessCardList userId={user.uid} />
