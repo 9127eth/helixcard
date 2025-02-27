@@ -8,7 +8,7 @@ import DashboardPage from './dashboard/page';
 import LoadingSpinner from './components/LoadingSpinner';
 import Image from 'next/image';
 import { FaArrowRight, FaApple, FaMagic } from 'react-icons/fa';
-import { Cpu, Users, CreditCard } from 'react-feather';
+import { Users, CreditCard } from 'react-feather';
 
 export default function Home() {
   const { user, loading } = useAuth();
