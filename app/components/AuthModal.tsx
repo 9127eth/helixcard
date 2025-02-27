@@ -11,7 +11,6 @@ import dynamic from 'next/dynamic';
 import { createUserDocument } from '../lib/firebaseOperations';
 import { FaApple } from 'react-icons/fa';
 import { getDeviceInfo } from '../utils/deviceDetection';
-import Image from 'next/image';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -184,7 +183,7 @@ export const AuthModal: React.FC = () => {
       {isLogin && !isForgotPassword && (
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?
+            Don&apos;t have an account?
           </p>
           <button
             onClick={toggleAuthMode}
