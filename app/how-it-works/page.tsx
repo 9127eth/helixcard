@@ -191,7 +191,7 @@ const HowItWorksPage: React.FC = () => {
             <span className="text-[#7CCEDA] dark:text-[#7CCEDA]">Network Smarter</span> with Helix
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Manage your business cards or explore your contacts to make the most of Helix's powerful features.
+            Manage your business cards or explore your contacts to make the most of Helix&apos;s powerful features.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
