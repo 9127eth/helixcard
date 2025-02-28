@@ -187,7 +187,7 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({
     <BusinessCardForm
       onSuccess={handleCreateCard}
       isEditing={false}  // Explicitly set this for clarity
-      onChange={handleFormChange}
+      onChange={onCardDataChange ? handleFormChange : undefined}
     />
   );
 };

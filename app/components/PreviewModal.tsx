@@ -8,7 +8,7 @@ import { BusinessCard } from '@/app/types';
 interface PreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  card: BusinessCard;
+  card: BusinessCard | null;
   username?: string;
 }
 
@@ -50,6 +50,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
       return () => clearTimeout(timer);
     }
   }, [copied]);
+
+  // If no card is provided or modal is not open, don't render anything
+  if (!card || !isOpen) return null;
 
   const getDeviceFrame = () => {
     if (isMobile) {
@@ -95,9 +98,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
   const openInBrowser = () => {
     window.open(cardUrl, '_blank');
   };
-
-  // If card is null or undefined, don't render the modal
-  if (!isOpen || !card) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70">
