@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Search, Tags, CheckSquare, Cpu, Save, Download, Lock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Search, Tags, CheckSquare, Cpu, Save, Download, Lock, Users } from 'lucide-react'
 import Layout from '../components/Layout'
 import ContactList from '../components/contacts/ContactList'
 import CreateContactModal from '../components/contacts/CreateContactModal'
@@ -32,6 +32,12 @@ export default function ContactsPage() {
   const { user } = useAuth()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [sortOption, setSortOption] = useState<'firstName' | 'dateAdded'>('dateAdded')
+  const [showProTip, setShowProTip] = useState(true)
+
+  // Add a useEffect to log contacts changes for debugging
+  useEffect(() => {
+    console.log('Contacts state updated:', contacts.length, 'contacts');
+  }, [contacts]);
 
   const handleSelectionChange = (selectedIds: string[]) => {
     setSelectedContacts(selectedIds)
@@ -83,14 +89,81 @@ export default function ContactsPage() {
             <div className="mb-6">
               <div className="flex justify-between items-center mb-6">
                 <h1 className="text-5xl font-bold">Contacts</h1>
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 h-9 text-xs bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90"
-                >
-                  <Plus className="h-3 w-3" />
-                  <span>Add Contact</span>
-                </button>
+                {contacts.length > 0 && (
+                  <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 h-9 text-xs bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90"
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>Add Contact</span>
+                  </button>
+                )}
               </div>
+              
+              {/* Welcome Hero Section */}
+              {contacts.length === 0 && (
+                <div className="mb-8 bg-gradient-to-r from-[#F5FDFD] to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-8 shadow-sm">
+                  <div className="flex flex-col md:flex-row items-center">
+                    <div className="w-full md:w-3/5 mb-6 md:mb-0 md:pr-8">
+                      <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-800 dark:text-white">
+                        Your Network <span className="text-[#7CCEDA] dark:text-[#7CCEDA]">Organized</span>
+                      </h2>
+                      <p className="text-gray-700 dark:text-gray-300 mb-4">
+                        This is where all your professional connections live. Add contacts manually or use our AI-powered scanning tool on your mobile device to instantly capture business cards.
+                      </p>
+                      <div className="flex flex-wrap gap-4 mt-6">
+                        <button
+                          onClick={() => setIsCreateModalOpen(true)}
+                          className="px-5 py-2 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add first contact
+                        </button>
+                      </div>
+                    </div>
+                    <div className="w-full md:w-2/5 flex justify-center">
+                      <div className="relative w-48 h-48 md:w-64 md:h-64">
+                        <div className="absolute inset-0 bg-[#B8EB41] dark:bg-[#7CCEDA]/20 rounded-full opacity-20 animate-pulse"></div>
+                        <div className="absolute inset-4 bg-[#7CCEDA] dark:bg-[#7CCEDA]/40 rounded-full opacity-30"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-white dark:bg-gray-800 p-4 rounded-full shadow-lg">
+                            <Cpu className="w-16 h-16 md:w-20 md:h-20 text-[#7CCEDA]" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Subtle Info Banner - Always Visible */}
+              {contacts.length > 0 && showProTip && (
+                <div className="mb-6 bg-[#F5FDFD] dark:bg-gray-800/50 rounded-lg p-4 border-l-4 border-[#7CCEDA] shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="mr-4 flex-shrink-0">
+                        <div className="bg-[#7CCEDA]/20 p-2 rounded-full">
+                          <Tags className="h-5 w-5 text-[#7CCEDA]" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium">Pro Tip:</span> Use tags to group your contacts together for easy filtering and bulk exports.
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowProTip(false)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                      aria-label="Dismiss tip"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
               
               {/* Search Bar with fixed width */}
               <div className="mb-4">
@@ -139,7 +212,8 @@ export default function ContactsPage() {
               </div>
             </div>
             
-            {/* Contact List */}
+            {/* Contact List - Only show when there are contacts */}
+            <div className="contact-list-empty-check" style={{ display: 'none' }}></div>
             <ContactList 
               key={contactListKey}
               searchQuery={searchQuery} 
@@ -147,13 +221,79 @@ export default function ContactsPage() {
               sortOption={sortOption}
               isSelectionMode={isSelectionMode}
               onSelectionChange={handleSelectionChange}
-              onContactsChange={setContacts}
+              onContactsChange={(newContacts) => {
+                console.log('ContactList onContactsChange called with', newContacts.length, 'contacts');
+                setContacts(newContacts);
+              }}
               onBulkAddTag={handleBulkAddTag}
               onBulkExport={handleBulkExport}
               onBulkDelete={handleBulkDelete}
               onView={handleViewContact}
               onEdit={handleEditContact}
             />
+
+            {/* Enhanced Empty State - Reduced top margin */}
+            {contacts.length === 0 && (
+              <div className="mt-6 mb-24">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-[#F5FDFD] dark:bg-gray-700 rounded-full mb-6">
+                      <Users className="h-10 w-10 text-[#7CCEDA]" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Your Contact List is Empty</h3>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                      Start building your network by adding your first contact. You can add contacts manually or import them using our AI scanner.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* AI Scanning */}
+                    <div className="flex flex-col items-center p-6 bg-[#F5FDFD] dark:bg-gray-700/50 rounded-lg">
+                      <div className="w-12 h-12 mb-3 flex items-center justify-center bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                        <Cpu className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2 text-center">AI-Powered Scanning</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                        Quickly scan business cards with our advanced AI and vision technology.
+                      </p>
+                    </div>
+
+                    {/* Contacts Access */}
+                    <div className="flex flex-col items-center p-6 bg-[#F5FDFD] dark:bg-gray-700/50 rounded-lg">
+                      <div className="w-12 h-12 mb-3 flex items-center justify-center bg-green-100 dark:bg-green-900/20 rounded-full">
+                        <Save className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2 text-center">Contacts Always at Your Fingertips</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                        Your scanned contacts are always at your fingertips. Never lose a contact again.
+                      </p>
+                    </div>
+
+                    {/* Export Feature */}
+                    <div className="flex flex-col items-center p-6 bg-[#F5FDFD] dark:bg-gray-700/50 rounded-lg">
+                      <div className="w-12 h-12 mb-3 flex items-center justify-center bg-purple-100 dark:bg-purple-900/20 rounded-full">
+                        <Download className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2 text-center">Simple Export</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                        Effortlessly export your contacts, making them ready for seamless import into your favorite CRM.
+                      </p>
+                    </div>
+
+                    {/* Security */}
+                    <div className="flex flex-col items-center p-6 bg-[#F5FDFD] dark:bg-gray-700/50 rounded-lg">
+                      <div className="w-12 h-12 mb-3 flex items-center justify-center bg-amber-100 dark:bg-amber-900/20 rounded-full">
+                        <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2 text-center">Secure Storage</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                        Your contacts are securely stored and protected.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="hidden lg:block lg:w-[30%] bg-background"></div>
         </div>
@@ -166,6 +306,13 @@ export default function ContactsPage() {
         onSuccess={() => {
           // Force refresh the contact list
           setContactListKey(Date.now().toString())
+          // Ensure we're showing the contact list view after adding a contact
+          // This is a workaround in case the contacts state isn't immediately updated
+          setTimeout(() => {
+            if (document.querySelector('.contact-list-empty-check')) {
+              window.location.reload();
+            }
+          }, 500);
         }}
         lastUsedTag={selectedTags[0]}
       />
@@ -227,56 +374,6 @@ export default function ContactsPage() {
         onClose={() => setIsExportModalOpen(false)}
         selectedContacts={contacts.filter((c: Contact) => selectedContacts.includes(c.id))}
       />
-
-      {contacts.length <= 2 && (
-        <div className="w-full lg:w-[70%] pl-4 lg:pl-8 pr-4 lg:pr-12 -mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-24">
-            {/* AI Scanning */}
-            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
-              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                <Cpu className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="text-lg font-medium mb-2 text-center">AI-Powered Scanning</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                Quickly scan business cards with our advanced AI and vision technology.
-              </p>
-            </div>
-
-            {/* Contacts Access */}
-            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
-              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-green-100 dark:bg-green-900/20 rounded-full">
-                <Save className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="text-lg font-medium mb-2 text-center">Contacts Always at Your Fingertips</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                Your scanned contacts are always at your fingertips. Never lose a contact again.
-              </p>
-            </div>
-
-            {/* Export Feature */}
-            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
-              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-purple-100 dark:bg-purple-900/20 rounded-full">
-                <Download className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="text-lg font-medium mb-2 text-center">Simple Export</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                Effortlessly export your contacts, making them ready for seamless import into your favorite CRM.
-              </p>
-            </div>
-
-            {/* Security */}
-            <div className="flex flex-col items-center p-6 bg-white dark:bg-[#2c2d31] rounded-lg shadow-sm">
-              <div className="w-12 h-12 mb-3 flex items-center justify-center bg-amber-100 dark:bg-amber-900/20 rounded-full">
-                <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-              </div>
-              <h3 className="text-lg font-medium mb-2 text-center">Secure Storage</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                Your contacts are securely stored and protected.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </Layout>
   )
 } 
