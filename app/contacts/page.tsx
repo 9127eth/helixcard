@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Tags, CheckSquare, Cpu, Save, Download, Lock, Users } from 'lucide-react'
+import { Plus, Search, Tags, CheckSquare, Save, Download, Lock, Users } from 'lucide-react'
 import { FaMagic } from 'react-icons/fa'
 import Layout from '../components/Layout'
 import ContactList from '../components/contacts/ContactList'

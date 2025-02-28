@@ -6,7 +6,6 @@ import {
   CreditCard, 
   QrCode, 
   RefreshCw, 
-  Cpu, 
   Share2, 
   Smartphone, 
   Database, 
