@@ -7,7 +7,6 @@ import Layout from '../components/Layout';
 import StripePaymentForm from '../components/StripePaymentForm';
 import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
-import Image from 'next/image';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -93,7 +92,7 @@ const GetHelixProPage: React.FC = () => {
         <div id="pricing-section" className="bg-gray-50 dark:bg-gray-900 py-16 -mt-2">
           <div className="container mx-auto px-4">
             <div className="flex flex-col items-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Choose the plan that's right for you</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Choose the plan that&apos;s right for you</h2>
               
               {/* Plan Toggle - Updated to keep dark text when selected */}
               <div className="flex bg-gray-200 dark:bg-gray-800 rounded-full p-1.5 mb-12 shadow-inner">
@@ -251,7 +250,7 @@ const GetHelixProPage: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Pharmacy Student</p>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">"The CV upload feature helped me stand out at ASHP Midyear. Love this app!"</p>
+                <p className="text-gray-600 dark:text-gray-300">&quot;The CV upload feature helped me stand out at ASHP Midyear. Love this app!&quot;</p>
                 <div className="flex mt-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -272,7 +271,7 @@ const GetHelixProPage: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Sales Director</p>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">"The AI card scanning feature has saved our team hours of manual data entry. Worth every penny!"</p>
+                <p className="text-gray-600 dark:text-gray-300">&quot;The AI card scanning feature has saved our team hours of manual data entry. Worth every penny!&quot;</p>
                 <div className="flex mt-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -293,7 +292,7 @@ const GetHelixProPage: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Freelance Designer</p>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">"I love being able to manage multiple business cards for different clients. The lifetime plan was a no-brainer!"</p>
+                <p className="text-gray-600 dark:text-gray-300">&quot;I love being able to manage multiple business cards for different clients. The lifetime plan was a no-brainer!&quot;</p>
                 <div className="flex mt-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -314,7 +313,7 @@ const GetHelixProPage: React.FC = () => {
             <div className="max-w-3xl mx-auto space-y-6">
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                 <h3 className="text-xl font-bold mb-2">Can I switch plans later?</h3>
-                <p className="text-gray-600 dark:text-gray-300">Yes, you can upgrade or downgrade your plan at any time. If you switch to a lifetime plan, you'll never have to pay again.</p>
+                <p className="text-gray-600 dark:text-gray-300">Yes, you can upgrade or downgrade your plan at any time. If you switch to a lifetime plan, you&apos;ll never have to pay again.</p>
               </div>
               
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">

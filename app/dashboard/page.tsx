@@ -21,7 +21,6 @@ const DashboardPage: React.FC = () => {
   const [isPro, setIsPro] = useState(false);
   const [limit, setLimit] = useState(FREE_USER_CARD_LIMIT);
   const [hasCards, setHasCards] = useState<boolean | null>(null);
-  const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   useEffect(() => {
     const checkUserCards = async () => {
@@ -31,12 +30,8 @@ const DashboardPage: React.FC = () => {
           const cardsSnapshot = await getDocs(collection(db, 'users', user.uid, 'businessCards'));
           setHasCards(cardsSnapshot.size > 0);
           
-          // Check if this is their first login
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setIsFirstLogin(userData.loginCount === 1 || !userData.loginCount);
-          }
+          // We don't need to check if this is their first login anymore
+          // since we removed the isFirstLogin state
         } catch (error) {
           console.error('Error checking user cards:', error);
           setHasCards(false);
@@ -85,7 +80,7 @@ const DashboardPage: React.FC = () => {
                     Welcome to <span className="text-[#7CCEDA] dark:text-[#7CCEDA]">Helix</span>!
                   </h1>
                   <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-                    We're excited to have you join us on your journey to better networking. Let's get started by creating your first digital business card.
+                    We&apos;re excited to have you join us on your journey to better networking. Let&apos;s get started by creating your first digital business card.
                   </p>
                   <button
                     onClick={handleCreateCard}
