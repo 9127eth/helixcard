@@ -88,7 +88,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         <div className="absolute top-2 right-2">
           <DropdownMenu
             options={[
-              { label: 'Preview', icon: FiEye, onClick: onView },
+              { label: 'Preview Card', icon: FiEye, onClick: onView },
               { label: 'Share', icon: FiShare, onClick: handleShareClick, disabled: !card.isActive },
               { label: 'Edit', icon: FiEdit, href: `/edit-card/${card.id}` },
               { label: 'Change Color', icon: BiPalette, onClick: () => setIsColorPickerOpen(true) },

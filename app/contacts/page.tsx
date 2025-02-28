@@ -11,6 +11,7 @@ import BulkTagModal from '../components/contacts/BulkTagModal'
 import ViewContactModal from '../components/contacts/ViewContactModal'
 import EditContactModal from '../components/contacts/EditContactModal'
 import ExportContactsModal from '../components/contacts/ExportContactsModal'
+import LoadingSpinner from '../components/LoadingSpinner'
 import { Contact } from '../types'
 import { batchDeleteContacts } from '../lib/contacts'
 import { useAuth } from '../hooks/useAuth'
@@ -157,12 +158,12 @@ export default function ContactsPage() {
                       </div>
                     </div>
                     <div className="w-full md:w-2/5 flex justify-center">
-                      <div className="relative w-48 h-48 md:w-64 md:h-64">
+                      <div className="relative w-24 h-24 md:w-32 md:h-32">
                         <div className="absolute inset-0 bg-[#B8EB41] dark:bg-[#7CCEDA]/20 rounded-full opacity-20 animate-pulse"></div>
-                        <div className="absolute inset-4 bg-[#7CCEDA] dark:bg-[#7CCEDA]/40 rounded-full opacity-30"></div>
+                        <div className="absolute inset-3 bg-[#7CCEDA] dark:bg-[#7CCEDA]/40 rounded-full opacity-30"></div>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-white dark:bg-gray-800 p-4 rounded-full shadow-lg">
-                            <Cpu className="w-16 h-16 md:w-20 md:h-20 text-[#7CCEDA]" />
+                          <div className="bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg">
+                            <Cpu className="w-8 h-8 md:w-10 md:h-10 text-[#7CCEDA]" />
                           </div>
                         </div>
                       </div>
@@ -339,7 +340,7 @@ export default function ContactsPage() {
                 </div>
               ) : (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7CCEDA]"></div>
+                  <LoadingSpinner fullScreen={false} />
                 </div>
               )
             )}

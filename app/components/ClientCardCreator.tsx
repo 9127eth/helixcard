@@ -13,9 +13,14 @@ import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from '../lib/constants';
 interface ClientCardCreatorProps {
   user: User | null;
   onClose: () => void;
+  onCardDataChange?: (data: BusinessCardData, username: string) => void;
 }
 
-const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user, onClose }) => {
+const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ 
+  user, 
+  onClose,
+  onCardDataChange 
+}) => {
   const router = useRouter();
   const [canCreate, setCanCreate] = useState<boolean | null>(null);
   const [isPro, setIsPro] = useState<boolean>(false);
@@ -147,10 +152,42 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({ user, onClose }) 
     }
   }
 
+  const handleFormChange = (formData: BusinessCardData) => {
+    if (onCardDataChange && user) {
+      // Get the username from the user document
+      const getUsernameAndUpdatePreview = async () => {
+        try {
+          if (db) {
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const username = userDoc.data()?.username || '';
+            
+            // Create a preview-compatible object
+            const previewData = {
+              ...formData,
+              id: 'preview',
+              isPrimary: false,
+              cardSlug: generateCardSlug(),
+              isActive: true,
+              lastName: formData.lastName || '',
+              email: formData.email || '',
+            };
+            
+            onCardDataChange(previewData, username);
+          }
+        } catch (error) {
+          console.error('Error getting username for preview:', error);
+        }
+      };
+      
+      getUsernameAndUpdatePreview();
+    }
+  };
+
   return (
     <BusinessCardForm
       onSuccess={handleCreateCard}
       isEditing={false}  // Explicitly set this for clarity
+      onChange={handleFormChange}
     />
   );
 };

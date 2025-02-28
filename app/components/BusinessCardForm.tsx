@@ -25,6 +25,7 @@ interface BusinessCardFormProps {
   initialData?: Partial<BusinessCardData>;
   onDelete?: () => void;
   isEditing?: boolean;
+  onChange?: (formData: BusinessCardData) => void;
 }
 
 export interface BusinessCardData {
@@ -75,6 +76,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   initialData,
   onDelete,
   isEditing = false,
+  onChange,
 }) => {
   const { user } = useAuth();
   const [isPro, setIsPro] = useState(false);
@@ -206,16 +208,32 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
       updatedValue = addProtocolToUrl(value);
     }
 
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: updatedValue,
-    }));
+    setFormData(prev => {
+      const newData = { ...prev, [name]: updatedValue };
+      
+      // Call onChange prop if provided
+      if (onChange) {
+        onChange(newData);
+      }
+      
+      return newData;
+    });
   };
 
   const handleCvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setCvFile(file);
+      setFormData(prev => {
+        const newData = { ...prev, cv: file };
+        
+        // Call onChange prop if provided
+        if (onChange) {
+          onChange(newData);
+        }
+        
+        return newData;
+      });
     }
   };
 
@@ -295,11 +313,22 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   const handleAddSocialLink = (linkName: string) => {
     setAdditionalSocialLinks([...additionalSocialLinks, linkName]);
     setShowSocialLinkDropdown(false);
+    setFormData(prev => {
+      const newData = { ...prev, [linkName]: '' };
+      
+      // Call onChange prop if provided
+      if (onChange) {
+        onChange(newData);
+      }
+      
+      return newData;
+    });
   };
 
   const handleWebLinkChange = (index: number, field: 'url' | 'displayText', value: string) => {
-    setFormData((prevState) => {
-      const newWebLinks = [...prevState.webLinks];
+    setFormData(prev => {
+      const updatedWebLinks = [...prev.webLinks];
+      
       if (field === 'url') {
         // Remove protocol if the user has cleared the input
         if (value === '' || value === 'http://' || value === 'https://') {
@@ -309,34 +338,73 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           value = addProtocolToUrl(value);
         }
       }
-      newWebLinks[index] = { ...newWebLinks[index], [field]: value };
-      return { ...prevState, webLinks: newWebLinks };
+      
+      updatedWebLinks[index] = {
+        ...updatedWebLinks[index],
+        [field]: value,
+      };
+      
+      const newData = {
+        ...prev,
+        webLinks: updatedWebLinks,
+      };
+      
+      // Call onChange prop if provided
+      if (onChange) {
+        onChange(newData);
+      }
+      
+      return newData;
     });
   };
 
   const addWebLink = () => {
-    setFormData((prevState) => ({
-      ...prevState,
-      webLinks: [...prevState.webLinks, { url: '', displayText: '' }],
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        webLinks: [...prev.webLinks, { url: '', displayText: '' }],
+      };
+      
+      // Call onChange prop if provided
+      if (onChange) {
+        onChange(newData);
+      }
+      
+      return newData;
+    });
   };
 
   const removeSocialLink = (linkName: string) => {
     if (confirm(`Are you sure you want to remove this ${linkName} link?`)) {
       setAdditionalSocialLinks(additionalSocialLinks.filter(link => link !== linkName));
-      setFormData(prevState => ({
-        ...prevState,
-        [linkName]: '',
-      }));
+      setFormData(prev => {
+        const newData = { ...prev, [linkName]: '' };
+        
+        // Call onChange prop if provided
+        if (onChange) {
+          onChange(newData);
+        }
+        
+        return newData;
+      });
     }
   };
 
   const removeWebLink = (index: number) => {
     if (confirm('Are you sure you want to remove this web link?')) {
-      setFormData(prevState => ({
-        ...prevState,
-        webLinks: prevState.webLinks.filter((_, i) => i !== index),
-      }));
+      setFormData(prev => {
+        const newData = {
+          ...prev,
+          webLinks: prev.webLinks.filter((_, i) => i !== index),
+        };
+        
+        // Call onChange prop if provided
+        if (onChange) {
+          onChange(newData);
+        }
+        
+        return newData;
+      });
     }
   };
 

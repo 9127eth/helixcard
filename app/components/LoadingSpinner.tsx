@@ -11,7 +11,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ fullScreen = true }) =>
 
   return (
     <div className={containerClasses}>
-      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#B8EB41]"></div>
+      <div className="w-8 h-8 border-4 border-gray-200 border-t-[#7CCEDA] rounded-full animate-spin"></div>
     </div>
   );
 };
