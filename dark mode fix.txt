@@ -1,0 +1,117 @@
+I've identified the issue. The problem is in how the dark mode CSS variables are defined. In your globals.css, the dark mode variables are defined using @media (prefers-color-scheme: dark) instead of using the .dark class selector that would work with the next-themes library.
+Let's fix this:
+
+/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
+@tailwind base;
+/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
+@tailwind components;
+/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
+@tailwind utilities;
+
+:root {
+  --background: #efefef;
+  --foreground: #000000;
+  --primary: #B8EB41;  /* Blue-500 in Tailwind */
+  --primary-text: #000000;
+  --card-header-bg: #F5FDFD;  /*this is end-card-bg*/
+  --card-footer-bg: #E1DBC6;  /* Add this line */
+  --card-grid-background: #FFFFFF;  /* Add this line */
+  --end-card-bg: #efefef;  /* New variable for main card background */
+  --card-depth: #7CCEDA; /* Add this line for light mode */
+  
+  /* New variables */
+  --social-tile-bg: #ffffff;
+  --social-icon-color: #000000;
+  --social-text-color: #000000;
+  --body-primary-text: #333333;
+  --header-footer-primary-text: #000000;
+  --header-footer-secondary-text: #000000;
+  --send-text-button-bg: #7CCEDA;
+  --send-text-button-text: #000000;
+  --save-contact-button-bg: #7CCEDA;
+  --save-contact-button-text: #000000;
+  --link-icon-color: #FC9A99;  /* New variable for link icons */
+  --link-text-color: #333333;  /* New variable for link text */
+  --end-card-header-secondary-text-color: #666666;  /* You can set any default color you prefer */
+  --share-modal-bg: #efefef; /* Default to white, but you can change this */
+  --primary-hover: #B8EB41;  /* Slightly darker shade of primary */
+  --primary-text-hover: #000000;
+  --sidebar-bg: #F5FDFD;  /* Add this line */
+  --button-text-dark: #323338;
+  --phone-input-bg: white;
+  --phone-input-text: black;
+  --phone-input-hover: #f3f4f6;
+  --contact-depth: #E1DBC6;  /* Add this line for contact depth color */
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+.dark {
+  --background: #323338;
+  --foreground: #dddee3;
+  --primary: #7CCEDA;
+  --primary-text: #dddee3;
+  --card-header-bg: #2c2d31;
+  --card-footer-bg: #323338;
+  --card-grid-background: #2f3136;
+  --end-card-bg: #323338;
+  --sidebar-bg: #2c2d31;
+  --input-bg: #1e1f23;
+  --phone-input-bg: #374051;
+  --phone-input-text: white;
+  --phone-input-hover: #4a5568;
+  --card-depth: #7CCEDA; /* Add this line for dark mode */
+  
+  --social-tile-bg: #40444b;
+  --social-icon-color: #ffffff;
+  --social-text-color: #dcddde;
+  --body-primary-text: #dcddde;
+  --header-footer-primary-text: #dddee3;
+  --header-footer-secondary-text: #b9bbbe;
+  --send-text-button-bg: #40444b;
+  --send-text-button-text: #dddee3;
+  --save-contact-button-bg: #7CCEDA;
+  --save-contact-button-text: #323338;
+  --link-icon-color: #FF6A42;  /* Changed to reddish color */
+  --link-text-color: #dcddde;
+  --end-card-header-secondary-text-color: #b9bbbe;
+  --share-modal-bg: #2f3136;
+  --card-grid-icon-button-bg: #2f3136;  /* Added this line */
+  --card-grid-icon-button-text: #dddee3;  /* Added this line */
+  --primary-hover: #7CCEDA;  /* Slightly darker shade of primary for dark mode */
+  --primary-text-hover: #323338;
+  --collapsible-header-hover: #323338;
+  --preview-button-text: #323338;  /* Add this line inside the .dark selector */
+  --card-grid-secondary-text: #a5a6aa;
+  --button-text: #323338;   /* Add new variable specifically for button text */
+  --contact-depth: #E1DBC6;  /* Add this line for dark mode */
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+}
+
+/* Keep the media query for system preference, but make it lower priority */
+@media (prefers-color-scheme: dark) {
+  :root.system-theme {
+    --background: #323338;
+    --foreground: #dddee3;
+    /* Copy all the other dark mode variables here */
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: theme('letterSpacing.tight');
+}
+
+I've identified and fixed the issue with your dark mode implementation. Here's what was happening:
+The Root Problem: Your dark mode CSS variables were defined using @media (prefers-color-scheme: dark) which only responds to the system's color scheme preference. However, you're using next-themes which applies a .dark class to the HTML element when dark mode is toggled.
+The Fix: I made two key changes:
+Changed the CSS to use the .dark class selector instead of the media query. This ensures that when the dark mode is toggled through your UI, the dark theme variables will be applied.
+Added suppressHydrationWarning to the HTML element in your layout.tsx file to prevent hydration warnings that can occur with theme switching.
+Additional Improvement: I kept a version of the media query for system preference, but made it lower priority and tied it to a specific class that next-themes can apply when in system mode.
+These changes should fix your dark mode toggle functionality across the entire site. The "Why Choose Helix?" cards and all other components with dark: classes should now properly respond to the dark mode toggle.
+The changes we made to the cards earlier (changing the background to #7CCEDA) did not break dark mode - the issue was with how dark mode was being applied at a more fundamental level.
