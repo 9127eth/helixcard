@@ -6,6 +6,7 @@ import ClientCardCreator from '../components/ClientCardCreator';
 import { useAuth } from '../hooks/useAuth';
 import PreviewModal from '../components/PreviewModal';
 import { BusinessCard } from '../types';
+import { BusinessCardData } from '../components/BusinessCardForm';
 
 const CreateCardPage: React.FC = () => {
   const { user } = useAuth();
@@ -17,7 +18,7 @@ const CreateCardPage: React.FC = () => {
     setIsPreviewOpen(!isPreviewOpen);
   };
 
-  const handleCardDataChange = (data: any, username: string) => {
+  const handleCardDataChange = (data: BusinessCardData, username: string) => {
     setCardData(data as BusinessCard);
     setUsername(username);
   };
