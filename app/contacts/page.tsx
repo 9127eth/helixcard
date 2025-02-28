@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Search, Tags, CheckSquare, Cpu, Save, Download, Lock, Users } from 'lucide-react'
+import { FaMagic } from 'react-icons/fa'
 import Layout from '../components/Layout'
 import ContactList from '../components/contacts/ContactList'
 import CreateContactModal from '../components/contacts/CreateContactModal'
@@ -163,7 +164,7 @@ export default function ContactsPage() {
                         <div className="absolute inset-3 bg-[#7CCEDA] dark:bg-[#7CCEDA]/40 rounded-full opacity-30"></div>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg">
-                            <Cpu className="w-8 h-8 md:w-10 md:h-10 text-[#7CCEDA]" />
+                            <FaMagic className="w-8 h-8 md:w-10 md:h-10 text-[#7CCEDA]" />
                           </div>
                         </div>
                       </div>
@@ -295,7 +296,7 @@ export default function ContactsPage() {
                       {/* AI Scanning */}
                       <div className="flex flex-col items-center p-6 bg-[#F5FDFD] dark:bg-gray-700/50 rounded-lg">
                         <div className="w-12 h-12 mb-3 flex items-center justify-center bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                          <Cpu className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          <FaMagic className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         </div>
                         <h3 className="text-lg font-medium mb-2 text-center">AI-Powered Scanning</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 text-center">

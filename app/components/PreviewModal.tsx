@@ -69,9 +69,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
 
   const getDeviceFrame = () => {
     if (isMobile) {
-      return 'w-[250px] h-[520px] rounded-[24px] border-[8px] border-gray-800 dark:border-gray-800';
+      return 'w-[250px] h-[520px] rounded-[24px] border-[8px] border-gray-800 dark:border-black';
     } else {
-      return 'w-[280px] h-[570px] rounded-[24px] border-[10px] border-gray-800 dark:border-gray-800';
+      return 'w-[280px] h-[570px] rounded-[24px] border-[10px] border-gray-800 dark:border-black';
     }
   };
 
@@ -164,7 +164,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
           {/* Main preview area */}
           <div className="flex-grow flex flex-col overflow-hidden">
             {/* Device preview */}
-            <div className="flex-grow flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900">
+            <div className="flex-grow flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900">
               {showQR ? (
                 <motion.div 
                   initial={{ opacity: 0 }}
@@ -185,14 +185,14 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className={`${getDeviceFrame()} bg-gray-900 shadow-2xl relative mx-auto overflow-hidden`}
+                  className={`${getDeviceFrame()} bg-gray-900 dark:bg-black relative mx-auto overflow-hidden`}
                 >
                   {/* iPhone details - only side buttons, no notch */}
                   <>
                     {/* Side buttons */}
-                    <div className="absolute top-[50%] right-[-8px] w-[2px] h-[50px] bg-gray-700 rounded-l-full transform -translate-y-1/2"></div>
-                    <div className="absolute top-[20%] left-[-8px] w-[2px] h-[30px] bg-gray-700 rounded-r-full transform -translate-y-1/2"></div>
-                    <div className="absolute top-[30%] left-[-8px] w-[2px] h-[30px] bg-gray-700 rounded-r-full transform -translate-y-1/2"></div>
+                    <div className="absolute top-[50%] right-[-8px] w-[2px] h-[50px] bg-gray-700 dark:bg-gray-600 rounded-l-full transform -translate-y-1/2"></div>
+                    <div className="absolute top-[20%] left-[-8px] w-[2px] h-[30px] bg-gray-700 dark:bg-gray-600 rounded-r-full transform -translate-y-1/2"></div>
+                    <div className="absolute top-[30%] left-[-8px] w-[2px] h-[30px] bg-gray-700 dark:bg-gray-600 rounded-r-full transform -translate-y-1/2"></div>
                   </>
                   
                   {/* Device screen */}

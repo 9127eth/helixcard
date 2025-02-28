@@ -15,7 +15,7 @@ import {
   Zap,
   Layers
 } from 'lucide-react';
-import { FaArrowRight } from 'react-icons/fa';
+import { FaArrowRight, FaMagic } from 'react-icons/fa';
 import Link from 'next/link';
 
 const HowItWorksPage: React.FC = () => {
@@ -115,7 +115,7 @@ const HowItWorksPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row">
                   <div className="md:w-1/4 flex justify-center mb-6 md:mb-0">
                     <div className="w-20 h-20 bg-[#FC9A99] rounded-full flex items-center justify-center">
-                      <Cpu className="text-white text-2xl" />
+                      <FaMagic className="text-white text-2xl" />
                     </div>
                   </div>
                   <div className="md:w-3/4">
@@ -125,7 +125,7 @@ const HowItWorksPage: React.FC = () => {
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="flex items-start">
-                        <Cpu className="text-[#FC9A99] mr-3 flex-shrink-0" />
+                        <FaMagic className="text-[#FC9A99] mr-3 flex-shrink-0" />
                         <p className="text-gray-600 dark:text-gray-300">Smart scanning extracts contact details with high accuracy</p>
                       </div>
                       <div className="flex items-start">
