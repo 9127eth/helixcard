@@ -450,6 +450,78 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Testimonials Section - Added from Get Helix Pro page */}
+        <div className="bg-white dark:bg-gray-800 py-16">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center text-gray-800 dark:text-white">What our users are saying</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Testimonial 1 - Pharmacy Student */}
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-green-600 dark:text-green-300 font-bold">RJ</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold">Robert Johnson</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Pharmacy Student</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300">"The CV upload feature helped me stand out at ASHP Midyear. Love this app!"</p>
+                <div className="flex mt-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </svg>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Testimonial 2 */}
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-blue-600 dark:text-blue-300 font-bold">BG</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold">Brian Gomez</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Sales Director</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300">"The AI card scanning feature has saved our team hours of manual data entry. Worth every penny!"</p>
+                <div className="flex mt-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </svg>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Testimonial 3 */}
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-purple-600 dark:text-purple-300 font-bold">AF</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold">Alice Foster</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Freelance Designer</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300">"I love being able to manage multiple business cards for different clients. The lifetime plan was a no-brainer!"</p>
+                <div className="flex mt-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </svg>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Pricing Comparison Section */}
         <div id="pricing" className="bg-gradient-to-b from-white to-[#F5FDFD] dark:from-gray-800 dark:to-gray-700 py-24">
           <div className="container mx-auto px-4">

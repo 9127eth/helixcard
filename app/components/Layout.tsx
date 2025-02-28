@@ -24,9 +24,11 @@ interface LayoutProps {
   children: React.ReactNode;
   title?: string;
   showSidebar?: boolean;
+  transparentHeader?: boolean;
+  showHeader?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSidebar = true }) => {
+const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSidebar = true, transparentHeader = false, showHeader = true }) => {
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
@@ -180,11 +182,13 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'HelixCard', showSide
               </aside>
             </div>
             <div className="flex-1 flex flex-col">
-              <header className="bg-background">
-                <div className="px-4 py-4">
-                  {/* Add any content for the right side header here */}
-                </div>
-              </header>
+              {showHeader && (
+                <header className={`${transparentHeader ? 'bg-transparent' : 'bg-background'}`}>
+                  <div className="px-4 py-4">
+                    {/* Add any content for the right side header here */}
+                  </div>
+                </header>
+              )}
               <main className="flex-grow">
                 {children}
               </main>

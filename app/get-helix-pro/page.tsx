@@ -63,7 +63,7 @@ const GetHelixProPage: React.FC = () => {
   };
 
   return (
-    <Layout title="Get Helix Pro - HelixCard" showSidebar={true}>
+    <Layout title="Get Helix Pro - HelixCard" showSidebar={true} transparentHeader={true} showHeader={false}>
       <Elements stripe={stripePromise}>
         {/* Hero Section - Solid blue background with dark text and decorative bottom edge */}
         <div className="relative overflow-hidden bg-[#7CCEDA] -mt-6">
@@ -79,11 +79,10 @@ const GetHelixProPage: React.FC = () => {
           </div>
           
           {/* Decorative bottom edge - Wave pattern */}
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" className="w-full h-auto">
+          <div className="absolute bottom-0 left-0 right-0 overflow-hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" className="w-full h-auto" preserveAspectRatio="none">
               <path 
-                fill="currentColor" 
-                className="text-gray-50 dark:text-gray-900"
+                fill="#f9fafb" 
                 d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z">
               </path>
             </svg>
@@ -91,7 +90,7 @@ const GetHelixProPage: React.FC = () => {
         </div>
         
         {/* Plan Selection Section */}
-        <div id="pricing-section" className="bg-gray-50 dark:bg-gray-900 py-16">
+        <div id="pricing-section" className="bg-gray-50 dark:bg-gray-900 py-16 -mt-2">
           <div className="container mx-auto px-4">
             <div className="flex flex-col items-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Choose the plan that's right for you</h2>
@@ -252,7 +251,7 @@ const GetHelixProPage: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Pharmacy Student</p>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">"The CV upload feature helped me stand out at ASHP Midyear. I got more interview invitations than my classmates who didn't use Helix Pro!"</p>
+                <p className="text-gray-600 dark:text-gray-300">"The CV upload feature helped me stand out at ASHP Midyear. Love this app!"</p>
                 <div className="flex mt-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -335,11 +334,11 @@ const GetHelixProPage: React.FC = () => {
         <div className="bg-[#7CCEDA] py-16">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">Ready to upgrade your networking game?</h2>
-            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">Join thousands of professionals who are already using Helix Pro to make meaningful connections.</p>
+            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">Join other professionals who are already using Helix Pro to make meaningful connections.</p>
             
             <a 
               href="#pricing-section"
-              className="bg-white text-[#7CCEDA] font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-gray-100 transition-colors duration-300 inline-block"
+              className="bg-white text-gray-800 font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-gray-100 transition-colors duration-300 inline-block"
             >
               Get Helix Pro Now
             </a>
