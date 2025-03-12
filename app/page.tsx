@@ -211,7 +211,7 @@ export default function Home() {
                   {/* Card Customization Visual */}
                   <div className="flex justify-center items-center h-full">
                     <Image
-                      src="/helix phone.png"
+                      src="/helix-phone.png"
                       alt="Helix Card on Phone"
                       width={640}
                       height={1000}

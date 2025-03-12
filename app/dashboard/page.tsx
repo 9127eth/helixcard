@@ -149,7 +149,7 @@ const DashboardPage: React.FC = () => {
                   <div className="absolute -bottom-4 -right-4 w-full h-full bg-[#FC9A99] rounded-xl transform -rotate-3"></div>
                   <div className="relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
                     <Image
-                      src="/Helix Phone.png"
+                      src="/helix-phone.png"
                       alt="Helix Phone"
                       width={1200}
                       height={750}
