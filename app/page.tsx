@@ -67,6 +67,28 @@ export default function Home() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-[#F5FDFD] to-white dark:from-gray-900 dark:to-gray-800">
+        {/* APhA Conference Welcome Banner */}
+        <div className="apha-banner bg-[#7CCEDA]/20 border-b border-[#7CCEDA]/30 dark:bg-[#7CCEDA]/10 dark:border-[#7CCEDA]/20">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span role="img" aria-label="wave" className="text-2xl mr-3">👋</span>
+                <p className="text-sm md:text-base text-gray-800 dark:text-white">
+                  <span className="font-medium">Welcome APhA attendees!</span> iPhone users: To activate your Helix card, once you create your card in the app tap the menu button on your card (3 dots top right) and select Add to NFC to override the physical card. Android users: hit share on your business card, copy the link, and then <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">click here</a> for NFC setup instructions.
+                </p>
+              </div>
+              <button 
+                onClick={() => document.querySelector('.apha-banner')?.classList.add('hidden')}
+                className="ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label="Close banner"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
         {/* Hero Section */}
         <div className="container mx-auto px-4 py-12 md:py-24">
           <div className="flex flex-col lg:flex-row items-center">
