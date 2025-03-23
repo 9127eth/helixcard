@@ -153,9 +153,29 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
 
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
-    vCard += `FN:${card.firstName}${card.lastName ? ' ' + card.lastName : ''}\n`;
-    vCard += `ORG:${card.company}\n`;
-    vCard += `TITLE:${card.jobTitle}\n`;
+    
+    // Correctly format the full name using firstName, middleName (if available), and lastName (if available)
+    let fullName = card.firstName;
+    if (card.middleName) fullName += ` ${card.middleName}`;
+    if (card.lastName) fullName += ` ${card.lastName}`;
+    
+    // Add both FN (formatted name) and N (structured name) fields
+    vCard += `FN:${fullName}\n`;
+    
+    // N field format: Last;First;Middle;Prefix;Suffix
+    const lastName = card.lastName || '';
+    const firstName = card.firstName || '';
+    const middleName = card.middleName || '';
+    const prefix = card.prefix || '';
+    const suffix = card.credentials || '';
+    
+    vCard += `N:${lastName};${firstName};${middleName};${prefix};${suffix}\n`;
+    
+    // Company name in the ORG field
+    if (card.company) vCard += `ORG:${card.company}\n`;
+    
+    // The rest remains unchanged
+    if (card.jobTitle) vCard += `TITLE:${card.jobTitle}\n`;
     if (card.phoneNumber) vCard += `TEL;TYPE=WORK,VOICE:${card.phoneNumber}\n`;
     if (card.email) vCard += `EMAIL;TYPE=PREF,INTERNET:${card.email}\n`;
     if (card.linkedIn) vCard += `URL;TYPE=LinkedIn:${card.linkedIn}\n`;
@@ -172,7 +192,13 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${card.firstName}_${card.lastName}.vcf`);
+    
+    // Create a filename that includes firstName, middleName (if available), and lastName (if available)
+    let filename = card.firstName;
+    if (card.middleName) filename += `_${card.middleName}`;
+    if (card.lastName) filename += `_${card.lastName}`;
+    
+    link.setAttribute('download', `${filename}.vcf`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
