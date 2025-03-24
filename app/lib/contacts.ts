@@ -112,12 +112,25 @@ export async function deleteContact(userId: string, contactId: string) {
 
 // Get all contacts for a user
 export async function getContacts(userId: string) {
-  if (!db) throw new Error('Firestore is not initialized');
-  
-  const contactsRef = collection(db, 'users', userId, 'contacts');
-  const q = query(contactsRef, orderBy('dateModified', 'desc'));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Contact));
+  try {
+    if (!db) {
+      console.error('Firestore is not initialized when getting contacts');
+      return [];
+    }
+    
+    console.log('Getting contacts for user: [redacted]');
+    const contactsRef = collection(db, 'users', userId, 'contacts');
+    const q = query(contactsRef, orderBy('dateModified', 'desc'));
+    
+    const snapshot = await getDocs(q);
+    const contacts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Contact));
+    console.log(`Successfully fetched ${contacts.length} contacts for user [redacted]`);
+    
+    return contacts;
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    throw error;
+  }
 }
 
 // Upload contact image

@@ -14,7 +14,7 @@ import EditContactModal from '../components/contacts/EditContactModal'
 import ExportContactsModal from '../components/contacts/ExportContactsModal'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { Contact } from '../types'
-import { batchDeleteContacts } from '../lib/contacts'
+import { batchDeleteContacts, getContacts } from '../lib/contacts'
 import { useAuth } from '../hooks/useAuth'
 import SortButton from '../components/contacts/SortButton'
 
@@ -27,7 +27,6 @@ export default function ContactsPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedContacts, setSelectedContacts] = useState<string[]>([])
   const [isBulkTagModalOpen, setIsBulkTagModalOpen] = useState(false)
-  const [contactListKey, setContactListKey] = useState(Date.now().toString())
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
@@ -36,11 +35,48 @@ export default function ContactsPage() {
   const [sortOption, setSortOption] = useState<'firstName' | 'dateAdded'>('dateAdded')
   const [showProTip, setShowProTip] = useState(true)
   const [isContactsLoaded, setIsContactsLoaded] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   // Add a useEffect to log contacts changes for debugging
   useEffect(() => {
     console.log('Contacts state updated:', contacts.length, 'contacts');
   }, [contacts]);
+
+  // Direct approach to load contacts when user becomes available
+  useEffect(() => {
+    const loadUserContacts = async () => {
+      if (!user) {
+        console.log('No user available, cannot load contacts');
+        return;
+      }
+      
+      try {
+        console.log('Directly loading contacts for user ID: [redacted]');
+        // Add a small delay to ensure Firebase is fully initialized
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const userContacts = await getContacts(user.uid);
+        console.log('Directly loaded contacts:', userContacts.length);
+        
+        if (Array.isArray(userContacts)) {
+          setContacts(userContacts);
+          console.log('Contacts state updated directly');
+        } else {
+          console.error('Expected array of contacts but got:', typeof userContacts);
+          setContacts([]);
+        }
+        
+        setIsContactsLoaded(true);
+      } catch (error) {
+        console.error('Error directly loading contacts:', error);
+        // Set empty contacts array on error
+        setContacts([]);
+        setIsContactsLoaded(true); // Set to true even on error to avoid infinite loading
+      }
+    };
+    
+    loadUserContacts();
+  }, [user, refreshTrigger]);
 
   // Add a useEffect to initialize contacts
   useEffect(() => {
@@ -59,7 +95,7 @@ export default function ContactsPage() {
   // Function to force refresh contacts
   const refreshContacts = () => {
     console.log('Forcing contact list refresh');
-    setContactListKey(Date.now().toString());
+    setRefreshTrigger(prev => prev + 1);
   };
 
   // Function to handle successful contact creation
@@ -259,22 +295,22 @@ export default function ContactsPage() {
               <>
                 <div className="contact-list-empty-check" style={{ display: 'none' }}></div>
                 <ContactList 
-                  key={contactListKey}
                   searchQuery={searchQuery} 
                   tagFilter={selectedTags}
                   sortOption={sortOption}
                   isSelectionMode={isSelectionMode}
                   onSelectionChange={handleSelectionChange}
                   onContactsChange={(newContacts) => {
+                    // No longer setting contacts here since we're handling it directly
                     console.log('ContactList onContactsChange called with', newContacts.length, 'contacts');
-                    setContacts(newContacts);
-                    setIsContactsLoaded(true);
                   }}
                   onBulkAddTag={handleBulkAddTag}
                   onBulkExport={handleBulkExport}
                   onBulkDelete={handleBulkDelete}
                   onView={handleViewContact}
                   onEdit={handleEditContact}
+                  refreshTrigger={refreshTrigger}
+                  initialContacts={contacts} // Pass the contacts as a prop
                 />
               </>
             ) : (
@@ -369,8 +405,7 @@ export default function ContactsPage() {
         selectedContactIds={selectedContacts}
         onSuccess={() => {
           // Force refresh the contact list
-          const contactListKey = Date.now().toString();
-          setContactListKey(contactListKey);
+          refreshContacts();
           setSelectedContacts([]); // Clear selection after successful update
         }}
       />
@@ -404,7 +439,7 @@ export default function ContactsPage() {
               setIsViewModalOpen(true)
               setSelectedContact(updatedContact)
               // Force refresh the contact list in background
-              setContactListKey(Date.now().toString())
+              refreshContacts();
             }}
           />
         </>

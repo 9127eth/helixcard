@@ -17,7 +17,9 @@ export function useAuth() {
       return;
     }
 
+    console.log('Setting up auth state listener...');
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser ? 'User authenticated: [redacted]' : 'No user');
       if (firebaseUser) {
         setUser(firebaseUser);
         setLoading(false);

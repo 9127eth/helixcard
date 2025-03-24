@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Contact } from '@/app/types'
 import { getContacts, deleteContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
@@ -21,6 +21,8 @@ interface ContactListProps {
   onBulkDelete: () => void
   onView: (contact: Contact) => void
   onEdit: (contact: Contact) => void
+  refreshTrigger?: number
+  initialContacts: Contact[]
 }
 
 export default function ContactList({ 
@@ -34,33 +36,58 @@ export default function ContactList({
   onBulkExport,
   onBulkDelete,
   onView,
-  onEdit
+  onEdit,
+  refreshTrigger = 0,
+  initialContacts = []
 }: ContactListProps) {
   const { user } = useAuth()
-  const [contacts, setContacts] = useState<Contact[]>([])
+  console.log('ContactList: Current user state:', user ? 'User authenticated' : 'No user');
+  console.log('ContactList: User ID:', user ? '[redacted]' : 'null');
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
   const [selectedContacts, setSelectedContacts] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [selectedContact] = useState<Contact | null>(null)
 
   useEffect(() => {
-    const loadContacts = async () => {
-      if (!user) return
-      
-      try {
-        const userContacts = await getContacts(user.uid)
-        setContacts(userContacts)
-        onContactsChange(userContacts)
-      } catch (error) {
-        console.error('Error loading contacts:', error)
-        // TODO: Show error toast
-      } finally {
-        setIsLoading(false)
-      }
+    console.log('ContactList: initialContacts updated with', initialContacts.length, 'contacts');
+    setContacts(initialContacts);
+    onContactsChange(initialContacts);
+  }, [initialContacts, onContactsChange]);
+
+  const loadContacts = useCallback(async () => {
+    if (initialContacts.length > 0) {
+      console.log('ContactList: Using initialContacts, skipping load');
+      return;
     }
 
-    loadContacts()
-  }, [user, onContactsChange])
+    console.log('loadContacts: Starting to load contacts, user:', user ? 'exists' : 'null');
+    if (!user) {
+      console.log('loadContacts: No user, skipping contacts load');
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      console.log('loadContacts: Fetching contacts for user ID: [redacted]');
+      setIsLoading(true);
+      const userContacts = await getContacts(user.uid)
+      console.log('loadContacts: Received contacts:', userContacts.length, 'contacts');
+      setContacts(userContacts)
+      onContactsChange(userContacts)
+    } catch (error) {
+      console.error('Error loading contacts:', error)
+      // TODO: Show error toast
+    } finally {
+      setIsLoading(false)
+    }
+  }, [user, onContactsChange, initialContacts])
+
+  useEffect(() => {
+    if (initialContacts.length === 0) {
+      loadContacts();
+    }
+  }, [refreshTrigger, loadContacts, initialContacts.length]);
 
   const toggleSelection = (contactId: string) => {
     setSelectedContacts(prev => {
@@ -133,7 +160,11 @@ export default function ContactList({
 
     try {
       await deleteContact(user.uid, contactId);
-      setContacts(prev => prev.filter(c => c.id !== contactId));
+      // Update local state
+      const updatedContacts = contacts.filter(c => c.id !== contactId);
+      setContacts(updatedContacts);
+      // Notify parent component about the change
+      onContactsChange(updatedContacts);
     } catch (error) {
       console.error('Error deleting contact:', error);
       // TODO: Show error toast

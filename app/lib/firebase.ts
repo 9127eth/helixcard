@@ -21,12 +21,23 @@ let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
 
 if (typeof window !== 'undefined') {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  auth = getAuth(app);
-  db = getFirestore(app);
-  storage = getStorage(app);
+  try {
+    console.log('Initializing Firebase...');
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    console.log('Firebase app initialized:', app.name);
+    
+    auth = getAuth(app);
+    console.log('Firebase auth initialized');
+    
+    db = getFirestore(app);
+    console.log('Firebase Firestore initialized');
+    
+    storage = getStorage(app);
+    console.log('Firebase storage initialized');
+  } catch (error) {
+    console.error('Error initializing Firebase:', error);
+  }
 }
-console.log('Firebase config:', firebaseConfig);
 
 const actionCodeSettings = {
   url: 'https://helixcard.app/reset-password',
