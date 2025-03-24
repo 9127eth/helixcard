@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ArrowUpDown, ChevronDown, Check } from 'lucide-react'
 
 export type SortOption = 'firstName' | 'dateAdded'
@@ -10,14 +10,34 @@ interface SortButtonProps {
 
 export default function SortButton({ onSort, currentSort }: SortButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const options = [
     { value: 'firstName', label: 'First Name' },
     { value: 'dateAdded', label: 'Recently Added' }
   ]
 
+  // Handle clicks outside the dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    // Add event listener if dropdown is open
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Filter, ChevronDown, Check, X } from 'lucide-react'
 import { Tag } from '@/app/types'
 import { useAuth } from '@/app/hooks/useAuth'
@@ -24,6 +24,7 @@ export default function TagSelector({
   const [isLoading, setIsLoading] = useState(false)
   const [newTagName, setNewTagName] = useState('')
   const [error, setError] = useState('')
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const loadTags = useCallback(async () => {
     if (!user) return
@@ -37,6 +38,25 @@ export default function TagSelector({
       setIsLoading(false)
     }
   }, [user])
+
+  // Handle clicks outside the dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false)
+      }
+    }
+
+    // Add event listener if dropdown is open
+    if (isFilterOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isFilterOpen])
 
   const toggleTag = (tagId: string) => {
     onChange(
@@ -75,7 +95,7 @@ export default function TagSelector({
   const selectedTagObjects = tags.filter(tag => selectedTags.includes(tag.id))
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" ref={dropdownRef}>
       {!isFilter && (
         <div className="flex flex-wrap gap-2">
           {selectedTagObjects.map((tag) => (
