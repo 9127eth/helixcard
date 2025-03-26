@@ -77,7 +77,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         throw paymentMethodError;
       }
 
-      console.log('Created payment method:', paymentMethod.id);
+      // Redact sensitive info in logs
+      console.log('Created payment method:', '[REDACTED]');
 
       const idToken = await user.getIdToken();
       const priceId = getPriceId();
@@ -90,14 +91,18 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         body: JSON.stringify({
           priceId,
           idToken,
-          isLifetime: selectedPlan === 'lifetime',
           couponCode: couponCode.trim() || undefined,
           paymentMethodId: paymentMethod.id
         }),
       });
 
       const data = await response.json();
-      console.log('Subscription response:', data);
+      // Redact sensitive info in logs
+      console.log('Subscription response:', {
+        ...data,
+        clientSecret: data.clientSecret ? '[REDACTED]' : undefined,
+        subscriptionId: data.subscriptionId ? '[REDACTED]' : undefined
+      });
 
       if (!response.ok) {
         console.error('Subscription creation failed:', data);
@@ -110,29 +115,28 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         return;
       }
 
-      // For paid subscriptions, confirm the payment
+      // For paid subscriptions or one-time payments, confirm the payment
       if (!data.clientSecret) {
         throw new Error('No client secret returned');
       }
 
-      const { error: paymentError } = await stripe.confirmCardPayment(data.clientSecret, {
-        payment_method: {
-          card: cardElement,
-        },
-      });
+      // For lifetime plan, payment is already confirmed on the server
+      if (selectedPlan === 'lifetime') {
+        // Just check the payment status
+        const { paymentIntent } = await stripe.retrievePaymentIntent(data.clientSecret);
+        if (paymentIntent?.status !== 'succeeded') {
+          throw new Error('Payment failed. Please try again.');
+        }
+      } else {
+        // For subscription plans, confirm the payment
+        const { error: paymentError } = await stripe.confirmCardPayment(data.clientSecret, {
+          payment_method: {
+            card: cardElement,
+          },
+        });
 
-      if (paymentError) {
-        switch (paymentError.code) {
-          case 'card_declined':
-            throw new Error('Your card was declined. Please try another card.');
-          case 'expired_card':
-            throw new Error('Your card has expired. Please try another card.');
-          case 'incorrect_cvc':
-            throw new Error('Incorrect CVC code. Please check and try again.');
-          case 'insufficient_funds':
-            throw new Error('Insufficient funds. Please try another card.');
-          default:
-            throw new Error(paymentError.message || 'Payment failed. Please try again.');
+        if (paymentError) {
+          throw handlePaymentError(paymentError);
         }
       }
 
@@ -194,6 +198,22 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       setDiscountedAmount(null);
     } finally {
       setIsApplyingCoupon(false);
+    }
+  };
+
+  // Helper function to handle payment errors
+  const handlePaymentError = (paymentError: any) => {
+    switch (paymentError.code) {
+      case 'card_declined':
+        return new Error('Your card was declined. Please try another card.');
+      case 'expired_card':
+        return new Error('Your card has expired. Please try another card.');
+      case 'incorrect_cvc':
+        return new Error('Incorrect CVC code. Please check and try again.');
+      case 'insufficient_funds':
+        return new Error('Insufficient funds. Please try another card.');
+      default:
+        return new Error(paymentError.message || 'Payment failed. Please try again.');
     }
   };
 

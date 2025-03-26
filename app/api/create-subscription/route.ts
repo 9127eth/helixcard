@@ -40,6 +40,40 @@ export async function POST(req: Request) {
 
       console.log('Created Stripe customer:', customer.id);
 
+      // Check if it's a lifetime subscription (one-time payment)
+      if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+        // Create a payment intent for one-time payment instead of subscription
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: 1999, // Amount from getPriceInCents in StripePaymentForm
+          currency: 'usd',
+          customer: customer.id,
+          payment_method: paymentMethodId,
+          confirmation_method: 'manual',
+          confirm: true,
+          payment_method_types: ['card'],
+          metadata: {
+            firebaseUID: uid,
+            priceId: priceId,
+            type: 'lifetime'
+          }
+        });
+
+        // Update Firebase user
+        await db.collection('users').doc(uid).update({
+          isPro: true,
+          isProType: 'lifetime',
+          stripeCustomerId: customer.id,
+          lifetimePurchase: true,
+        });
+
+        await auth.setCustomUserClaims(uid, { isPro: true });
+
+        return NextResponse.json({
+          clientSecret: paymentIntent.client_secret,
+          success: true
+        });
+      }
+
       // Regular subscription handling
       const subscriptionData: Stripe.SubscriptionCreateParams = {
         customer: customer.id,
