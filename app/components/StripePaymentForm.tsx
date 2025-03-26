@@ -202,7 +202,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
   };
 
   // Helper function to handle payment errors
-  const handlePaymentError = (paymentError: any) => {
+  const handlePaymentError = (paymentError: { code?: string; message?: string }) => {
     switch (paymentError.code) {
       case 'card_declined':
         return new Error('Your card was declined. Please try another card.');
