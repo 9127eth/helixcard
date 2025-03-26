@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Layout from '../components/Layout';
 import { BusinessCardList } from '../components/BusinessCardList';
 import CardLimitModal from '../components/CardLimitModal';
@@ -17,12 +17,8 @@ import { Smartphone } from 'react-feather';
 import { useToast } from '../context/ToastContext';
 import { useSearchParams } from 'next/navigation';
 
-const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
-  const [showLimitModal, setShowLimitModal] = useState(false);
-  const [isPro, setIsPro] = useState(false);
-  const [limit, setLimit] = useState(FREE_USER_CARD_LIMIT);
-  const [hasCards, setHasCards] = useState<boolean | null>(null);
+// Create a separate component for the part that uses useSearchParams
+const SubscriptionSuccessHandler: React.FC = () => {
   const { showToast } = useToast();
   const searchParams = useSearchParams();
 
@@ -37,6 +33,16 @@ const DashboardPage: React.FC = () => {
       window.history.replaceState({}, '', url.toString());
     }
   }, [searchParams, showToast]);
+
+  return null;
+};
+
+const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [limit, setLimit] = useState(FREE_USER_CARD_LIMIT);
+  const [hasCards, setHasCards] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkUserCards = async () => {
@@ -86,6 +92,10 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Layout title="Dashboard - HelixCard" showSidebar={true}>
+      {/* Wrap the component using useSearchParams in Suspense */}
+      <Suspense fallback={null}>
+        <SubscriptionSuccessHandler />
+      </Suspense>
       <div className="p-6">
         {hasCards === false && (
           <div className="mb-12 bg-gradient-to-b from-[#F5FDFD] to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-8 shadow-sm">
