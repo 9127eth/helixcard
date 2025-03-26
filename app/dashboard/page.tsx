@@ -14,6 +14,8 @@ import { PlusIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import { FaWallet, FaMagic, FaIdCard } from 'react-icons/fa';
 import { Smartphone } from 'react-feather';
+import { useToast } from '../context/ToastContext';
+import { useSearchParams } from 'next/navigation';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -21,6 +23,20 @@ const DashboardPage: React.FC = () => {
   const [isPro, setIsPro] = useState(false);
   const [limit, setLimit] = useState(FREE_USER_CARD_LIMIT);
   const [hasCards, setHasCards] = useState<boolean | null>(null);
+  const { showToast } = useToast();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Check if subscription success parameter exists
+    if (searchParams.get('subscription') === 'success') {
+      showToast('Payment successful! Your subscription is now active.', 'success');
+      
+      // Remove the query parameter from the URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('subscription');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, showToast]);
 
   useEffect(() => {
     const checkUserCards = async () => {

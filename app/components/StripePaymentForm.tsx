@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { useToast } from '../context/ToastContext';
 
 interface StripePaymentFormProps {
   selectedPlan: 'monthly' | 'yearly' | 'lifetime';
@@ -21,6 +22,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
   const elements = useElements();
   const { user } = useAuth();
   const router = useRouter();
+  const { showToast } = useToast();
 
   const getPriceId = () => {
     switch (selectedPlan) {
@@ -139,6 +141,12 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
           throw handlePaymentError(paymentError);
         }
       }
+
+      // Show success toast before redirecting
+      showToast(
+        `Payment successful! Your ${selectedPlan} subscription is now active.`, 
+        'success'
+      );
 
       router.push('/dashboard?subscription=success');
     } catch (error: unknown) {
