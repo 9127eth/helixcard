@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
 import Image from 'next/image';
-import Link from 'next/link';
 import { FaArrowRight, FaApple, FaMagic, FaArrowCircleRight } from 'react-icons/fa';
 import { CreditCard, Users } from 'react-feather';
 
