@@ -4,9 +4,8 @@ import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaArrowRight, FaApple, FaMagic, FaUserTie, FaFileAlt, FaCamera, 
-  FaQrcode, FaIdCard, FaArrowCircleRight } from 'react-icons/fa';
-import { CreditCard, Smartphone, Users } from 'react-feather';
+import { FaArrowRight, FaApple, FaMagic, FaArrowCircleRight } from 'react-icons/fa';
+import { CreditCard, Users } from 'react-feather';
 
 export default function EmpowerRxPage() {
   // Add effect for smooth scrolling on mobile
@@ -159,9 +158,9 @@ export default function EmpowerRxPage() {
                       3
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-800 dark:text-white mb-1">Select "Add to NFC"</h3>
+                      <h3 className="font-medium text-gray-800 dark:text-white mb-1">Select &quot;Add to NFC&quot;</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        From the menu, select the "Add to NFC" option
+                        From the menu, select the &quot;Add to NFC&quot; option
                       </p>
                     </div>
                   </div>
@@ -228,7 +227,7 @@ export default function EmpowerRxPage() {
                     <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Visit Get Helix Pro page</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Click the "Get Helix Pro" tab in the menu or go directly to <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">helixcard.app/get-helix-pro</a>
+                        Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">helixcard.app/get-helix-pro</a>
                       </p>
                     </div>
                   </div>
@@ -240,7 +239,7 @@ export default function EmpowerRxPage() {
                     <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Enter the code</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Find the "Redeem Code" field and enter <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[#ED1C24] font-bold">EMPRX25</span>
+                        Find the &quot;Redeem Code&quot; field and enter <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[#ED1C24] font-bold">EMPRX25</span>
                       </p>
                     </div>
                   </div>
