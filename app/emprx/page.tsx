@@ -30,164 +30,246 @@ export default function EmpowerRxPage() {
   return (
     <Layout>
       <div className="min-h-[calc(100*var(--vh))] bg-gradient-to-b from-[#F5FDFD] to-white dark:from-gray-900 dark:to-gray-800">
+        {/* Central Logo Section */}
+        <div className="container mx-auto px-4 pt-6 mb-8">
+          <div className="flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Helix Logo"
+              width={150}
+              height={150}
+              priority
+              className="h-auto"
+            />
+            <span className="mx-3 text-2xl text-gray-400">×</span>
+            <Image 
+              src="/logo-emprx.png" 
+              alt="EMPoweRx Logo" 
+              width={180}
+              height={72}
+              priority
+              className="h-auto w-auto object-contain"
+            />
+          </div>
+        </div>
+
         {/* Hero Section */}
-        <div className="container mx-auto px-4 py-8 md:py-16">
-          <div className="flex flex-col lg:flex-row items-center">
-            {/* Left Column - Hero Content */}
-            <div className="w-full lg:w-1/2 mb-10 lg:mb-0 pr-0 lg:pr-12">
-              <div className="mb-8">
-                <div className="flex items-center justify-center mb-16">
-                  <Image
-                    src="/logo.png"
-                    alt="Helix Logo"
-                    width={150}
-                    height={150}
-                    priority
-                    className="h-auto"
-                  />
-                  <span className="mx-3 text-2xl text-gray-400">×</span>
-                  <Image 
-                    src="/logo-emprx.png" 
-                    alt="Empower Rx Logo" 
-                    width={180}
-                    height={72}
-                    priority
-                    className="h-auto w-auto object-contain"
-                  />
+        <div className="container mx-auto px-4 pb-8 md:pb-16">
+          {/* Hero Content - Full width on mobile, center aligned on all screens */}
+          <div className="text-center max-w-4xl mx-auto mb-12">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 text-gray-800 dark:text-white">
+              The Official <span className="text-[#283890] dark:text-[#283890]">Digital Business Card</span> for EMPoweRx
+            </h1>
+            <p className="text-lg text-gray-700 dark:text-gray-300 mb-10">
+              Network effortlessly at the conference with Helix - your digital business card that makes sharing your information seamless and memorable.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center">
+              <a 
+                href="/#auth"
+                className="px-6 py-3 bg-[#283890] hover:bg-[#1e2a6d] text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
+              >
+                Create Your Card
+                <FaArrowRight className="ml-2" />
+              </a>
+              <a
+                href="https://apps.apple.com/us/app/helix-digital-business-card/id6736955244"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-black hover:bg-gray-900 text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
+              >
+                <FaApple className="mr-2" />
+                Download iOS App
+              </a>
+            </div>
+            <div className="mb-8">
+              <a
+                href="https://helixcard.app/c/9odg5w/1ob"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-[#283890] hover:text-[#1e2a6d] font-medium mb-8 justify-center"
+              >
+                <FaArrowCircleRight className="mr-2" />
+                See Sample Business Card
+              </a>
+            </div>
+          </div>
+
+          {/* 2x2 Grid on Desktop, Single Column on Mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            {/* Top Left - Phone Image & Special Offer (First on mobile) */}
+            <div className="flex flex-col items-center order-1 md:order-1">
+              <div className="relative max-w-full overflow-hidden">
+                <Image
+                  src="/helix-phone.png"
+                  alt="Helix Digital Card on Phone"
+                  width={1318}
+                  height={1757}
+                  priority
+                  className="rounded-xl mx-auto object-cover w-full max-w-[90%] sm:max-w-[600px] md:max-w-full"
+                />
+              </div>
+              
+              <div className="flex items-center justify-center mt-6 w-full max-w-md">
+                <div className="mr-2 p-1.5 bg-[#ED1C24]/10 rounded-full">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12L13 4V8C13 8 4 9 4 20C4 20 8 16 13 16V20L21 12Z" stroke="#ED1C24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 text-gray-800 dark:text-white">
-                  The Official <span className="text-[#283890] dark:text-[#283890]">Digital Business Card</span> for Empower Rx
-                </h1>
-                <p className="text-lg text-gray-700 dark:text-gray-300 mb-10 text-center">
-                  Network effortlessly at the conference with Helix - your digital business card that makes sharing your information seamless and memorable.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center">
-                  <a 
-                    href="/#auth"
-                    className="px-6 py-3 bg-[#283890] hover:bg-[#1e2a6d] text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
-                  >
-                    Create Your Card
-                    <FaArrowRight className="ml-2" />
-                  </a>
-                  <a
-                    href="https://apps.apple.com/us/app/helix-digital-business-card/id6736955244"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-6 py-3 bg-black hover:bg-gray-900 text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
-                  >
-                    <FaApple className="mr-2" />
-                    Download iOS App
-                  </a>
-                </div>
-                <div className="mb-8 space-y-3 flex flex-col items-center">
-                  <a
-                    href="https://helixcard.app/c/9odg5w/1ob"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-[#283890] hover:text-[#1e2a6d] font-medium mb-8"
-                  >
-                    <FaArrowCircleRight className="mr-2" />
-                    See Sample Business Card
-                  </a>
-                  
-                  {/* Add Helix phone image */}
-                  <div className="mt-6">
-                    <div className="relative max-w-full overflow-hidden">
-                      <Image
-                        src="/helix-phone.png"
-                        alt="Helix Digital Card on Phone"
-                        width={1318}
-                        height={1757}
-                        priority
-                        className="rounded-xl mx-auto object-cover w-full max-w-[90%] sm:max-w-[600px] md:max-w-[800px]"
-                      />
-                    </div>
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-semibold">Special Offer:</span> Get 1 year of Helix Pro FREE with code <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[#ED1C24] font-bold inline-block mt-1">EMPRX25</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Top Right - NFC Setup Instructions (Second on mobile) */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 order-2 md:order-2 h-full">
+              <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">How to Setup Your NFC Card</h2>
+              <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base mb-6">
+                Attendees will be receiving a physical NFC card in their welcome package which will be used to connect to a digital business card.
+              </p>
+              
+              <div className="space-y-6">
+                <div className="flex items-start">
+                  <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    1
                   </div>
-                  
-                  <div className="flex items-center justify-center mt-6 w-full max-w-md">
-                    <div className="mr-2 p-1.5 bg-[#ED1C24]/10 rounded-full">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 12L13 4V8C13 8 4 9 4 20C4 20 8 16 13 16V20L21 12Z" stroke="#ED1C24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      <span className="font-semibold">Special Offer:</span> Get 1 year of Helix Pro FREE with code <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[#ED1C24] font-bold inline-block mt-1">EMPRX25</span>
-                    </span>
+                  <div>
+                    <h3 className="font-medium text-gray-800 dark:text-white mb-1">Create your digital card</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                      Sign up for a free Helix account and create your digital business card
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    2
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-800 dark:text-white mb-1">Tap the menu button</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                      Find the 3-dot menu button in the top right corner of your card and tap it
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    3
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-800 dark:text-white mb-1">Select &quot;Add to NFC&quot;</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                      From the menu, select the &quot;Add to NFC&quot; option
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    4
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-800 dark:text-white mb-1">Tap your physical card</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                      When prompted, tap the back of your physical NFC card to link it
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="pt-1">
+                  <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#283890]/30">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <span className="font-bold">Android Users:</span> Create your card from the website, then copy the share link and follow <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">these instructions</a> for NFC setup.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column - NFC Instructions */}
-            <div className="w-full lg:w-1/2">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
-                <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">How to Setup Your NFC Card</h2>
-                <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base mb-6">
-                  Attendees will be receiving a digital black NFC card in their welcome package.
-                </p>
+            {/* Bottom Left - How NFC Cards Work (Third on mobile) */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 md:p-8 order-3 md:order-3 h-full">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
+                <span className="mr-2 text-[#283890]">📱</span>
+                How NFC Cards Work
+              </h2>
                 
-                <div className="space-y-6">
-                  <div className="flex items-start">
-                    <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
-                      1
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-800 dark:text-white mb-1">Create your digital card</h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Sign up for a free Helix account and create your digital business card
+              <div className="space-y-5">
+                <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                  NFC (Near Field Communication) cards allow you to share your digital business card with a simple tap - no app required for the recipient.
+                </p>
+
+                <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#283890]/30">
+                  <h3 className="font-medium text-gray-800 dark:text-white mb-2">For different devices:</h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <div className="bg-[#283890] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">
+                        <span className="font-semibold">iPhone users:</span> Tap the <span className="font-medium">top</span> of your phone to the NFC card
                       </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
-                      2
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-800 dark:text-white mb-1">Tap the menu button</h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Find the 3-dot menu button in the top right corner of your card and tap it
+                    </li>
+                    <li className="flex items-start">
+                      <div className="bg-[#283890] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">
+                        <span className="font-semibold">Android users:</span> Tap the <span className="font-medium">back/center</span> of your phone to the NFC card
                       </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
-                      3
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-800 dark:text-white mb-1">Select &quot;Add to NFC&quot;</h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        From the menu, select the &quot;Add to NFC&quot; option
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-medium text-gray-800 dark:text-white">What happens when someone taps your card:</h3>
+                  <ol className="space-y-3">
+                    <li className="flex items-start">
+                      <div className="bg-[#283890] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
+                        1
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">
+                        Their phone detects the NFC signal and displays a notification
                       </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
-                      4
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-800 dark:text-white mb-1">Tap your physical card</h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        When prompted, tap the back of your physical NFC card to link it
+                    </li>
+                    <li className="flex items-start">
+                      <div className="bg-[#283890] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
+                        2
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">
+                        They tap the notification to open your digital business card in their browser
                       </p>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-1">
-                    <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#283890]/30">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="font-bold">Android Users:</span> Create your card from the website, then copy the share link and follow <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">these instructions</a> for NFC setup.
+                    </li>
+                    <li className="flex items-start">
+                      <div className="bg-[#283890] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
+                        3
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">
+                        They can save your contact info directly to their phone with one tap
                       </p>
-                    </div>
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="pt-2">
+                  <div className="bg-[#ED1C24]/10 p-4 rounded-lg border border-[#ED1C24]/30">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <span className="font-bold">Pro Tip:</span> Your NFC card is rewritable - you can reprogram it to link to different digital business cards if you create multiple cards for different purposes.
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Redemption Instructions - New Section */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 md:p-8 mt-6">
+            {/* Bottom Right - Redemption Instructions (Fourth on mobile) */}
+            <div className="order-4 md:order-4 h-full">
+              {/* Redemption Instructions */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 md:p-8 h-full">
                 <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
                   <span className="mr-2 text-[#ED1C24]">🎁</span>
                   Claim Your Free Year of Helix Pro
@@ -201,7 +283,7 @@ export default function EmpowerRxPage() {
                           EXCLUSIVE
                         </div>
                         <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
-                          As an Empower Rx attendee, you get 1 year of Helix Pro FREE with code: <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-[#ED1C24] font-bold inline-block mt-1">EMPRX25</span>
+                          As an EMPoweRx attendee, you get 1 year of Helix Pro FREE with code: <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-[#ED1C24] font-bold inline-block mt-1">EMPRX25</span>
                         </p>
                       </div>
                     </div>
@@ -364,7 +446,7 @@ export default function EmpowerRxPage() {
         {/* CTA Section */}
         <div className="bg-[#283890] dark:bg-[#283890] py-10 mt-12">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl font-bold mb-4 text-white">Ready to network at Empower Rx?</h2>
+            <h2 className="text-2xl font-bold mb-4 text-white">Ready to network at EMPoweRx?</h2>
             <p className="text-base md:text-lg mb-6 max-w-2xl mx-auto text-white/90">Join your fellow conference attendees who have already upgraded their networking experience with Helix.</p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
@@ -393,7 +475,7 @@ export default function EmpowerRxPage() {
           <div className="container mx-auto px-4 text-center">
             <div className="flex flex-col items-center">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                © {new Date().getFullYear()} Helix Business Card. The official digital business card of Empower Rx.
+                © {new Date().getFullYear()} Helix Business Card. The official digital business card of EMPoweRx.
               </p>
             </div>
           </div>
