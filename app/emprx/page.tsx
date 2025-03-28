@@ -28,7 +28,7 @@ export default function EmpowerRxPage() {
   }, []);
 
   return (
-    <Layout>
+    <Layout showSidebar={false} showHeader={false}>
       <div className="min-h-[calc(100*var(--vh))] bg-gradient-to-b from-[#F5FDFD] to-white dark:from-gray-900 dark:to-gray-800">
         {/* Central Logo Section */}
         <div className="container mx-auto px-4 pt-6 mb-8">
