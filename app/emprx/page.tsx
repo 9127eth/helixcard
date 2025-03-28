@@ -284,6 +284,7 @@ export default function EmpowerRxPage() {
                         </div>
                         <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
                           As an EMPoweRx attendee, you get 1 year of Helix Pro FREE with code: <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-[#ED1C24] font-bold inline-block mt-1">EMPRX25</span>
+                          <span className="block mt-1 text-sm font-semibold">Must be redeemed by May 1st, 2024</span>
                         </p>
                       </div>
                     </div>
@@ -318,9 +319,21 @@ export default function EmpowerRxPage() {
                       3
                     </div>
                     <div>
+                      <h3 className="font-medium text-gray-800 dark:text-white mb-1">Select Yearly or Monthly plan</h3>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                        Make sure to select either the <span className="font-medium">Monthly</span> or <span className="font-medium">Yearly</span> plan option (the code will not work with Lifetime)
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                      4
+                    </div>
+                    <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Enter the code</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Find the &quot;Redeem Code&quot; field and enter <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[#ED1C24] font-bold">EMPRX25</span>
+                        Find the &quot;Coupon Code&quot; field and enter <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[#ED1C24] font-bold">EMPRX25</span>
                       </p>
                     </div>
                   </div>
@@ -328,7 +341,7 @@ export default function EmpowerRxPage() {
                   <div className="pt-4">
                     <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#283890]/30">
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="font-bold">Important:</span> You must visit <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account.
+                        <span className="font-bold">Important:</span> You must visit <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account. Remember to select yearly or monthly plan (not lifetime) and redeem by May 1st, 2024.
                       </p>
                     </div>
                   </div>
