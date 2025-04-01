@@ -52,7 +52,7 @@ export default function UTTylerPage() {
               Support <span className="text-[#D35A25] dark:text-[#D35A25]">UT Tyler APhA</span> with Your <span className="text-[#00377B] dark:text-[#00377B]">Digital Business Card</span>
             </h1>
             <p className="text-lg text-gray-700 dark:text-gray-300 mb-10">
-              Join the American Pharmacists Association (APhA) fundraiser by creating your personalized digital business card. For every card created with our code, a contribution will be made to support UT Tyler's local APhA chapter.
+              Join the American Pharmacists Association (APhA) fundraiser by creating your personalized digital business card. For every card created with our code, a contribution will be made to support UT Tyler&apos;s local APhA chapter.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center">
@@ -337,7 +337,7 @@ export default function UTTylerPage() {
           <div className="container mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center text-gray-800 dark:text-white">Why Choose Helix for Your Digital Business Card</h2>
             <p className="text-gray-600 dark:text-gray-300 text-center mb-10 max-w-3xl mx-auto">
-              Helix gives you a powerful, professional way to share your contact information and support UT Tyler's APhA chapter at the same time.
+              Helix gives you a powerful, professional way to share your contact information and support UT Tyler&apos;s APhA chapter at the same time.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -362,7 +362,7 @@ export default function UTTylerPage() {
                   <Users className="text-white dark:text-white text-2xl" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Support UT Tyler APhA</h3>
-                <p className="text-gray-600 dark:text-gray-300">For every card created with our special code, we'll make a contribution to UT Tyler's local APhA chapter.</p>
+                <p className="text-gray-600 dark:text-gray-300">For every card created with our special code, we&apos;ll make a contribution to UT Tyler&apos;s local APhA chapter.</p>
               </div>
             </div>
           </div>
@@ -406,7 +406,7 @@ export default function UTTylerPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Business Owner</p>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">&quot;I love that I can support UT Tyler's APhA chapter while also getting a useful networking tool. The NFC feature is amazing - no more fumbling with paper cards!&quot;</p>
+                <p className="text-gray-600 dark:text-gray-300">&quot;I love that I can support UT Tyler&apos;s APhA chapter while also getting a useful networking tool. The NFC feature is amazing - no more fumbling with paper cards!&quot;</p>
                 <div className="flex mt-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -427,7 +427,7 @@ export default function UTTylerPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">UT Tyler Alumnus</p>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">&quot;As an alumnus, I'm proud to use a product that gives back to my alma mater. The digital card is so much more dynamic than traditional business cards.&quot;</p>
+                <p className="text-gray-600 dark:text-gray-300">&quot;As an alumnus, I&apos;m proud to use a product that gives back to my alma mater. The digital card is so much more dynamic than traditional business cards.&quot;</p>
                 <div className="flex mt-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -445,7 +445,7 @@ export default function UTTylerPage() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-6">Ready to Support UT Tyler APhA?</h2>
             <p className="text-xl mb-8 max-w-3xl mx-auto">
-              Create your digital business card today and help contribute to UT Tyler's American Pharmacists Association chapter.
+              Create your digital business card today and help contribute to UT Tyler&apos;s American Pharmacists Association chapter.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
