@@ -68,6 +68,7 @@ export default function Home() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-[#F5FDFD] to-white dark:from-gray-900 dark:to-gray-800">
         {/* APhA Conference Welcome Banner */}
+        {/* 
         <div className="apha-banner bg-[#7CCEDA]/20 border-b border-[#7CCEDA]/30 dark:bg-[#7CCEDA]/10 dark:border-[#7CCEDA]/20">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
@@ -89,6 +90,8 @@ export default function Home() {
             </div>
           </div>
         </div>
+        */}
+        {/* PLACEHOLDER: Event announcement banner can be re-enabled here for future events */}
         {/* Hero Section */}
         <div className="container mx-auto px-4 py-12 md:py-24">
           <div className="flex flex-col lg:flex-row items-center">
