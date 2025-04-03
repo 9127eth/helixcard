@@ -13,6 +13,13 @@ interface StripeError extends Error {
   statusCode?: number;
 }
 
+// Define restricted coupon code mappings
+const COUPON_RESTRICTIONS: Record<string, string[]> = {
+  'LIPSCOMB25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'UTTYLER25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
+}
+
 export async function POST(req: Request) {
   try {
     const { couponCode, priceId, idToken } = await req.json();
@@ -25,6 +32,13 @@ export async function POST(req: Request) {
     await auth.verifyIdToken(idToken);
 
     try {
+      // Check if coupon has product restrictions
+      if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
+        return NextResponse.json({ 
+          error: 'This coupon code is not valid for the selected product type' 
+        }, { status: 400 });
+      }
+
       // First, retrieve the promotion code
       const promotionCodes = await stripe.promotionCodes.list({
         code: couponCode,
