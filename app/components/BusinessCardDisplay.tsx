@@ -280,7 +280,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
       }`}>
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-row items-start justify-between pt-2">
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-start max-w-[75%]">
               <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
                 {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
                 {(card.credentials || card.pronouns) && (
@@ -295,12 +295,18 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                   </span>
                 )}
               </h1>
-              <p className="text-lg sm:text-xl text-[var(--header-footer-primary-text)]">
-                {card.jobTitle} {card.company && <span className="text-[var(--end-card-header-secondary-text-color)]">| {card.company}</span>}
-              </p>
+              <div className="text-lg sm:text-xl text-[var(--header-footer-primary-text)] pr-2">
+                <span className="break-words">{card.jobTitle}</span> 
+                {card.company && (
+                  <span className="text-[var(--end-card-header-secondary-text-color)]">
+                    <span> | </span>
+                    <span className="break-words">{card.company}</span>
+                  </span>
+                )}
+              </div>
             </div>
             {card.imageUrl && (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden relative">
+              <div className="min-w-24 min-h-24 w-24 h-24 sm:min-w-32 sm:min-h-32 sm:w-32 sm:h-32 rounded-full overflow-hidden relative flex-shrink-0">
                 <Image
                   src={card.imageUrl}
                   alt={`${card.firstName} ${card.lastName}`}
