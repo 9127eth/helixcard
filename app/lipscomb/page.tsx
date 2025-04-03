@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { FaArrowRight, FaApple, FaMagic, FaArrowCircleRight } from 'react-icons/fa';
 import { CreditCard, Users } from 'react-feather';
 
-export default function UTTylerPage() {
+export default function LipscombPage() {
   // Add effect for smooth scrolling on mobile
   useEffect(() => {
     // Add viewport height fix for mobile browsers
@@ -49,16 +49,16 @@ export default function UTTylerPage() {
           {/* Hero Content - Full width on mobile, center aligned on all screens */}
           <div className="text-center max-w-4xl mx-auto mb-12">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 text-gray-800 dark:text-white">
-              Support <span className="text-[#D35A25] dark:text-[#D35A25]">UT Tyler APhA</span> with Your <span className="text-[#00377B] dark:text-[#00377B]">Digital Business Card</span>
+              Support <span className="text-[#2e1949] dark:text-[#2e1949]">Lipscomb APhA</span> with Your <span className="text-[#f2ab08] dark:text-[#f2ab08]">Digital Business Card</span>
             </h1>
             <p className="text-lg text-gray-700 dark:text-gray-300 mb-10">
-              Join your local American Pharmacists Association (APhA) fundraiser by creating your personalized digital business card. For every lifetime Helix Pro purchase using code UTTYLER25, a contribution will be made to support UT Tyler&apos;s local APhA chapter.
+              Join your local American Pharmacists Association (APhA) fundraiser by creating your personalized digital business card. For every lifetime Helix Pro purchase using code LIPSCOMB25, a contribution will be made to support Lipscomb University&apos;s local APhA chapter.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center">
               <a 
                 href="/#auth"
-                className="px-6 py-3 bg-[#00377B] hover:bg-[#002a5c] text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
+                className="px-6 py-3 bg-[#2e1949] hover:bg-[#231335] text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
               >
                 Get Started
                 <FaArrowRight className="ml-2" />
@@ -69,7 +69,7 @@ export default function UTTylerPage() {
                 href="https://helixcard.app/c/9odg5w/1ob"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center text-[#00377B] hover:text-[#002a5c] font-medium mb-8 justify-center"
+                className="flex items-center text-[#2e1949] hover:text-[#231335] font-medium mb-8 justify-center"
               >
                 <FaArrowCircleRight className="mr-2" />
                 See Sample Business Card
@@ -93,13 +93,13 @@ export default function UTTylerPage() {
               </div>
               
               <div className="flex items-center justify-center mt-6 w-full max-w-md">
-                <div className="mr-2 p-1.5 bg-[#D35A25]/10 rounded-full">
+                <div className="mr-2 p-1.5 bg-[#2e1949]/10 rounded-full">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 12L13 4V8C13 8 4 9 4 20C4 20 8 16 13 16V20L21 12Z" stroke="#D35A25" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 12L13 4V8C13 8 4 9 4 20C4 20 8 16 13 16V20L21 12Z" stroke="#2e1949" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-semibold">Special Offer:</span> Get 10% off Lifetime Helix Pro with code <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[#D35A25] font-bold inline-block mt-1">UTTYLER25</span>
+                  <span className="font-semibold">Special Offer:</span> Get 10% off Lifetime Helix Pro with code <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-[#2e1949] font-bold inline-block mt-1">LIPSCOMB25</span>
                 </span>
               </div>
             </div>
@@ -108,26 +108,26 @@ export default function UTTylerPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 md:p-8 order-2 md:order-2 h-full">
               <div>
                 <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
-                  <span className="mr-2 text-[#D35A25]">🎁</span>
+                  <span className="mr-2 text-[#f2ab08]">🎁</span>
                   Redeem Your Helix Pro Discount
                 </h2>
                 
                 <div className="space-y-6">
                   <div>
-                    <div className="bg-[#D35A25]/10 p-4 rounded-lg border border-[#D35A25]/30 mb-6">
+                    <div className="bg-[#2e1949]/10 p-4 rounded-lg border border-[#2e1949]/30 mb-6">
                       <div className="flex flex-col sm:flex-row items-start">
-                        <div className="bg-[#D35A25] text-white h-8 px-3 rounded-lg flex items-center justify-center mr-3 mb-3 sm:mb-0 font-bold text-sm">
+                        <div className="bg-[#2e1949] text-white h-8 px-3 rounded-lg flex items-center justify-center mr-3 mb-3 sm:mb-0 font-bold text-sm">
                           EXCLUSIVE
                         </div>
                         <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
-                          As a UT Tyler APhA fundraiser supporter, you get 10% off Lifetime Helix Pro with code: <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-[#D35A25] font-bold inline-block mt-1">UTTYLER25</span>
+                          As a Lipscomb APhA fundraiser supporter, you get 10% off Lifetime Helix Pro with code: <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-[#2e1949] font-bold inline-block mt-1">LIPSCOMB25</span>
                         </p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-start">
-                    <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                       1
                     </div>
                     <div>
@@ -139,19 +139,19 @@ export default function UTTylerPage() {
                   </div>
                   
                   <div className="flex items-start">
-                    <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                       2
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Visit Get Helix Pro page</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#00377B] underline">helixcard.app/get-helix-pro</a>
+                        Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#2e1949] underline">helixcard.app/get-helix-pro</a>
                       </p>
                     </div>
                   </div>
                   
                   <div className="flex items-start">
-                    <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                       3
                     </div>
                     <div>
@@ -163,21 +163,21 @@ export default function UTTylerPage() {
                   </div>
                   
                   <div className="flex items-start">
-                    <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                    <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                       4
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Enter the code</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Find the &quot;Coupon Code&quot; field and enter <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[#D35A25] font-bold">UTTYLER25</span>
+                        Find the &quot;Coupon Code&quot; field and enter <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[#2e1949] font-bold">LIPSCOMB25</span>
                       </p>
                     </div>
                   </div>
                   
                   <div className="pt-4">
-                    <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#00377B]/30">
+                    <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#2e1949]/30">
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="font-bold">Important:</span> You must visit <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#00377B] underline">helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account. Remember to select the Lifetime plan to receive your 10% discount.
+                        <span className="font-bold">Important:</span> You must visit <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#2e1949] underline">helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account. Remember to select the Lifetime plan to receive your 10% discount.
                       </p>
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export default function UTTylerPage() {
               
               <div className="space-y-6">
                 <div className="flex items-start">
-                  <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                  <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                     1
                   </div>
                   <div>
@@ -206,7 +206,7 @@ export default function UTTylerPage() {
                 </div>
                 
                 <div className="flex items-start">
-                  <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                  <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                     2
                   </div>
                   <div>
@@ -218,7 +218,7 @@ export default function UTTylerPage() {
                 </div>
                 
                 <div className="flex items-start">
-                  <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                  <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                     3
                   </div>
                   <div>
@@ -230,7 +230,7 @@ export default function UTTylerPage() {
                 </div>
                 
                 <div className="flex items-start">
-                  <div className="bg-[#00377B] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                  <div className="bg-[#2e1949] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                     4
                   </div>
                   <div>
@@ -242,9 +242,9 @@ export default function UTTylerPage() {
                 </div>
                 
                 <div className="pt-1">
-                  <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#00377B]/30">
+                  <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#2e1949]/30">
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="font-bold">Android Users:</span> Create your card from the website, then copy the share link and follow <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-[#00377B] underline">these instructions</a> for NFC setup.
+                      <span className="font-bold">Android Users:</span> Create your card from the website, then copy the share link and follow <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-[#2e1949] underline">these instructions</a> for NFC setup.
                     </p>
                   </div>
                 </div>
@@ -254,7 +254,7 @@ export default function UTTylerPage() {
             {/* How NFC Cards Work (Fourth on mobile and desktop) */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 md:p-8 order-4 md:order-4 h-full">
               <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 dark:text-white flex items-center">
-                <span className="mr-2 text-[#00377B]">📱</span>
+                <span className="mr-2 text-[#f2ab08]">📱</span>
                 How NFC Cards Work
               </h2>
                 
@@ -263,11 +263,11 @@ export default function UTTylerPage() {
                   NFC (Near Field Communication) cards allow you to share your digital business card with a simple tap - no app required for the recipient.
                 </p>
 
-                <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#00377B]/30">
+                <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#2e1949]/30">
                   <h3 className="font-medium text-gray-800 dark:text-white mb-2">For different devices:</h3>
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                      <div className="bg-[#00377B] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm">
+                      <div className="bg-[#2e1949] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
@@ -277,7 +277,7 @@ export default function UTTylerPage() {
                       </p>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#00377B] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm">
+                      <div className="bg-[#2e1949] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
@@ -293,7 +293,7 @@ export default function UTTylerPage() {
                   <h3 className="font-medium text-gray-800 dark:text-white">What happens when someone taps your card:</h3>
                   <ol className="space-y-3">
                     <li className="flex items-start">
-                      <div className="bg-[#00377B] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
+                      <div className="bg-[#2e1949] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
                         1
                       </div>
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
@@ -301,7 +301,7 @@ export default function UTTylerPage() {
                       </p>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#00377B] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
+                      <div className="bg-[#2e1949] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
                         2
                       </div>
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
@@ -309,7 +309,7 @@ export default function UTTylerPage() {
                       </p>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#00377B] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
+                      <div className="bg-[#2e1949] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
                         3
                       </div>
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
@@ -328,12 +328,12 @@ export default function UTTylerPage() {
           <div className="container mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center text-gray-800 dark:text-white">Why Choose Helix for Your Digital Business Card</h2>
             <p className="text-gray-600 dark:text-gray-300 text-center mb-10 max-w-3xl mx-auto">
-              Helix gives you a powerful, professional way to share your contact information and support UT Tyler&apos;s APhA chapter at the same time.
+              Helix gives you a powerful, professional way to share your contact information and support Lipscomb University&apos;s APhA chapter at the same time.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <div className="bg-[#F5FDFD] dark:bg-gray-700 p-6 rounded-xl text-center">
-                <div className="bg-[#D35A25] dark:bg-[#D35A25] w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <div className="bg-[#f2ab08] dark:bg-[#f2ab08] w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
                   <FaMagic className="text-white dark:text-white text-2xl" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Easy Setup</h3>
@@ -341,7 +341,7 @@ export default function UTTylerPage() {
               </div>
               
               <div className="bg-[#F5FDFD] dark:bg-gray-700 p-6 rounded-xl text-center">
-                <div className="bg-[#00377B] dark:bg-[#00377B] w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <div className="bg-[#2e1949] dark:bg-[#2e1949] w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
                   <CreditCard className="text-white dark:text-white text-2xl" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">NFC Technology</h3>
@@ -349,11 +349,11 @@ export default function UTTylerPage() {
               </div>
               
               <div className="bg-[#F5FDFD] dark:bg-gray-700 p-6 rounded-xl text-center">
-                <div className="bg-[#D35A25] dark:bg-[#D35A25] w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <div className="bg-[#f2ab08] dark:bg-[#f2ab08] w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
                   <Users className="text-white dark:text-white text-2xl" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Support UT Tyler APhA</h3>
-                <p className="text-gray-600 dark:text-gray-300">For every card created with our special code, we&apos;ll make a contribution to UT Tyler&apos;s local APhA chapter.</p>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Support Lipscomb APhA</h3>
+                <p className="text-gray-600 dark:text-gray-300">For every card created with our special code, we&apos;ll make a contribution to Lipscomb University&apos;s local APhA chapter.</p>
               </div>
             </div>
           </div>
@@ -397,7 +397,7 @@ export default function UTTylerPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Business Owner</p>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">&quot;I love that I can support UT Tyler&apos;s APhA chapter while also getting a useful networking tool. The NFC feature is amazing - no more fumbling with paper cards!&quot;</p>
+                <p className="text-gray-600 dark:text-gray-300">&quot;I love that I can support Lipscomb&apos;s APhA chapter while also getting a useful networking tool. The NFC feature is amazing - no more fumbling with paper cards!&quot;</p>
                 <div className="flex mt-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg key={star} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -415,7 +415,7 @@ export default function UTTylerPage() {
                   </div>
                   <div>
                     <h4 className="font-bold">Robert Wilson</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">UT Tyler Alumnus</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Lipscomb Alumnus</p>
                   </div>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">&quot;As an alumnus, I&apos;m proud to use a product that gives back to my alma mater. The digital card is so much more dynamic than traditional business cards.&quot;</p>
@@ -432,16 +432,16 @@ export default function UTTylerPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-[#00377B] dark:bg-[#00377B] py-12 text-white">
+        <div className="bg-[#2e1949] dark:bg-[#2e1949] py-12 text-white">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">Ready to Support UT Tyler APhA?</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-6">Ready to Support Lipscomb APhA?</h2>
             <p className="text-xl mb-8 max-w-3xl mx-auto">
-              Create your digital business card today and help contribute to UT Tyler&apos;s American Pharmacists Association chapter.
+              Create your digital business card today and help contribute to Lipscomb University&apos;s American Pharmacists Association chapter.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="/#auth"
-                className="px-6 py-3 bg-white text-[#00377B] hover:bg-gray-100 font-medium rounded-lg flex items-center justify-center transition-colors duration-300 sm:w-auto"
+                className="px-6 py-3 bg-white text-[#2e1949] hover:bg-gray-100 font-medium rounded-lg flex items-center justify-center transition-colors duration-300 sm:w-auto"
               >
                 Get Started
                 <FaArrowRight className="ml-2" />
