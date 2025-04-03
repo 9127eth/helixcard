@@ -280,27 +280,29 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
       }`}>
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-row items-start justify-between pt-2">
-            <div className="flex flex-col items-start">
-              <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)]">
-                {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
-                {(card.credentials || card.pronouns) && (
-                  <span className="text-lg ml-2 text-[var(--end-card-header-secondary-text-color)]">
-                    {card.credentials}
-                    {card.credentials && card.pronouns && " "}
-                    {card.pronouns && (
-                      <span className="text-sm italic pronouns-spacing">
-                        ({card.pronouns})
-                      </span>
-                    )}
-                  </span>
-                )}
+            <div className="flex flex-col items-start pr-4 max-w-[65%]">
+              <h1 className="text-3xl font-bold mb-2 text-[var(--header-footer-primary-text)] break-words">
+                <span className="inline-flex flex-wrap items-baseline">
+                  {card.prefix} {card.firstName} {card.middleName} {card.lastName || ''}
+                  {(card.credentials || card.pronouns) && (
+                    <span className="text-lg ml-2 text-[var(--end-card-header-secondary-text-color)]">
+                      {card.credentials}
+                      {card.credentials && card.pronouns && " "}
+                      {card.pronouns && (
+                        <span className="text-sm italic pronouns-spacing">
+                          ({card.pronouns})
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </span>
               </h1>
-              <p className="text-lg sm:text-xl text-[var(--header-footer-primary-text)]">
+              <p className="text-lg sm:text-xl text-[var(--header-footer-primary-text)] break-words">
                 {card.jobTitle} {card.company && <span className="text-[var(--end-card-header-secondary-text-color)]">| {card.company}</span>}
               </p>
             </div>
             {card.imageUrl && (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden relative">
+              <div className="min-w-24 min-h-24 w-24 h-24 sm:min-w-32 sm:min-h-32 sm:w-32 sm:h-32 rounded-full overflow-hidden relative flex-shrink-0">
                 <Image
                   src={card.imageUrl}
                   alt={`${card.firstName} ${card.lastName}`}
