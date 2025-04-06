@@ -31,6 +31,7 @@ export interface BusinessCard {
   snapchatUrl?: string;
   telegramUrl?: string;
   whatsappUrl?: string;
+  blueskyUrl?: string;
   webLinks?: { url: string; displayText: string }[];
   email?: string; // Make email optional
   phoneNumber?: string;
@@ -73,6 +74,7 @@ export interface BusinessCardData {
   snapchatUrl?: string;
   telegramUrl?: string;
   whatsappUrl?: string;
+  blueskyUrl?: string;
   webLinks: { url: string; displayText: string }[];
   threadsUrl?: string;
   cvHeader?: string;

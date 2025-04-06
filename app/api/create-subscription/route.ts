@@ -6,13 +6,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
 
-// Define restricted coupon code mappings
-const COUPON_RESTRICTIONS: Record<string, string[]> = {
-  'LIPSCOMB25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'UTTYLER25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
-}
-
 export async function POST(req: Request) {
   try {
     const { priceId, idToken, couponCode, paymentMethodId } = await req.json();
@@ -22,11 +15,45 @@ export async function POST(req: Request) {
     }
 
     try {
-      // Double-check coupon restrictions
-      if (couponCode && COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
-        return NextResponse.json({ 
-          error: 'This coupon code is not valid for the selected product type' 
-        }, { status: 400 });
+      // Check coupon code validity if provided
+      if (couponCode) {
+        try {
+          // First, retrieve the promotion code
+          const promotionCodes = await stripe.promotionCodes.list({
+            code: couponCode,
+            active: true,
+          });
+
+          if (promotionCodes.data.length === 0) {
+            return NextResponse.json({ error: 'Invalid promotion code' }, { status: 400 });
+          }
+
+          const promoCode = promotionCodes.data[0];
+          const couponId = promoCode.coupon.id;
+
+          // Then retrieve the coupon using the coupon ID
+          const coupon = await stripe.coupons.retrieve(couponId);
+          
+          if (!coupon.valid) {
+            return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 });
+          }
+
+          // Get the price to check product restrictions
+          const price = await stripe.prices.retrieve(priceId);
+          
+          // Check if the coupon has product restrictions
+          if (coupon.applies_to && coupon.applies_to.products && coupon.applies_to.products.length > 0) {
+            // Check if the price's product is in the allowed products list
+            if (!coupon.applies_to.products.includes(price.product as string)) {
+              return NextResponse.json({ 
+                error: 'This coupon code is not valid for the selected product type' 
+              }, { status: 400 });
+            }
+          }
+        } catch (error) {
+          console.error('Error validating coupon code:', error);
+          return NextResponse.json({ error: 'Error validating coupon code' }, { status: 400 });
+        }
       }
 
       // Verify the Firebase ID token
@@ -110,14 +137,6 @@ export async function POST(req: Request) {
 
           if (promotionCodes.data.length > 0) {
             const promoCode = promotionCodes.data[0];
-            
-            // Additional check for coupon restrictions
-            if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
-              return NextResponse.json({ 
-                error: 'This coupon code is not valid for the selected product type' 
-              }, { status: 400 });
-            }
-            
             subscriptionData.promotion_code = promoCode.id;
             console.log('Applied promotion code:', promoCode.id);
           }
