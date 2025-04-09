@@ -32,15 +32,15 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
   }, []);
 
   useEffect(() => {
-    const checkMobile = () => {
+    const checkDimensions = () => {
       setIsMobile(window.innerWidth < 768);
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    checkDimensions();
+    window.addEventListener('resize', checkDimensions);
     
     return () => {
-      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('resize', checkDimensions);
     };
   }, []);
 
@@ -69,9 +69,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
 
   const getDeviceFrame = () => {
     if (isMobile) {
-      return 'w-[250px] h-[520px] rounded-[24px] border-[8px] border-gray-800 dark:border-black';
+      return 'w-[250px] h-[500px] rounded-[24px] border-[8px] border-gray-800 dark:border-black';
     } else {
-      return 'w-[280px] h-[570px] rounded-[24px] border-[10px] border-gray-800 dark:border-black';
+      return 'w-[280px] h-[550px] rounded-[24px] border-[10px] border-gray-800 dark:border-black';
     }
   };
 
@@ -99,7 +99,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
     if (isMobile) {
       return 'scale-[0.61]';
     } else {
-      return 'scale-[0.68]';
+      return 'scale-[0.66]';
     }
   };
 
@@ -164,7 +164,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
           {/* Main preview area */}
           <div className="flex-grow flex flex-col overflow-hidden">
             {/* Device preview */}
-            <div className="flex-grow flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900">
+            <div className="flex-grow flex items-center justify-center p-1 sm:p-2 md:p-4 overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900">
               {showQR ? (
                 <motion.div 
                   initial={{ opacity: 0 }}
@@ -185,7 +185,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className={`${getDeviceFrame()} bg-gray-900 dark:bg-black relative mx-auto overflow-hidden`}
+                  className={`${getDeviceFrame()} bg-gray-900 dark:bg-black relative mx-auto overflow-hidden transform-gpu scale-[0.75] sm:scale-[0.85] md:scale-[0.9] lg:scale-100 my-0 sm:my-1`}
                 >
                   {/* iPhone details - only side buttons, no notch */}
                   <>
