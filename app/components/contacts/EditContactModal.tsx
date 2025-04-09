@@ -40,7 +40,7 @@ export default function EditContactModal({
   onSuccess
 }: EditContactModalProps) {
   const { user } = useAuth()
-  const [selectedTags, setSelectedTags] = useState<string[]>(contact.tags)
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => contact.tags || [])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [showImageUpload, setShowImageUpload] = useState(!contact.imageUrl)
@@ -48,7 +48,7 @@ export default function EditContactModal({
   const [imageToDelete, setImageToDelete] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ContactFormData>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
       name: contact.name,
@@ -60,6 +60,30 @@ export default function EditContactModal({
       note: contact.note || '',
     }
   })
+
+  // Reset form values when contact changes
+  useEffect(() => {
+    if (contact) {
+      reset({
+        name: contact.name,
+        email: contact.email || '',
+        phone: contact.phone || '',
+        position: contact.position || '',
+        company: contact.company || '',
+        address: contact.address || '',
+        note: contact.note || '',
+      });
+      setSelectedTags(contact.tags);
+      setShowImageUpload(!contact.imageUrl);
+      setIsImageDeleted(false);
+      setImageFile(null);
+      setImageToDelete(null);
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+        setImagePreview(null);
+      }
+    }
+  }, [contact, reset]);
 
   const handleImageDelete = async () => {
     setIsImageDeleted(true)
