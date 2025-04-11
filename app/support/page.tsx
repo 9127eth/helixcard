@@ -92,6 +92,30 @@ const SupportPage: React.FC = () => {
                 {
                   question: "What is your refund policy?",
                   answer: "We do not offer refunds on subscription payments. You can cancel your subscription at any time to prevent future charges."
+                },
+                {
+                  question: "Can I add my digital business card to Apple Wallet?",
+                  answer: "Yes! You can add your digital business card to Apple Wallet for quick and easy access. This feature allows you to share your contact information even without an internet connection."
+                },
+                {
+                  question: "How do I add my card to Apple Wallet?",
+                  answer: "To add your card to Apple Wallet, open your digital business card in the Helix app, tap on the 3 dots menu button, and select 'Add to Apple Wallet'. Follow the on-screen instructions to complete the process. Your card will then be available in your Apple Wallet for quick access."
+                },
+                {
+                  question: "What are the benefits of adding my card to Apple Wallet?",
+                  answer: "Adding your digital business card to Apple Wallet provides several benefits: offline access to share your card without internet, quick access with just a few taps, and the ability to share your contact information even when your phone is in low battery mode."
+                },
+                {
+                  question: "Will my Apple Wallet card update automatically?",
+                  answer: "When you make changes to your digital business card, you'll need to update your Apple Wallet card. Simply follow the same process to add it to Apple Wallet again, and the new version will replace the old one."
+                },
+                {
+                  question: "How do I add my digital business card to an NFC device?",
+                  answer: "To add your digital business card to an NFC device, open the Helix mobile app and select your card. Then tap on 'Write to NFC' option and follow the instructions to hold your NFC device near your phone. Once the writing process is complete, your card information will be stored on the NFC device and can be shared with a simple tap."
+                },
+                {
+                  question: "How does the AI-powered business card scanning feature work?",
+                  answer: "Our Pro subscription includes an AI-powered business card scanning tool that allows you to quickly capture and save contacts from physical business cards. Simply open the Helix app, navigate to contacts, hit create new, and our AI will automatically extract the contact information. You can review and edit the extracted information before saving it to your contacts. This feature saves you time and eliminates manual data entry."
                 }
               ].map((faq, index) => (
                 <div 
