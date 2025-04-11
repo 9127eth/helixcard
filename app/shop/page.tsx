@@ -132,9 +132,9 @@ const ShopPage: React.FC = () => {
                   <div className="bg-[#7CCEDA] dark:bg-gray-600 w-12 h-12 mb-6 rounded-full flex items-center justify-center text-white font-bold text-xl">
                     3
                   </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Select "Add to NFC"</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Select &quot;Add to NFC&quot;</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    From the menu, select the "Add to NFC" option
+                    From the menu, select the &quot;Add to NFC&quot; option
                   </p>
                 </div>
                 
@@ -177,7 +177,7 @@ const ShopPage: React.FC = () => {
                 <ol className="list-decimal pl-6 space-y-4">
                   <li className="text-gray-700 dark:text-gray-300">Navigate to your card in the Helix app</li>
                   <li className="text-gray-700 dark:text-gray-300">Tap the Share button</li>
-                  <li className="text-gray-700 dark:text-gray-300">Copy your card's unique link</li>
+                  <li className="text-gray-700 dark:text-gray-300">Copy your card&apos;s unique link</li>
                   <li className="text-gray-700 dark:text-gray-300">Use an NFC writing app to write this link to your physical NFC card</li>
                 </ol>
                 <p className="mt-6 text-gray-600 dark:text-gray-400 italic">
