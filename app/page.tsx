@@ -112,25 +112,45 @@ export default function Home() {
                 <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8">
                   Elevate your networking with Helix - the digital business card that makes sharing your information seamless, professional, and memorable.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <div className="flex flex-col items-center gap-4 mb-8">
                   <a 
                     href="#auth"
-                    className="px-8 py-3 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
+                    className="px-8 py-3 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg flex items-center justify-center transition-colors duration-300 max-w-[220px]"
                   >
                     Get Started Free
-                    <FaArrowRight className="ml-2" />
                   </a>
-                  <a
-                    href="https://apps.apple.com/us/app/helix-digital-business-card/id6736955244"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-8 py-3 bg-black hover:bg-gray-900 text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
-                  >
-                    <FaApple className="mr-2" />
-                    Download iOS App
-                  </a>
+                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-4 justify-center">
+                    <a
+                      href="https://apps.apple.com/us/app/helix-digital-business-card/id6736955244"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center transition-transform hover:scale-105"
+                    >
+                      <Image
+                        src="/downloadios.png"
+                        alt="Download on the App Store"
+                        width={240}
+                        height={72}
+                        className="h-16 w-auto"
+                      />
+                    </a>
+                    <a
+                      href="https://play.google.com/store/apps/details?id=com.rxradio.helix&pcampaignid=web_share"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center transition-transform hover:scale-105"
+                    >
+                      <Image
+                        src="/google-play-badge.png"
+                        alt="Get it on Google Play"
+                        width={320}
+                        height={96}
+                        className="h-24 w-auto"
+                      />
+                    </a>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                <p className="text-sm text-gray-600 dark:text-gray-400 italic text-center">
                   No credit card required. Start for free today.
                 </p>
               </div>
