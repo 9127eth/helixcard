@@ -104,7 +104,7 @@ export default function Home() {
                   width={150}
                   height={150}
                   priority
-                  className="mb-6"
+                  className="mb-6 mx-auto lg:mx-0"
                 />
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-800 dark:text-white">
                   A business card that creates <span className="text-[#7CCEDA] dark:text-[#7CCEDA]">memorable connections</span>
