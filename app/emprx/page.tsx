@@ -147,41 +147,21 @@ export default function EmpowerRxPage() {
                     2
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-800 dark:text-white mb-1">Tap the menu button</h3>
+                    <h3 className="font-medium text-gray-800 dark:text-white mb-1">Download the Helix Card app</h3>
                     <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                      Find the 3-dot menu button in the top right corner of your card and tap it
+                      In the app, from the dashboard of your cards, find the 3-dot menu button in the top right corner of your card and tap it.
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
-                  <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
-                    3
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800 dark:text-white mb-1">Select &quot;Add to NFC&quot;</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                      From the menu, select the &quot;Add to NFC&quot; option
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="bg-[#283890] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
+                  <div className="bg-[#00B5E2] text-white w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0 font-bold">
                     4
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-800 dark:text-white mb-1">Tap your physical card</h3>
                     <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
                       When prompted, tap the back of your physical NFC card to link it
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="pt-1">
-                  <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#283890]/30">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="font-bold">Android Users:</span> Create your card from the website, then copy the share link and follow <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">these instructions</a> for NFC setup.
                     </p>
                   </div>
                 </div>
@@ -211,16 +191,6 @@ export default function EmpowerRxPage() {
                       </div>
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
                         <span className="font-semibold">iPhone users:</span> Tap the <span className="font-medium">top</span> of your phone to the NFC card
-                      </p>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="bg-[#283890] text-white w-6 h-6 rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm">
-                        <span className="font-semibold">Android users:</span> Tap the <span className="font-medium">back/center</span> of your phone to the NFC card
                       </p>
                     </li>
                   </ul>

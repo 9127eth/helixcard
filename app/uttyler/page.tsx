@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
 import Image from 'next/image';
-import { FaArrowRight, FaApple, FaMagic, FaArrowCircleRight } from 'react-icons/fa';
+import { FaArrowRight, FaMagic, FaArrowCircleRight } from 'react-icons/fa';
 import { CreditCard, Users } from 'react-feather';
 
 export default function UTTylerPage() {
@@ -212,7 +212,7 @@ export default function UTTylerPage() {
                   <div>
                     <h3 className="font-medium text-gray-800 dark:text-white mb-1">Download the Helix Card app</h3>
                     <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                      In the app, from the dashboard of your cards, find the 3-dot menu button in the top right corner of your card and tap it. Android users see below for instructions.
+                      In the app, from the dashboard of your cards, find the 3-dot menu button in the top right corner of your card and tap it.
                     </p>
                   </div>
                 </div>
@@ -237,14 +237,6 @@ export default function UTTylerPage() {
                     <h3 className="font-medium text-gray-800 dark:text-white mb-1">Tap your physical card</h3>
                     <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
                       When prompted, tap the back of your physical NFC card to link it
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="pt-1">
-                  <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#00377B]/30">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      <span className="font-bold">Android Users:</span> Create your card from the website, then copy the share link and follow <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-[#00377B] underline">these instructions</a> for NFC setup.
                     </p>
                   </div>
                 </div>
@@ -445,15 +437,6 @@ export default function UTTylerPage() {
               >
                 Get Started
                 <FaArrowRight className="ml-2" />
-              </a>
-              <a
-                href="https://apps.apple.com/us/app/helix-digital-business-card/id6736955244"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 bg-black hover:bg-gray-900 text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300 sm:w-auto"
-              >
-                <FaApple className="mr-2" />
-                Download iOS App
               </a>
             </div>
           </div>
