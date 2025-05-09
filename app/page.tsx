@@ -7,7 +7,7 @@ import { AuthModal } from './components/AuthModal';
 import DashboardPage from './dashboard/page';
 import LoadingSpinner from './components/LoadingSpinner';
 import Image from 'next/image';
-import { FaArrowRight, FaApple, FaMagic, FaUserTie, FaFileAlt, FaCamera, FaWallet, FaLayerGroup, FaPalette, FaLink, FaFileExport, 
+import { FaArrowRight, FaMagic, FaUserTie, FaFileAlt, FaCamera, FaWallet, FaLayerGroup, FaPalette, FaLink, FaFileExport, 
   FaLinkedin, FaInstagram, FaGlobe, FaPhoneAlt, FaEnvelope, FaIdCard, FaFacebook, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { Users, CreditCard, Smartphone } from 'react-feather';
