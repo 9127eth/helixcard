@@ -92,7 +92,7 @@ export default function NHMAPage() {
             <div className="flex flex-col items-center order-1 md:order-1">
               <div className="relative max-w-full overflow-hidden">
                 <Image
-                  src="/helix-phone.png"
+                  src="/nhma-helix-phone.png"
                   alt="Helix Digital Card on Phone"
                   width={1318}
                   height={1757}
