@@ -143,7 +143,7 @@ export default function VMCRXPage() {
                     <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Create your account first</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Sign up for a free Helix account (you don't need to create a card yet)
+                        Sign up for a free Helix account (you don&apos;t need to create a card yet)
                       </p>
                     </div>
                   </div>

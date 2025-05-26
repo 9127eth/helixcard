@@ -6,6 +6,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
 
+// Define restricted coupon code mappings
+const COUPON_RESTRICTIONS: Record<string, string[]> = {
+  'LIPSCOMB25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'UTTYLER25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'VMCRX': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
+}
+
 export async function POST(req: Request) {
   try {
     const { priceId, idToken, couponCode, paymentMethodId } = await req.json();
@@ -36,6 +44,13 @@ export async function POST(req: Request) {
           
           if (!coupon.valid) {
             return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 });
+          }
+
+          // Check custom coupon restrictions first
+          if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
+            return NextResponse.json({ 
+              error: 'This coupon code is not valid for the selected product type' 
+            }, { status: 400 });
           }
 
           // Get the price to check product restrictions
