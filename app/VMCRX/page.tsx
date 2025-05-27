@@ -45,10 +45,10 @@ export default function VMCRXPage() {
             <Image 
               src="/logo-vmcrx.png" 
               alt="VMC Buying Group Logo" 
-              width={220}
-              height={88}
+              width={120}
+              height={48}
               priority
-              className="h-auto w-auto object-contain ml-1"
+              className="h-auto w-auto object-contain ml-1 max-w-[120px]"
             />
           </div>
         </div>
