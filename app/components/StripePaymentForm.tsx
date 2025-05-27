@@ -18,6 +18,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
   const [couponMessage, setCouponMessage] = useState<string | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [discountedAmount, setDiscountedAmount] = useState<number | null>(null);
+  const [isFreeWithCoupon, setIsFreeWithCoupon] = useState(false);
+  const [isVMCRXCoupon, setIsVMCRXCoupon] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
   const { user } = useAuth();
@@ -53,8 +55,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements || !user) {
-      setErrorMessage('Payment system not initialized. Please try again.');
+    if (!user) {
+      setErrorMessage('Please log in to continue.');
       return;
     }
 
@@ -63,6 +65,44 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
     setCouponMessage(null);
 
     try {
+      const idToken = await user.getIdToken();
+      const priceId = getPriceId();
+
+      // Handle free VMCRX subscription without payment method
+      if (isFreeWithCoupon && isVMCRXCoupon) {
+        const response = await fetch('/api/create-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            priceId,
+            idToken,
+            couponCode: couponCode.trim(),
+            isFreeSubscription: true
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create subscription');
+        }
+
+        // Refresh user token to get updated claims
+        await user.getIdToken(true);
+
+        showToast('Congratulations! Your free lifetime Helix Pro subscription is now active.', 'success');
+        router.push('/dashboard?subscription=success');
+        return;
+      }
+
+      // Regular payment flow for non-free subscriptions
+      if (!stripe || !elements) {
+        setErrorMessage('Payment system not initialized. Please try again.');
+        return;
+      }
+
       // First validate the card
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) {
@@ -81,9 +121,6 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
 
       // Redact sensitive info in logs
       console.log('Created payment method:', '[REDACTED]');
-
-      const idToken = await user.getIdToken();
-      const priceId = getPriceId();
 
       const response = await fetch('/api/create-subscription', {
         method: 'POST',
@@ -108,7 +145,18 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
 
       if (!response.ok) {
         console.error('Subscription creation failed:', data);
-        throw new Error(data.error || 'Failed to create subscription');
+        setErrorMessage(data.error || 'Failed to create subscription');
+        return;
+      }
+
+      // Handle successful subscription creation
+      if (data.subscriptionId || data.success) {
+        // Refresh user claims
+        await user.getIdToken(true);
+        
+        // Redirect to success page
+        window.location.href = '/dashboard?success=true';
+        return;
       }
 
       // Handle free subscription
@@ -197,9 +245,13 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       if (!response.ok) {
         setCouponMessage(data.error || 'Invalid coupon code');
         setDiscountedAmount(null);
+        setIsFreeWithCoupon(false);
+        setIsVMCRXCoupon(false);
       } else {
         setCouponMessage('Coupon applied successfully!');
         setDiscountedAmount(data.discountedAmount);
+        setIsFreeWithCoupon(data.isFree || data.isVMCRX);
+        setIsVMCRXCoupon(data.isVMCRX);
       }
     } catch (error) {
       setCouponMessage('Error applying coupon');
@@ -231,9 +283,11 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <CardElement className="p-3 border rounded-md" />
-      </div>
+      {!isFreeWithCoupon && (
+        <div className="mb-4">
+          <CardElement className="p-3 border rounded-md" />
+        </div>
+      )}
       
       <div className="mb-4">
         <label htmlFor="couponCode" className="block text-sm font-medium mb-1">
@@ -244,7 +298,16 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
             type="text"
             id="couponCode"
             value={couponCode}
-            onChange={(e) => setCouponCode(e.target.value)}
+            onChange={(e) => {
+              setCouponCode(e.target.value);
+              // Reset free coupon state when input is cleared
+              if (!e.target.value.trim()) {
+                setIsFreeWithCoupon(false);
+                setIsVMCRXCoupon(false);
+                setDiscountedAmount(null);
+                setCouponMessage(null);
+              }
+            }}
             className="flex-1 w-full p-2 border rounded-md"
             placeholder="Enter coupon code"
           />
@@ -268,15 +331,25 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         )}
       </div>
 
+      {isFreeWithCoupon && isVMCRXCoupon && (
+        <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <p className="text-green-800 dark:text-green-200 font-medium">
+            🎉 Congratulations! Your VMCRX code gives you free lifetime access to Helix Pro. No credit card required!
+          </p>
+        </div>
+      )}
+
       {errorMessage && <div className="text-red-500 mt-2">{errorMessage}</div>}
       
       <button
         type="submit"
-        disabled={!stripe || isLoading}
+        disabled={(!stripe && !isFreeWithCoupon) || isLoading}
         className="w-full bg-blue-500 text-white dark:text-[#323338] font-bold py-2 px-4 rounded-[20px] mt-4 transition duration-200"
       >
         {isLoading
           ? 'Processing...'
+          : isFreeWithCoupon && isVMCRXCoupon
+          ? 'Claim Free Lifetime Access'
           : `Upgrade for $${((discountedAmount !== null ? discountedAmount : getPriceInCents()) / 100).toFixed(2)}`}
       </button>
     </form>

@@ -84,32 +84,62 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
   const status = subscription.status;
 
-  // Find the Firebase user with the matching Stripe customer ID
-  const userRecord = await auth.listUsers().then(listUsersResult => 
-    listUsersResult.users.find(user => 
-      user.customClaims?.stripeCustomerId === customerId
-    )
-  );
+  // First try to get Firebase UID from subscription metadata
+  let firebaseUID = subscription.metadata?.firebaseUID;
+  
+  if (!firebaseUID) {
+    // Fallback: get customer and check metadata
+    try {
+      const customer = await stripe.customers.retrieve(customerId);
+      firebaseUID = customer.metadata?.firebaseUID;
+    } catch (error) {
+      console.error('Error retrieving customer:', error);
+    }
+  }
 
-  if (!userRecord) {
-    console.error(`No user found for Stripe customer ID: ${customerId}`);
-    return;
+  if (!firebaseUID) {
+    // Final fallback: query Firestore
+    const userQuerySnapshot = await db.collection('users')
+      .where('stripeCustomerId', '==', customerId)
+      .limit(1)
+      .get();
+
+    if (userQuerySnapshot.empty) {
+      console.error(`No user found for Stripe customer ID: ${customerId}`);
+      return;
+    }
+
+    firebaseUID = userQuerySnapshot.docs[0].id;
   }
 
   const isPro = status === 'active';
+  
+  // Determine subscription type based on price ID
+  let subscriptionType = 'monthly'; // default
+  if (subscription.items.data.length > 0) {
+    const priceId = subscription.items.data[0].price.id;
+    if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+      subscriptionType = 'lifetime';
+    } else if (priceId === 'price_1QEfJH2Mf4JwDdD1j2ME28Fw') {
+      subscriptionType = 'yearly';
+    }
+  }
 
-  await db.collection('users').doc(userRecord.uid).update({
+  await db.collection('users').doc(firebaseUID).update({
     isPro,
-    isProType: isPro ? null : deleteField(),
+    isProType: isPro ? subscriptionType : deleteField(),
+    subscriptionType: isPro ? subscriptionType : deleteField(),
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: customerId,
+    subscriptionStatus: status,
+    subscriptionUpdatedAt: new Date(),
   });
 
   // Update custom claims
-  await auth.setCustomUserClaims(userRecord.uid, { isPro });
+  await auth.setCustomUserClaims(firebaseUID, { isPro });
 
-  // Add this line to update card active statuses
-  await updateCardActiveStatus(userRecord.uid, isPro);
+  // Update card active statuses
+  await updateCardActiveStatus(firebaseUID, isPro);
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {

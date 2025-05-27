@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth,db } from '../../lib/firebase-admin';
+import { hasUserUsedCoupon, hasEmailUsedCoupon, recordCouponRedemption } from '../../utils/lifetimeCoupons';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -16,10 +17,73 @@ const COUPON_RESTRICTIONS: Record<string, string[]> = {
 
 export async function POST(req: Request) {
   try {
-    const { priceId, idToken, couponCode, paymentMethodId } = await req.json();
+    const { priceId, idToken, couponCode, paymentMethodId, isFreeSubscription } = await req.json();
 
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
+    }
+
+    // Verify the Firebase ID token
+    const decodedToken = await auth.verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+    // Handle free VMCRX subscription
+    if (isFreeSubscription && couponCode === 'VMCRX' && priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+      try {
+        // Check if user already has an active subscription
+        const userDoc = await db.collection('users').doc(uid).get();
+        const userData = userDoc.data();
+        
+        if (userData?.isPro) {
+          return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 });
+        }
+
+        // Check if this coupon has been used by this user or email before
+        const [userUsed, emailUsed] = await Promise.all([
+          hasUserUsedCoupon(couponCode, uid),
+          hasEmailUsedCoupon(couponCode, decodedToken.email || '')
+        ]);
+
+        if (userUsed) {
+          return NextResponse.json({ error: 'You have already used this coupon code' }, { status: 400 });
+        }
+
+        if (emailUsed) {
+          return NextResponse.json({ error: 'This email has already been used with this coupon code' }, { status: 400 });
+        }
+
+        // Record the coupon redemption
+        await recordCouponRedemption(
+          couponCode,
+          uid,
+          decodedToken.email || '',
+          decodedToken.name || '',
+          priceId
+        );
+
+        // Update user's subscription status in Firebase
+        await db.collection('users').doc(uid).update({
+          isPro: true,
+          isProType: 'lifetime',
+          subscriptionType: 'lifetime',
+          couponUsed: couponCode,
+          subscriptionCreatedAt: new Date(),
+          lifetimePurchase: true
+        });
+
+        // Update Firebase Auth custom claims
+        await auth.setCustomUserClaims(uid, { isPro: true });
+
+        return NextResponse.json({
+          success: true,
+          subscriptionType: 'lifetime',
+          message: 'Free lifetime subscription activated successfully!',
+        });
+
+      } catch (error) {
+        console.error('Error creating free subscription:', error);
+        return NextResponse.json({ error: 'Failed to create subscription' }, { status: 500 });
+      }
     }
 
     try {
@@ -70,10 +134,6 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Error validating coupon code' }, { status: 400 });
         }
       }
-
-      // Verify the Firebase ID token
-      const decodedToken = await auth.verifyIdToken(idToken);
-      const uid = decodedToken.uid;
 
       // Create a new Stripe customer
       const customer = await stripe.customers.create({

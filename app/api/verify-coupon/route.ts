@@ -74,7 +74,9 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         discountedAmount,
-        message: 'Coupon applied successfully'
+        message: 'Coupon applied successfully',
+        isFree: discountedAmount === 0,
+        isVMCRX: couponCode === 'VMCRX'
       });
     } catch (error) {
       const stripeError = error as StripeError;
