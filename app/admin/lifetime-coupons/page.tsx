@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
@@ -33,23 +33,17 @@ const LifetimeCouponsAdmin: React.FC = () => {
   const [couponDetail, setCouponDetail] = useState<CouponDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/register');
-      return;
-    }
-    fetchCoupons();
-  }, [user, router]);
-
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     if (!user) return;
     
     try {
       setLoading(true);
       const idToken = await user.getIdToken();
+      
+      console.log('Making request to admin API with user:', user.email);
       
       const response = await fetch('/api/admin/lifetime-coupons', {
         headers: {
@@ -58,17 +52,43 @@ const LifetimeCouponsAdmin: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch coupon data');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error:', response.status, errorData);
+        throw new Error(`Failed to fetch coupon data (${response.status}): ${errorData.error || 'Unknown error'}`);
       }
 
       const data = await response.json();
       setCoupons(data.coupons || []);
     } catch (err) {
+      console.error('Fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    console.log('Admin page useEffect - user:', user?.email, 'authLoading:', authLoading);
+    
+    // Don't redirect if we're still loading auth state
+    if (authLoading) {
+      console.log('Still loading auth state, waiting...');
+      return;
+    }
+    
+    // Only redirect if auth is done loading and there's no user
+    if (!authLoading && !user) {
+      console.log('No user found after auth loading completed, redirecting to register');
+      router.push('/register');
+      return;
+    }
+    
+    // If we have a user, fetch coupons
+    if (user) {
+      console.log('User authenticated, fetching coupons for:', user.email);
+      fetchCoupons();
+    }
+  }, [user, authLoading, router, fetchCoupons]);
 
   const fetchCouponDetail = async (couponCode: string) => {
     if (!user) return;
@@ -96,6 +116,16 @@ const LifetimeCouponsAdmin: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center">Checking authentication...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading && coupons.length === 0) {
     return (
