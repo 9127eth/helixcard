@@ -20,6 +20,8 @@ import { storage } from './firebase'; // Assuming you have a firebase.ts file wi
 import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from './constants';
 import { DeviceInfo } from '../utils/deviceDetection';
 import { Timestamp } from 'firebase/firestore';
+import { getSourceForRegistration, clearStoredSource } from '../utils/sourceTracking';
+import { getGroupFromSource } from '../utils/groupMapping';
 
 // Added UserData interface
 interface UserData {
@@ -35,6 +37,8 @@ interface UserRegistrationData extends UserData {
   sourceBrowser: string;
   sourcePlatform: string;
   registeredAt: FirebaseFirestore.Timestamp;
+  source?: string;
+  group?: string;
 }
 
 interface BusinessCardData {
@@ -283,6 +287,15 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
       }
     } while (!(await _isUsernameUnique(username)));
 
+    // Get source information for affiliate tracking
+    const source = getSourceForRegistration();
+    const group = source ? getGroupFromSource(source) : null;
+    
+    // Clear stored source after capturing it
+    if (source) {
+      clearStoredSource();
+    }
+
     const userData = {
       isPro: false,
       primaryCardId: username, // Set primaryCardId to the generated username
@@ -296,11 +309,20 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
         sourceDevice: deviceInfo.sourceDevice,
         sourceBrowser: deviceInfo.sourceBrowser,
         sourcePlatform: deviceInfo.sourcePlatform
-      })
+      }),
+      // Add source and group if available
+      ...(source && { source }),
+      ...(group && { group })
     };
 
     await setDoc(userRef, userData);
     console.log('User document created successfully for UID:', user.uid);
+    if (source) {
+      console.log('Source captured:', source);
+    }
+    if (group) {
+      console.log('Group assigned:', group);
+    }
   } catch (error) {
     console.error('Error creating user document:', error);
     if (error instanceof Error) {
@@ -495,6 +517,15 @@ export async function createNewUser(
 
   const username = await generateUniqueUsername();
   
+  // Get source information for affiliate tracking
+  const source = getSourceForRegistration();
+  const group = source ? getGroupFromSource(source) : null;
+  
+  // Clear stored source after capturing it
+  if (source) {
+    clearStoredSource();
+  }
+  
   const userData: UserRegistrationData = {
     username: username,
     isPro: false,
@@ -504,8 +535,18 @@ export async function createNewUser(
     sourceBrowser: deviceInfo.sourceBrowser,
     sourcePlatform: deviceInfo.sourcePlatform,
     registeredAt: Timestamp.fromDate(new Date()),
-    isProType: 'free'
+    isProType: 'free',
+    // Add source and group if available
+    ...(source && { source }),
+    ...(group && { group })
   };
 
   await setDoc(doc(db, 'users', userId), userData);
+  
+  if (source) {
+    console.log('Source captured for user:', userId, source);
+  }
+  if (group) {
+    console.log('Group assigned for user:', userId, group);
+  }
 }

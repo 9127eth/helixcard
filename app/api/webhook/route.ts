@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { db, auth } from '@/app/lib/firebase-admin';  // Add auth here
 import { updateCardActiveStatus } from '@/app/lib/firebaseOperations';  // Add import here
 import { deleteField } from 'firebase/firestore';
+import { getGroupFromCoupon } from '@/app/utils/groupMapping';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -46,6 +47,10 @@ export async function POST(req: NextRequest) {
         case 'invoice.paid':
           const invoice = event.data.object as Stripe.Invoice;
           await handleInvoicePaid(invoice);
+          break;
+        case 'payment_intent.succeeded':
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          await handlePaymentIntentSucceeded(paymentIntent);
           break;
         case 'invoice.payment_failed':
           // Handle failed payment
@@ -125,7 +130,40 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     }
   }
 
-  await db.collection('users').doc(firebaseUID).update({
+  // Get coupon information for group assignment
+  let group = null;
+  let couponUsed = null;
+  
+  if (subscription.discount?.coupon) {
+    // Get the promotion code to find the actual coupon code
+    try {
+      const promotionCodes = await stripe.promotionCodes.list({
+        coupon: subscription.discount.coupon.id,
+        active: true,
+      });
+      
+      if (promotionCodes.data.length > 0) {
+        couponUsed = promotionCodes.data[0].code;
+        group = getGroupFromCoupon(couponUsed);
+      }
+    } catch (error) {
+      console.error('Error retrieving promotion code:', error);
+    }
+  } else {
+    // If no discount on subscription, check customer metadata
+    try {
+      const customer = await stripe.customers.retrieve(customerId);
+      if (customer.metadata?.couponCode) {
+        couponUsed = customer.metadata.couponCode;
+        group = getGroupFromCoupon(couponUsed);
+      }
+    } catch (error) {
+      console.error('Error retrieving customer metadata:', error);
+    }
+  }
+
+  // Prepare update data
+  const updateData: any = {
     isPro,
     isProType: isPro ? subscriptionType : deleteField(),
     subscriptionType: isPro ? subscriptionType : deleteField(),
@@ -133,13 +171,28 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     stripeCustomerId: customerId,
     subscriptionStatus: status,
     subscriptionUpdatedAt: new Date(),
-  });
+  };
+
+  // Add coupon and group information if available
+  if (couponUsed) {
+    updateData.couponUsed = couponUsed;
+  }
+  if (group) {
+    updateData.group = group;
+  }
+
+  await db.collection('users').doc(firebaseUID).update(updateData);
 
   // Update custom claims
   await auth.setCustomUserClaims(firebaseUID, { isPro });
 
   // Update card active statuses
   await updateCardActiveStatus(firebaseUID, isPro);
+  
+  // Log group assignment
+  if (group) {
+    console.log(`Group assigned via webhook for user ${firebaseUID}: ${group} (coupon: ${couponUsed})`);
+  }
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
@@ -184,4 +237,69 @@ async function handleSubscriptionCancellation(subscription: Stripe.Subscription)
   await auth.setCustomUserClaims(uid, { isPro: false });
 
   console.log(`Subscription cancelled for user: ${uid}`);
+}
+
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  // Only handle lifetime subscription payments
+  if (paymentIntent.metadata?.type !== 'lifetime') {
+    return;
+  }
+
+  const firebaseUID = paymentIntent.metadata?.firebaseUID;
+  if (!firebaseUID) {
+    console.error('No Firebase UID found in payment intent metadata');
+    return;
+  }
+
+  // Get coupon information for group assignment
+  let group = null;
+  let couponUsed = null;
+
+  // First check payment intent metadata
+  if (paymentIntent.metadata?.couponCode) {
+    couponUsed = paymentIntent.metadata.couponCode;
+    group = getGroupFromCoupon(couponUsed);
+  }
+
+  // If not found in payment intent, check customer metadata
+  if (!couponUsed && paymentIntent.customer) {
+    try {
+      const customer = await stripe.customers.retrieve(paymentIntent.customer as string);
+      if (customer.metadata?.couponCode) {
+        couponUsed = customer.metadata.couponCode;
+        group = getGroupFromCoupon(couponUsed);
+      }
+    } catch (error) {
+      console.error('Error retrieving customer for payment intent:', error);
+    }
+  }
+
+  // Prepare update data
+  const updateData: any = {
+    isPro: true,
+    isProType: 'lifetime',
+    subscriptionType: 'lifetime',
+    lifetimePurchase: true,
+    subscriptionUpdatedAt: new Date(),
+  };
+
+  // Add coupon and group information if available
+  if (couponUsed) {
+    updateData.couponUsed = couponUsed;
+  }
+  if (group) {
+    updateData.group = group;
+  }
+
+  try {
+    await db.collection('users').doc(firebaseUID).update(updateData);
+    await auth.setCustomUserClaims(firebaseUID, { isPro: true });
+
+    console.log(`Lifetime subscription confirmed for user ${firebaseUID}`);
+    if (group) {
+      console.log(`Group assigned via payment intent for user ${firebaseUID}: ${group} (coupon: ${couponUsed})`);
+    }
+  } catch (error) {
+    console.error('Error updating user after payment intent succeeded:', error);
+  }
 }

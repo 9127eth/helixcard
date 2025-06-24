@@ -11,12 +11,16 @@ import { FaArrowRight, FaMagic, FaUserTie, FaFileAlt, FaCamera, FaWallet, FaLaye
   FaLinkedin, FaInstagram, FaGlobe, FaPhoneAlt, FaEnvelope, FaIdCard, FaFacebook, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { Users, CreditCard, Smartphone } from 'react-feather';
+import { captureSource } from './utils/sourceTracking';
 
 export default function Home() {
   const { user, loading } = useAuth();
 
   // Add smooth scrolling behavior to the page
   useEffect(() => {
+    // Capture source parameter for affiliate tracking
+    captureSource();
+    
     // Add smooth scrolling to the HTML element
     document.documentElement.style.scrollBehavior = 'smooth';
     

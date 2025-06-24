@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth,db } from '../../lib/firebase-admin';
 import { hasUserUsedCoupon, hasEmailUsedCoupon, recordCouponRedemption } from '../../utils/lifetimeCoupons';
+import { getGroupFromCoupon } from '../../utils/groupMapping';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -62,18 +63,33 @@ export async function POST(req: Request) {
           priceId
         );
 
+        // Get group assignment from coupon
+        const group = getGroupFromCoupon(couponCode);
+
         // Update user's subscription status in Firebase
-        await db.collection('users').doc(uid).update({
+        const updateData: any = {
           isPro: true,
           isProType: 'lifetime',
           subscriptionType: 'lifetime',
           couponUsed: couponCode,
           subscriptionCreatedAt: new Date(),
           lifetimePurchase: true
-        });
+        };
+
+        // Add group if available
+        if (group) {
+          updateData.group = group;
+        }
+
+        await db.collection('users').doc(uid).update(updateData);
 
         // Update Firebase Auth custom claims
         await auth.setCustomUserClaims(uid, { isPro: true });
+
+        // Log group assignment
+        if (group) {
+          console.log(`Group assigned for free subscription user ${uid}: ${group} (coupon: ${couponCode})`);
+        }
 
         return NextResponse.json({
           success: true,
@@ -140,6 +156,7 @@ export async function POST(req: Request) {
       const customer = await stripe.customers.create({
         metadata: {
           firebaseUID: uid,
+          ...(couponCode && { couponCode: couponCode })
         },
       });
 
@@ -171,7 +188,8 @@ export async function POST(req: Request) {
           metadata: {
             firebaseUID: uid,
             priceId: priceId,
-            type: 'lifetime'
+            type: 'lifetime',
+            ...(couponCode && { couponCode: couponCode })
           }
         });
 
