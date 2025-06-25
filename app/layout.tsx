@@ -12,7 +12,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Helix - A Digital Business Card",
   description: "Create a memorable connection with a digital business card",
+  metadataBase: new URL('https://www.helixcard.app'),
+  alternates: {
+    canonical: 'https://www.helixcard.app',
+  },
   openGraph: {
+    title: "Helix - A Digital Business Card",
+    description: "Create a memorable connection with a digital business card",
+    url: 'https://www.helixcard.app',
+    siteName: 'HelixCard',
+    type: 'website',
     images: [{
       url: '/og-image.png',
       width: 1200,
@@ -22,8 +31,21 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    title: "Helix - A Digital Business Card",
+    description: "Create a memorable connection with a digital business card",
     images: ['/og-image.png'],
-  }
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({

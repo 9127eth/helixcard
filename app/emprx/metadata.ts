@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       height: 630,
       alt: 'EMPoweRx Digital Business Card'
     }],
-    url: 'https://helixcard.app/emprx',
+    url: 'https://www.helixcard.app/emprx',
     type: 'website',
   },
   twitter: {

@@ -84,7 +84,7 @@ export default function EmpowerRxPage() {
             </div>
             <div className="mb-8">
               <a
-                href="https://helixcard.app/c/9odg5w/1ob"
+                href="https://www.helixcard.app/c/9odg5w/1ob"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center text-[#283890] hover:text-[#1e2a6d] font-medium mb-8 justify-center"
@@ -279,7 +279,7 @@ export default function EmpowerRxPage() {
                     <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Visit Get Helix Pro page</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">helixcard.app/get-helix-pro</a>
+                        Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to <a href="https://www.helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">www.helixcard.app/get-helix-pro</a>
                       </p>
                     </div>
                   </div>
@@ -311,7 +311,7 @@ export default function EmpowerRxPage() {
                   <div className="pt-4">
                     <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#283890]/30">
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="font-bold">Important:</span> You must visit <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account. Remember to select yearly or monthly plan (not lifetime) and redeem by May 1st, 2024.
+                        <span className="font-bold">Important:</span> You must visit <a href="https://www.helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#283890] underline">www.helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account. Remember to select yearly or monthly plan (not lifetime) and redeem by May 1st, 2024.
                       </p>
                     </div>
                   </div>

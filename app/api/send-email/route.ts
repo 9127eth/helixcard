@@ -79,7 +79,7 @@ export async function POST(request: Request) {
                 <p style="font-size: 14px; font-weight: 500; color: #111827; margin: 4px 0;">HelixCard Team</p>
               </div>
               <p style="font-size: 13px; color: #6B7280; margin-top: 24px;">
-                P.S. Want your own digital business card? Create one for free at <a href="https://helixcard.app" style="color: #2563EB; text-decoration: none;">helixcard.app</a>
+                P.S. Want your own digital business card? Create one for free at <a href="https://www.helixcard.app" style="color: #2563EB; text-decoration: none;">www.helixcard.app</a>
               </p>
             </div>
           `

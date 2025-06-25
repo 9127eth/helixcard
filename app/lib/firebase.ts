@@ -40,7 +40,7 @@ if (typeof window !== 'undefined') {
 }
 
 const actionCodeSettings = {
-  url: 'https://helixcard.app/reset-password',
+  url: 'https://www.helixcard.app/reset-password',
   handleCodeInApp: true,
 };
 

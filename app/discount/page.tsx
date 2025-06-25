@@ -55,7 +55,7 @@ export default function DiscountPage() {
                       <div>
                         <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-1">Visit Get Helix Pro page</h3>
                         <p className="text-gray-600 dark:text-gray-300">
-                          Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to helixcard.app/get-helix-pro
+                          Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to www.helixcard.app/get-helix-pro
                         </p>
                       </div>
                     </div>
@@ -89,7 +89,7 @@ export default function DiscountPage() {
                   
                   <div className="mt-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg">
                     <p className="text-gray-800 dark:text-white font-medium">
-                      <span className="font-bold">Important:</span> You must visit helixcard.app/get-helix-pro to redeem the code, not the app. Use the same login method you used to create your account if you already created an account from the app.
+                      <span className="font-bold">Important:</span> You must visit www.helixcard.app/get-helix-pro to redeem the code, not the app. Use the same login method you used to create your account if you already created an account from the app.
                     </p>
                   </div>
                 </div>

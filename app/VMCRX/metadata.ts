@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       height: 630,
       alt: 'VMC Buying Group Digital Business Card'
     }],
-    url: 'https://helixcard.app/vmcrx',
+    url: 'https://www.helixcard.app/vmcrx',
     type: 'website',
   },
   twitter: {

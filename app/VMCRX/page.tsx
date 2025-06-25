@@ -75,10 +75,10 @@ export default function VMCRXPage() {
             </div>
             <div className="mb-8">
               <a
-                href="https://helixcard.app/c/9odg5w/1ob"
+                href="https://www.helixcard.app/c/9odg5w/1ob"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center text-[#C41E3A] hover:text-[#A01729] font-medium mb-8 justify-center"
+                className="flex items-center text-[#C41E3A] hover:text-[#a31729] font-medium mb-8 justify-center"
               >
                 <FaArrowCircleRight className="mr-2" />
                 See Sample Business Card
@@ -155,7 +155,7 @@ export default function VMCRXPage() {
                     <div>
                       <h3 className="font-medium text-gray-800 dark:text-white mb-1">Visit Get Helix Pro page</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                        Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#C41E3A] underline">helixcard.app/get-helix-pro</a>
+                        Click the &quot;Get Helix Pro&quot; tab in the menu or go directly to <a href="https://www.helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#C41E3A] underline">www.helixcard.app/get-helix-pro</a>
                       </p>
                     </div>
                   </div>
@@ -187,7 +187,7 @@ export default function VMCRXPage() {
                   <div className="pt-4">
                     <div className="bg-[#F5FDFD] dark:bg-gray-700 p-4 rounded-lg border border-[#C41E3A]/30">
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="font-bold">Important:</span> You must visit <a href="https://helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#C41E3A] underline">helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account. Remember to select the Lifetime plan to receive your free subscription.
+                        <span className="font-bold">Important:</span> You must visit <a href="https://www.helixcard.app/get-helix-pro" target="_blank" rel="noopener noreferrer" className="text-[#C41E3A] underline">www.helixcard.app/get-helix-pro</a> to redeem the code, not the app. Use the same login method you used to create your account. Remember to select the Lifetime plan to receive your free subscription.
                       </p>
                     </div>
                   </div>

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       height: 630,
       alt: 'NHMA Digital Business Card'
     }],
-    url: 'https://helixcard.app/nhma',
+    url: 'https://www.helixcard.app/nhma',
     type: 'website',
   },
   twitter: {

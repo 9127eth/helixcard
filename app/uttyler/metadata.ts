@@ -12,7 +12,7 @@ export const metadata: Metadata = {
       height: 630,
       alt: 'UT Tyler APhA Digital Business Card'
     }],
-    url: 'https://helixcard.app/uttyler',
+    url: 'https://www.helixcard.app/uttyler',
     type: 'website',
   },
   twitter: {
