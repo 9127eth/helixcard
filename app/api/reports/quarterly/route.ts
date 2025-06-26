@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/lib/firebase-admin';
-import { generateQuarterlyReport, generateGroupQuarterlyReport, exportReportToCSV, getCurrentQuarter } from '@/app/utils/reportingUtils';
+import { 
+  generateQuarterlyReport, 
+  generateGroupQuarterlyReport, 
+  exportReportToCSV, 
+  getCurrentQuarter,
+  QuarterlyReport,
+  GroupReport
+} from '@/app/utils/reportingUtils';
 
 export async function GET(req: NextRequest) {
   try {
@@ -60,18 +67,19 @@ export async function GET(req: NextRequest) {
       
       if (groupParam) {
         // For single group, create a minimal report structure
-        const fullReport = {
+        const groupReport = report as GroupReport;
+        const fullReport: QuarterlyReport = {
           quarter: `Q${quarter}`,
           year,
           startDate: new Date(year, (quarter - 1) * 3, 1),
           endDate: new Date(year, quarter * 3, 0),
-          totalUsers: (report as any).totalUsers,
-          groupReports: [report as any],
+          totalUsers: groupReport.totalUsers,
+          groupReports: [groupReport],
           ungroupedUsers: []
         };
         csvContent = exportReportToCSV(fullReport);
       } else {
-        csvContent = exportReportToCSV(report as any);
+        csvContent = exportReportToCSV(report as QuarterlyReport);
       }
       
       return new NextResponse(csvContent, {
@@ -97,6 +105,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 } 

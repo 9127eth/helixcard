@@ -67,7 +67,17 @@ export async function POST(req: Request) {
         const group = getGroupFromCoupon(couponCode);
 
         // Update user's subscription status in Firebase
-        const updateData: any = {
+        interface UserUpdateData {
+          isPro: boolean;
+          isProType: 'lifetime';
+          subscriptionType: 'lifetime';
+          couponUsed: string;
+          subscriptionCreatedAt: Date;
+          lifetimePurchase: boolean;
+          group?: string;
+        }
+
+        const updateData: UserUpdateData = {
           isPro: true,
           isProType: 'lifetime',
           subscriptionType: 'lifetime',
@@ -81,7 +91,7 @@ export async function POST(req: Request) {
           updateData.group = group;
         }
 
-        await db.collection('users').doc(uid).update(updateData);
+        await db.collection('users').doc(uid).update(updateData as unknown as { [key: string]: unknown });
 
         // Update Firebase Auth custom claims
         await auth.setCustomUserClaims(uid, { isPro: true });

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db, auth } from '@/app/lib/firebase-admin';  // Add auth here
 import { updateCardActiveStatus } from '@/app/lib/firebaseOperations';  // Add import here
-import { deleteField } from 'firebase/firestore';
+import { deleteField, FieldValue } from 'firebase/firestore';
 import { getGroupFromCoupon } from '@/app/utils/groupMapping';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -10,6 +10,29 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+// Define interfaces for update data
+interface SubscriptionUpdateData {
+  isPro: boolean;
+  isProType?: 'monthly' | 'yearly' | 'lifetime' | FieldValue;
+  subscriptionType?: 'monthly' | 'yearly' | 'lifetime' | FieldValue;
+  stripeSubscriptionId: string;
+  stripeCustomerId: string;
+  subscriptionStatus: string;
+  subscriptionUpdatedAt: Date;
+  couponUsed?: string;
+  group?: string;
+}
+
+interface PaymentIntentUpdateData {
+  isPro: boolean;
+  isProType: 'lifetime';
+  subscriptionType: 'lifetime';
+  lifetimePurchase: boolean;
+  subscriptionUpdatedAt: Date;
+  couponUsed?: string;
+  group?: string;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -163,10 +186,10 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   }
 
   // Prepare update data
-  const updateData: any = {
+  const updateData: SubscriptionUpdateData = {
     isPro,
-    isProType: isPro ? subscriptionType : deleteField(),
-    subscriptionType: isPro ? subscriptionType : deleteField(),
+    isProType: isPro ? (subscriptionType as 'monthly' | 'yearly' | 'lifetime') : deleteField(),
+    subscriptionType: isPro ? (subscriptionType as 'monthly' | 'yearly' | 'lifetime') : deleteField(),
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: customerId,
     subscriptionStatus: status,
@@ -181,7 +204,7 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     updateData.group = group;
   }
 
-  await db.collection('users').doc(firebaseUID).update(updateData);
+  await db.collection('users').doc(firebaseUID).update(updateData as unknown as { [key: string]: unknown });
 
   // Update custom claims
   await auth.setCustomUserClaims(firebaseUID, { isPro });
@@ -275,7 +298,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   }
 
   // Prepare update data
-  const updateData: any = {
+  const updateData: PaymentIntentUpdateData = {
     isPro: true,
     isProType: 'lifetime',
     subscriptionType: 'lifetime',
@@ -292,7 +315,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   }
 
   try {
-    await db.collection('users').doc(firebaseUID).update(updateData);
+    await db.collection('users').doc(firebaseUID).update(updateData as unknown as { [key: string]: unknown });
     await auth.setCustomUserClaims(firebaseUID, { isPro: true });
 
     console.log(`Lifetime subscription confirmed for user ${firebaseUID}`);

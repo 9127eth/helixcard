@@ -2,12 +2,17 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { QuarterlyReport, GroupReport } from '../utils/reportingUtils';
 
 interface ReportParams {
   year: number;
   quarter: number;
   group?: string;
   format: 'json' | 'csv';
+}
+
+interface SuccessMessage {
+  message: string;
 }
 
 export const AdminReports: React.FC = () => {
@@ -18,7 +23,7 @@ export const AdminReports: React.FC = () => {
     quarter: Math.floor(new Date().getMonth() / 3) + 1,
     format: 'json'
   });
-  const [reportData, setReportData] = useState<any>(null);
+  const [reportData, setReportData] = useState<QuarterlyReport | GroupReport | SuccessMessage | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const generateReport = async () => {
@@ -187,7 +192,7 @@ export const AdminReports: React.FC = () => {
         </div>
       )}
 
-      {reportData && reportParams.format === 'csv' && (
+      {reportData && reportParams.format === 'csv' && 'message' in reportData && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
           <strong>Success:</strong> {reportData.message}
         </div>
