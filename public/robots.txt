@@ -1,0 +1,43 @@
+User-agent: *
+Allow: /
+
+# Allow all public pages
+Allow: /how-it-works
+Allow: /get-helix-pro
+Allow: /shop
+Allow: /register
+Allow: /support
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /nhma
+Allow: /VMCRX
+Allow: /emprx
+Allow: /uttyler
+Allow: /lipscomb
+Allow: /discount
+
+# Block private user areas
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /create-card
+Disallow: /edit-card
+Disallow: /contacts
+Disallow: /reset-password
+
+# Block admin areas
+Disallow: /admin/
+Disallow: /api/
+
+# Block Firebase and build files
+Disallow: /_next/
+Disallow: /firebase-debug.log
+Disallow: /.git/
+
+# Allow business card URLs (these are meant to be public)
+Allow: /c/
+
+# Crawl delay (optional - helps prevent overwhelming your server)
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://www.helixcard.app/sitemap.xml 
