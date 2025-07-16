@@ -14,6 +14,7 @@ const COUPON_RESTRICTIONS: Record<string, string[]> = {
   'UTTYLER25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'VMCRX': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'NHMA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'MCKiS25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
 }
 
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
     const uid = decodedToken.uid;
 
     // Handle free VMCRX subscription
-    if (isFreeSubscription && couponCode === 'VMCRX' && priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+    if (isFreeSubscription && (couponCode === 'VMCRX' || couponCode === 'MCKiS25') && priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
       try {
         // Check if user already has an active subscription
         const userDoc = await db.collection('users').doc(uid).get();

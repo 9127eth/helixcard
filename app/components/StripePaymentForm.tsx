@@ -20,6 +20,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
   const [discountedAmount, setDiscountedAmount] = useState<number | null>(null);
   const [isFreeWithCoupon, setIsFreeWithCoupon] = useState(false);
   const [isVMCRXCoupon, setIsVMCRXCoupon] = useState(false);
+  const [isMCKiS25Coupon, setIsMCKiS25Coupon] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
   const { user } = useAuth();
@@ -69,7 +70,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       const priceId = getPriceId();
 
       // Handle free VMCRX subscription without payment method
-      if (isFreeWithCoupon && isVMCRXCoupon) {
+      if (isFreeWithCoupon && (isVMCRXCoupon || isMCKiS25Coupon)) {
         const response = await fetch('/api/create-subscription', {
           method: 'POST',
           headers: {
@@ -247,15 +248,20 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         setDiscountedAmount(null);
         setIsFreeWithCoupon(false);
         setIsVMCRXCoupon(false);
+        setIsMCKiS25Coupon(false);
       } else {
         setCouponMessage('Coupon applied successfully!');
         setDiscountedAmount(data.discountedAmount);
-        setIsFreeWithCoupon(data.isFree || data.isVMCRX);
+        setIsFreeWithCoupon(data.isFree || data.isVMCRX || data.isMCKiS25);
         setIsVMCRXCoupon(data.isVMCRX);
+        setIsMCKiS25Coupon(data.isMCKiS25);
       }
     } catch (error) {
       setCouponMessage('Error applying coupon');
       setDiscountedAmount(null);
+      setIsFreeWithCoupon(false);
+      setIsVMCRXCoupon(false);
+      setIsMCKiS25Coupon(false);
     } finally {
       setIsApplyingCoupon(false);
     }
@@ -304,6 +310,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
               if (!e.target.value.trim()) {
                 setIsFreeWithCoupon(false);
                 setIsVMCRXCoupon(false);
+                setIsMCKiS25Coupon(false);
                 setDiscountedAmount(null);
                 setCouponMessage(null);
               }
@@ -331,10 +338,10 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         )}
       </div>
 
-      {isFreeWithCoupon && isVMCRXCoupon && (
+      {isFreeWithCoupon && (isVMCRXCoupon || isMCKiS25Coupon) && (
         <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
           <p className="text-green-800 dark:text-green-200 font-medium">
-            🎉 Congratulations! Your VMCRX code gives you free lifetime access to Helix Pro. No credit card required!
+            🎉 Congratulations! Your coupon code gives you free lifetime access to Helix Pro. No credit card required!
           </p>
         </div>
       )}
@@ -348,7 +355,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       >
         {isLoading
           ? 'Processing...'
-          : isFreeWithCoupon && isVMCRXCoupon
+          : isFreeWithCoupon && (isVMCRXCoupon || isMCKiS25Coupon)
           ? 'Claim Free Lifetime Access'
           : `Upgrade for $${((discountedAmount !== null ? discountedAmount : getPriceInCents()) / 100).toFixed(2)}`}
       </button>
