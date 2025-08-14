@@ -318,6 +318,30 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     await db.collection('users').doc(firebaseUID).update(updateData as unknown as { [key: string]: unknown });
     await auth.setCustomUserClaims(firebaseUID, { isPro: true });
 
+    // Record coupon redemption if a coupon was used
+    if (couponUsed) {
+      try {
+        // Get user data for coupon redemption recording
+        const userDoc = await db.collection('users').doc(firebaseUID).get();
+        const userData = userDoc.data();
+        
+        if (userData) {
+          const { recordCouponRedemption } = await import('../../utils/lifetimeCoupons');
+          await recordCouponRedemption(
+            couponUsed,
+            firebaseUID,
+            userData.email || '',
+            userData.name || '',
+            paymentIntent.metadata?.priceId || 'price_1QKWqI2Mf4JwDdD1NaOiqhhg'
+          );
+          console.log(`Coupon redemption recorded for ${couponUsed} by user ${firebaseUID}`);
+        }
+      } catch (redemptionError) {
+        console.error('Error recording coupon redemption:', redemptionError);
+        // Don't fail the entire process if coupon recording fails
+      }
+    }
+
     console.log(`Lifetime subscription confirmed for user ${firebaseUID}`);
     if (group) {
       console.log(`Group assigned via payment intent for user ${firebaseUID}: ${group} (coupon: ${couponUsed})`);

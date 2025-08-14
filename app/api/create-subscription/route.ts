@@ -187,9 +187,50 @@ export async function POST(req: Request) {
 
       // Check if it's a lifetime subscription (one-time payment)
       if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+        // Calculate the payment amount, applying coupon discount if applicable
+        let paymentAmount = 1999; // Default amount in cents ($19.99)
+        
+        if (couponCode) {
+          console.log(`Processing lifetime payment with coupon: ${couponCode}`);
+          try {
+            // Get the promotion code and coupon details
+            const promotionCodes = await stripe.promotionCodes.list({
+              code: couponCode,
+              active: true,
+            });
+            
+            console.log(`Found ${promotionCodes.data.length} promotion codes for ${couponCode}`);
+            
+            if (promotionCodes.data.length > 0) {
+              const promoCode = promotionCodes.data[0];
+              const coupon = await stripe.coupons.retrieve(promoCode.coupon.id);
+              
+              console.log(`Coupon details: percent_off=${coupon.percent_off}, amount_off=${coupon.amount_off}`);
+              
+              // Apply the discount
+              if (coupon.percent_off) {
+                paymentAmount = Math.round(paymentAmount * (1 - coupon.percent_off / 100));
+                console.log(`Applied ${coupon.percent_off}% discount: $${paymentAmount / 100}`);
+              } else if (coupon.amount_off) {
+                paymentAmount = Math.max(0, paymentAmount - coupon.amount_off);
+                console.log(`Applied $${coupon.amount_off / 100} discount: $${paymentAmount / 100}`);
+              }
+              
+              console.log(`Final payment amount for coupon ${couponCode}: original $19.99, discounted $${paymentAmount / 100}`);
+            } else {
+              console.log(`No active promotion codes found for ${couponCode}`);
+            }
+          } catch (error) {
+            console.error('Error applying coupon discount to payment amount:', error);
+            // Continue with original amount if coupon application fails
+          }
+        } else {
+          console.log('No coupon code provided for lifetime payment');
+        }
+
         // Create a payment intent for one-time payment instead of subscription
         const paymentIntent = await stripe.paymentIntents.create({
-          amount: 1999, // Amount from getPriceInCents in StripePaymentForm
+          amount: paymentAmount,
           currency: 'usd',
           customer: customer.id,
           payment_method: paymentMethodId,
