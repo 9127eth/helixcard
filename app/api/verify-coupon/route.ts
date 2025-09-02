@@ -20,6 +20,7 @@ const COUPON_RESTRICTIONS: Record<string, string[]> = {
   'VMCRX': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'NHMA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'MCKiS25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'UCONN25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
 }
 

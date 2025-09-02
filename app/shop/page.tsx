@@ -123,7 +123,7 @@ const ShopPage: React.FC = () => {
                   </div>
                   <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Download the Helix Card app</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    In the app, from the dashboard of your cards, find the 3-dot menu button in the top right corner of your card and tap it. Android users see below for instructions.
+                    In the app, from the dashboard of your cards, find the 3-dot menu button in the top right corner of your card and tap it.
                   </p>
                 </div>
                 
@@ -163,29 +163,7 @@ const ShopPage: React.FC = () => {
               </div>
             </div>
           </div>
-          
-          {/* Android Instructions */}
-          <div className="bg-[#F5FDFD] dark:bg-gray-900 py-16">
-            <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">
-                Android Users
-              </h2>
-              <p className="text-lg text-center text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-                For Android users, the setup process is slightly different:
-              </p>
-              <div className="bg-white dark:bg-gray-700 p-8 rounded-xl max-w-2xl mx-auto shadow-md">
-                <ol className="list-decimal pl-6 space-y-4">
-                  <li className="text-gray-700 dark:text-gray-300">Navigate to your card in the Helix app</li>
-                  <li className="text-gray-700 dark:text-gray-300">Tap the Share button</li>
-                  <li className="text-gray-700 dark:text-gray-300">Copy your card&apos;s unique link</li>
-                  <li className="text-gray-700 dark:text-gray-300">Use an NFC writing app to write this link to your physical NFC card</li>
-                </ol>
-                <p className="mt-6 text-gray-600 dark:text-gray-400 italic">
-                  For detailed instructions, please watch this <a href="https://www.youtube.com/watch?v=YMjTMAXGoRg" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 underline">tutorial video</a>.
-                </p>
-              </div>
-            </div>
-          </div>
+
         </div>
       </div>
     </Layout>

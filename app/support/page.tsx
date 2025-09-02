@@ -55,7 +55,7 @@ const SupportPage: React.FC = () => {
                 },
                 {
                   question: "Do you have a mobile app?",
-                  answer: "Yes! We have an iOS app available on the App Store. Our Android app is currently in development and coming soon. In the meantime, Android users can access all features through our mobile-responsive website."
+                  answer: "Yes! We have mobile apps available for both iOS and Android. You can download the Helix Card app from the App Store for iOS devices or from Google Play Store for Android devices. Both apps offer the full range of features including NFC card management, card creation, and contact scanning."
                 },
                 {
                   question: "Will my digital business card work on all devices?",

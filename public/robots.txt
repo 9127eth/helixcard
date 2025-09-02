@@ -14,6 +14,7 @@ Allow: /VMCRX
 Allow: /emprx
 Allow: /uttyler
 Allow: /lipscomb
+Allow: /uconn
 Allow: /discount
 
 # Block private user areas

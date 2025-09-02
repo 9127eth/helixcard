@@ -11,6 +11,7 @@ export const COUPON_GROUPS: Record<string, string> = {
   'VMCRX': 'vmcrx-partners',
   'NHMA25': 'nhma-members',
   'MCKiS25': 'mckis-group',
+  'UCONN25': 'uconn-apha-asp',
   'EMPRX25': 'emprx-subscribers'
 };
 
@@ -20,6 +21,7 @@ export const SOURCE_GROUPS: Record<string, string> = {
   'uttyler': 'ut-tyler', 
   'vmcrx': 'vmcrx-partners',
   'nhma': 'nhma-members',
+  'uconn': 'uconn-apha-asp',
   'emprx': 'emprx-subscribers',
   'partner1': 'partner-network-1',
   'partner2': 'partner-network-2',
