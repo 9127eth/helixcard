@@ -11,6 +11,7 @@ export const COUPON_GROUPS: Record<string, string> = {
   'VMCRX': 'vmcrx-partners',
   'NHMA25': 'nhma-members',
   'MCKiS25': 'mckis-group',
+  'NCPA25': 'ncpa-group',
   'UCONN25': 'uconn-apha-asp',
   'EMPRX25': 'emprx-subscribers'
 };

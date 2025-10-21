@@ -20,6 +20,7 @@ const COUPON_RESTRICTIONS: Record<string, string[]> = {
   'VMCRX': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'NHMA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'MCKiS25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
+  'NCPA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'UCONN25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
 }
@@ -80,7 +81,8 @@ export async function POST(req: Request) {
         message: 'Coupon applied successfully',
         isFree: discountedAmount === 0,
         isVMCRX: couponCode === 'VMCRX',
-        isMCKiS25: couponCode === 'MCKiS25'
+        isMCKiS25: couponCode === 'MCKiS25',
+        isNCPA25: couponCode === 'NCPA25'
       });
     } catch (error) {
       const stripeError = error as StripeError;
