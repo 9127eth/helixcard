@@ -2,7 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['firebasestorage.googleapis.com', 'nextjs.org'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'nextjs.org',
+      },
+    ],
   },
   env: {
     NEXT_PUBLIC_CANONICAL_URL: 'https://www.helixcard.app',

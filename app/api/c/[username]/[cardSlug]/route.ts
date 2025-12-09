@@ -4,9 +4,9 @@ import { BusinessCard } from '@/app/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { username: string; cardSlug: string } }
+  { params }: { params: Promise<{ username: string; cardSlug: string }> }
 ) {
-  const { username, cardSlug } = params;
+  const { username, cardSlug } = await params;
 
   try {
     // Find user by username

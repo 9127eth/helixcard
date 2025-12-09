@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import Layout from '../../components/Layout';
@@ -13,7 +13,8 @@ import { db } from '../../lib/firebase'; // Import Firestore database
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 
-export default function EditCardPage({ params }: { params: { id: string } }) {
+export default function EditCardPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { user } = useAuth();
   const [cardData, setCardData] = useState<BusinessCardData | null>(null);
@@ -23,10 +24,10 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const fetchCardData = async () => {
-      if (user && params.id) {
+      if (user && id) {
         try {
-          const card = await getBusinessCard(user.uid, params.id);
-          setCardData({ ...card, id: params.id } as BusinessCardData);
+          const card = await getBusinessCard(user.uid, id);
+          setCardData({ ...card, id: id } as BusinessCardData);
           
           // Fetch the user's username
           if (db) {
@@ -48,12 +49,12 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
     };
 
     fetchCardData();
-  }, [user, params.id]);
+  }, [user, id]);
 
   const handleSuccess = async (updatedCardData: BusinessCardData) => {
-    if (user && params.id) {
+    if (user && id) {
       try {
-        await updateBusinessCard(user.uid, params.id, updatedCardData);
+        await updateBusinessCard(user.uid, id, updatedCardData);
         // Show a success message
         alert('Business card updated successfully.');
       } catch (error) {
@@ -64,9 +65,9 @@ export default function EditCardPage({ params }: { params: { id: string } }) {
   };
 
   const handleDelete = async () => {
-    if (user && params.id) {
+    if (user && id) {
       try {
-        await deleteBusinessCard(user, params.id);
+        await deleteBusinessCard(user, id);
         alert('Business card deleted successfully.');
         router.push('/dashboard');
       } catch (error) {

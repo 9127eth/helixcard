@@ -2,11 +2,11 @@ import { Metadata } from 'next';
 import BusinessCardDisplay from '@/app/components/BusinessCardDisplay';
 
 interface BusinessCardProps {
-  params: { username: string; cardSlug: string };
+  params: Promise<{ username: string; cardSlug: string }>;
 }
 
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
-  const { username, cardSlug } = params;
+  const { username, cardSlug } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
   const res = await fetch(`${baseUrl}/api/c/${username}/${cardSlug}`, { cache: 'no-store' });
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
 }
 
 export default async function BusinessCardPage({ params }: BusinessCardProps) {
-  const { username, cardSlug } = params;
+  const { username, cardSlug } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
 
   try {

@@ -3,7 +3,7 @@ import BusinessCardDisplay from '@/app/components/BusinessCardDisplay';
 import { BusinessCard } from '@/app/types';
 
 interface BusinessCardProps {
-  params: { username: string; cardSlug?: string };
+  params: Promise<{ username: string; cardSlug?: string }>;
 }
 
 interface ApiResponse {
@@ -16,7 +16,7 @@ interface ApiResponse {
 }
 
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
-  const { username } = params;
+  const { username } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
   const res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
 
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
 }
 
 export default async function BusinessCardPage({ params }: BusinessCardProps) {
-  const { username } = params;
+  const { username } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
 
   try {
