@@ -3,7 +3,6 @@ import {
   setDoc,
   collection,
   query,
-  where,
   getDocs,
   writeBatch,
   serverTimestamp,
@@ -12,7 +11,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { generateCardUrl, generateUniqueUsername, generateCardSlug } from './slugUtils';
+import { generateCardUrl, generateCardSlug } from './slugUtils';
 import { uploadCv } from './uploadUtils';
 import { ref, deleteObject } from 'firebase/storage'; // Removed getStorage as it's not used
 import { deleteField } from 'firebase/firestore';
@@ -196,25 +195,8 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
 
   await batch.commit();
 
-  // Generate and return the new primary card URL
-  const newPrimaryCardUrl = await generateCardUrl(userId, cardSlug, true);
-  console.log('New primary card URL:', newPrimaryCardUrl);
-}
-
-export async function getUserByUsername(username: string): Promise<User | null> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
-
-  const usersRef = collection(db, 'users');
-  const q = query(usersRef, where('username', '==', username));
-  const querySnapshot = await getDocs(q);
-
-  if (querySnapshot.empty) {
-    return null;
-  }
-
-  return querySnapshot.docs[0].data() as User;
+  // Generate the new primary card URL
+  await generateCardUrl(userId, cardSlug, true);
 }
 
 export async function updateUsername(userId: string, newUsername: string): Promise<void> {
@@ -229,20 +211,27 @@ export async function updateUsername(userId: string, newUsername: string): Promi
       username: newUsername,
       updatedAt: serverTimestamp(),
     });
-    console.log('Username updated successfully for UID:', userId);
   } catch (error) {
     console.error('Error updating username:', error);
     throw error;
   }
 }
 
-async function _isUsernameUnique(username: string): Promise<boolean> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
+// Generate a unique username via server-side API (avoids cross-user Firestore reads)
+async function generateUsernameViaApi(user: User): Promise<string> {
+  const idToken = await user.getIdToken();
+  const response = await fetch('/api/generate-username', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate unique username');
   }
-  
-  const userQuery = await getDocs(query(collection(db, 'users'), where('username', '==', username)));
-  return userQuery.empty;
+
+  const data = await response.json();
+  return data.username;
 }
 
 export function validateCustomUsername(username: string): boolean {
@@ -251,41 +240,24 @@ export function validateCustomUsername(username: string): boolean {
 }
 
 export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): Promise<void> {
-  console.log('Entered createUserDocument function');
-
   if (!user || !user.uid) {
-    console.error('Invalid user object:', user);
     return;
   }
 
   if (!db) {
-    console.error('Firestore is not initialized.');
     throw new Error('Firestore is not initialized.');
   }
-
-  console.log('Creating user document for UID:', user.uid);
 
   const userRef = doc(db, 'users', user.uid);
   try {
     // Check if the document already exists
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
-      console.log('User document already exists. Skipping creation.');
       return;
     }
 
-    let username;
-    let attempts = 0;
-    const maxAttempts = 5;
-
-    do {
-      username = await generateUniqueUsername();
-      console.log('Generated username:', username);
-      attempts++;
-      if (attempts >= maxAttempts) {
-        throw new Error('Failed to generate a unique username after multiple attempts');
-      }
-    } while (!(await _isUsernameUnique(username)));
+    // Generate username via server-side API (avoids cross-user Firestore reads)
+    const username = await generateUsernameViaApi(user);
 
     // Get source information for affiliate tracking
     const source = getSourceForRegistration();
@@ -298,9 +270,9 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
 
     const userData = {
       isPro: false,
-      primaryCardId: username, // Set primaryCardId to the generated username
+      primaryCardId: username,
       username,
-      primaryCardPlaceholder: true, // Set this to true initially
+      primaryCardPlaceholder: true,
       isProType: 'free',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -316,20 +288,8 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
     };
 
     await setDoc(userRef, userData);
-    console.log('User document created successfully for UID:', user.uid);
-    if (source) {
-      console.log('Source captured:', source);
-    }
-    if (group) {
-      console.log('Group assigned:', group);
-    }
   } catch (error) {
     console.error('Error creating user document:', error);
-    if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
     throw error;
   }
 }
@@ -511,12 +471,11 @@ export async function updateCardDepthColor(userId: string, cardSlug: string, col
 export async function createNewUser(
   userId: string, 
   email: string | null, 
-  deviceInfo: DeviceInfo
+  deviceInfo: DeviceInfo,
+  username: string
 ): Promise<void> {
   if (!db) throw new Error('Firestore is not initialized');
 
-  const username = await generateUniqueUsername();
-  
   // Get source information for affiliate tracking
   const source = getSourceForRegistration();
   const group = source ? getGroupFromSource(source) : null;
@@ -542,11 +501,4 @@ export async function createNewUser(
   };
 
   await setDoc(doc(db, 'users', userId), userData);
-  
-  if (source) {
-    console.log('Source captured for user:', userId, source);
-  }
-  if (group) {
-    console.log('Group assigned for user:', userId, group);
-  }
 }

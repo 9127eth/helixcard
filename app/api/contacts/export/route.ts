@@ -85,11 +85,12 @@ export async function POST(request: Request) {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
       `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`)
 
-    // Send the email using the existing email endpoint
+    // Send the email using the existing email endpoint (pass the auth token)
     const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': authHeader,
       },
       body: JSON.stringify({
         type: 'csvExport',

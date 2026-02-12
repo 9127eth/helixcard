@@ -98,11 +98,6 @@ export async function POST(req: Request) {
         // Update Firebase Auth custom claims
         await auth.setCustomUserClaims(uid, { isPro: true });
 
-        // Log group assignment
-        if (group) {
-          console.log(`Group assigned for free subscription user ${uid}: ${group} (coupon: ${couponCode})`);
-        }
-
         return NextResponse.json({
           success: true,
           subscriptionType: 'lifetime',
@@ -184,49 +179,32 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log('Created Stripe customer:', customer.id);
-
       // Check if it's a lifetime subscription (one-time payment)
       if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
         // Calculate the payment amount, applying coupon discount if applicable
         let paymentAmount = 1999; // Default amount in cents ($19.99)
         
         if (couponCode) {
-          console.log(`Processing lifetime payment with coupon: ${couponCode}`);
           try {
-            // Get the promotion code and coupon details
             const promotionCodes = await stripe.promotionCodes.list({
               code: couponCode,
               active: true,
             });
             
-            console.log(`Found ${promotionCodes.data.length} promotion codes for ${couponCode}`);
-            
             if (promotionCodes.data.length > 0) {
               const promoCode = promotionCodes.data[0];
               const coupon = await stripe.coupons.retrieve(promoCode.coupon.id);
               
-              console.log(`Coupon details: percent_off=${coupon.percent_off}, amount_off=${coupon.amount_off}`);
-              
-              // Apply the discount
               if (coupon.percent_off) {
                 paymentAmount = Math.round(paymentAmount * (1 - coupon.percent_off / 100));
-                console.log(`Applied ${coupon.percent_off}% discount: $${paymentAmount / 100}`);
               } else if (coupon.amount_off) {
                 paymentAmount = Math.max(0, paymentAmount - coupon.amount_off);
-                console.log(`Applied $${coupon.amount_off / 100} discount: $${paymentAmount / 100}`);
               }
-              
-              console.log(`Final payment amount for coupon ${couponCode}: original $19.99, discounted $${paymentAmount / 100}`);
-            } else {
-              console.log(`No active promotion codes found for ${couponCode}`);
             }
           } catch (error) {
-            console.error('Error applying coupon discount to payment amount:', error);
+            console.error('Error applying coupon discount:', error);
             // Continue with original amount if coupon application fails
           }
-        } else {
-          console.log('No coupon code provided for lifetime payment');
         }
 
         // Create a payment intent for one-time payment instead of subscription
@@ -246,15 +224,11 @@ export async function POST(req: Request) {
           }
         });
 
-        // Update Firebase user
+        // Only store the customer ID now — isPro will be set by the webhook
+        // when payment_intent.succeeded fires
         await db.collection('users').doc(uid).update({
-          isPro: true,
-          isProType: 'lifetime',
           stripeCustomerId: customer.id,
-          lifetimePurchase: true,
         });
-
-        await auth.setCustomUserClaims(uid, { isPro: true });
 
         return NextResponse.json({
           clientSecret: paymentIntent.client_secret,
@@ -285,23 +259,18 @@ export async function POST(req: Request) {
           if (promotionCodes.data.length > 0) {
             const promoCode = promotionCodes.data[0];
             subscriptionData.promotion_code = promoCode.id;
-            console.log('Applied promotion code:', promoCode.id);
           }
         } catch (error) {
           console.error('Error applying promotion code:', error);
         }
       }
 
-      console.log('Creating subscription with data:', subscriptionData);
       const subscription = await stripe.subscriptions.create(subscriptionData);
-      console.log('Created subscription:', subscription.id);
 
       const invoice = subscription.latest_invoice as Stripe.Invoice;
-      console.log('Invoice amount due:', invoice.amount_due);
 
-      // For free subscriptions, we don't need payment intent
+      // For free subscriptions (100% discount), activate immediately since no payment is needed
       if (invoice.amount_due === 0) {
-        // Update Firebase user
         let proType: 'monthly' | 'yearly' | 'lifetime';
         if (priceId === 'price_1QEXRZ2Mf4JwDdD1pdam2mHo') {
           proType = 'monthly';
@@ -329,33 +298,18 @@ export async function POST(req: Request) {
         });
       }
 
-      // For paid subscriptions, we need the payment intent
+      // For paid subscriptions, return the client secret for payment confirmation
+      // isPro will be set by the webhook when payment succeeds
       const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
       if (!paymentIntent?.client_secret) {
-        console.error('No payment intent or client secret found');
-        throw new Error('No client secret found in payment intent');
+        throw new Error('Payment processing error');
       }
 
-      // Update Firebase user
-      let proType: 'monthly' | 'yearly' | 'lifetime';
-      if (priceId === 'price_1QEXRZ2Mf4JwDdD1pdam2mHo') {
-        proType = 'monthly';
-      } else if (priceId === 'price_1QEfJH2Mf4JwDdD1j2ME28Fw') {
-        proType = 'yearly';
-      } else if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
-        proType = 'lifetime';
-      } else {
-        throw new Error('Invalid price ID');
-      }
-
+      // Only store customer/subscription IDs — isPro set by webhook after payment confirms
       await db.collection('users').doc(uid).update({
-        isPro: true,
-        isProType: proType,
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: customer.id,
       });
-
-      await auth.setCustomUserClaims(uid, { isPro: true });
 
       return NextResponse.json({
         subscriptionId: subscription.id,
@@ -366,16 +320,14 @@ export async function POST(req: Request) {
     } catch (stripeError) {
       console.error('Stripe operation failed:', stripeError);
       return NextResponse.json({ 
-        error: stripeError instanceof Error ? stripeError.message : 'Stripe operation failed',
-        details: stripeError
+        error: 'Payment processing failed. Please try again.'
       }, { status: 400 });
     }
 
   } catch (error) {
     console.error('Request processing failed:', error);
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Request processing failed',
-      details: error
+      error: 'Request processing failed. Please try again.'
     }, { status: 400 });
   }
 }

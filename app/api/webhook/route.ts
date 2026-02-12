@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { db, auth } from '@/app/lib/firebase-admin';  // Add auth here
-import { updateCardActiveStatus } from '@/app/lib/firebaseOperations';  // Add import here
+import { db, auth } from '@/app/lib/firebase-admin';
+import { updateCardActiveStatus } from '@/app/lib/firebaseOperations';
 import { deleteField, FieldValue } from 'firebase/firestore';
 import { getGroupFromCoupon } from '@/app/utils/groupMapping';
 
@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
     const sig = req.headers.get('stripe-signature') as string;
 
     if (!sig) {
-      console.error('No Stripe signature found');
       return NextResponse.json({ error: 'No Stripe signature' }, { status: 400 });
     }
 
@@ -79,21 +78,18 @@ export async function POST(req: NextRequest) {
           // Handle failed payment
           break;
         case 'customer.discount.created':
-          console.log('Discount applied successfully');
-          break;
         case 'customer.discount.deleted':
-          console.log('Discount removed');
-          break;
         case 'customer.discount.updated':
-          console.log('Discount updated');
+          // Discount events acknowledged
           break;
         default:
-          console.log(`Unhandled event type ${event.type}`);
+          // Unhandled event type
+          break;
       }
     } catch (err) {
       console.error(`Error processing webhook ${event.type}:`, err);
       return NextResponse.json(
-        { error: `Error processing webhook ${event.type}` },
+        { error: 'Error processing webhook' },
         { status: 500 }
       );
     }
@@ -133,7 +129,7 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
       .get();
 
     if (userQuerySnapshot.empty) {
-      console.error(`No user found for Stripe customer ID: ${customerId}`);
+      console.error('No user found for Stripe customer');
       return;
     }
 
@@ -158,7 +154,6 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   let couponUsed = null;
   
   if (subscription.discount?.coupon) {
-    // Get the promotion code to find the actual coupon code
     try {
       const promotionCodes = await stripe.promotionCodes.list({
         coupon: subscription.discount.coupon.id,
@@ -173,7 +168,6 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
       console.error('Error retrieving promotion code:', error);
     }
   } else {
-    // If no discount on subscription, check customer metadata
     try {
       const customer = await stripe.customers.retrieve(customerId);
       if (customer.metadata?.couponCode) {
@@ -196,7 +190,6 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     subscriptionUpdatedAt: new Date(),
   };
 
-  // Add coupon and group information if available
   if (couponUsed) {
     updateData.couponUsed = couponUsed;
   }
@@ -211,11 +204,6 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
 
   // Update card active statuses
   await updateCardActiveStatus(firebaseUID, isPro);
-  
-  // Log group assignment
-  if (group) {
-    console.log(`Group assigned via webhook for user ${firebaseUID}: ${group} (coupon: ${couponUsed})`);
-  }
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
@@ -228,7 +216,6 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
       isPro: true,
     });
 
-    // Update custom claims
     await auth.setCustomUserClaims(firebaseUID, { isPro: true });
   }
 }
@@ -236,30 +223,25 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
 
-  // Query Firestore for the user with the matching Stripe customer ID
   const userQuerySnapshot = await db.collection('users')
     .where('stripeCustomerId', '==', customerId)
     .limit(1)
     .get();
 
   if (userQuerySnapshot.empty) {
-    console.error(`No user found for Stripe customer ID: ${customerId}`);
+    console.error('No user found for cancelled subscription');
     return;
   }
 
   const userDoc = userQuerySnapshot.docs[0];
   const uid = userDoc.id;
 
-  // Update the user's isPro status to false
   await db.collection('users').doc(uid).update({
     isPro: false,
-    stripeSubscriptionId: null, // Remove the subscription ID
+    stripeSubscriptionId: null,
   });
 
-  // Update custom claims
   await auth.setCustomUserClaims(uid, { isPro: false });
-
-  console.log(`Subscription cancelled for user: ${uid}`);
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
@@ -278,13 +260,11 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   let group = null;
   let couponUsed = null;
 
-  // First check payment intent metadata
   if (paymentIntent.metadata?.couponCode) {
     couponUsed = paymentIntent.metadata.couponCode;
     group = getGroupFromCoupon(couponUsed);
   }
 
-  // If not found in payment intent, check customer metadata
   if (!couponUsed && paymentIntent.customer) {
     try {
       const customer = await stripe.customers.retrieve(paymentIntent.customer as string);
@@ -306,7 +286,6 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     subscriptionUpdatedAt: new Date(),
   };
 
-  // Add coupon and group information if available
   if (couponUsed) {
     updateData.couponUsed = couponUsed;
   }
@@ -321,7 +300,6 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     // Record coupon redemption if a coupon was used
     if (couponUsed) {
       try {
-        // Get user data for coupon redemption recording
         const userDoc = await db.collection('users').doc(firebaseUID).get();
         const userData = userDoc.data();
         
@@ -334,17 +312,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
             userData.name || '',
             paymentIntent.metadata?.priceId || 'price_1QKWqI2Mf4JwDdD1NaOiqhhg'
           );
-          console.log(`Coupon redemption recorded for ${couponUsed} by user ${firebaseUID}`);
         }
       } catch (redemptionError) {
         console.error('Error recording coupon redemption:', redemptionError);
-        // Don't fail the entire process if coupon recording fails
       }
-    }
-
-    console.log(`Lifetime subscription confirmed for user ${firebaseUID}`);
-    if (group) {
-      console.log(`Group assigned via payment intent for user ${firebaseUID}: ${group} (coupon: ${couponUsed})`);
     }
   } catch (error) {
     console.error('Error updating user after payment intent succeeded:', error);

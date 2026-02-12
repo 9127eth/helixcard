@@ -26,7 +26,6 @@ export const AuthModal: React.FC = () => {
   };
 
   const handleSuccess = () => {
-    console.log('Authentication successful');
     // No need to redirect, the home page will handle it
   };
 
@@ -37,9 +36,7 @@ export const AuthModal: React.FC = () => {
         throw new Error('Auth instance is not initialized');
       }
 
-      console.log('Attempting Google Sign-In with Popup...');
       const result = await signInWithPopup(auth, provider);
-      console.log('Google Sign-In successful:', result.user.uid);
 
       // Get device info
       const deviceInfo = getDeviceInfo();
@@ -50,11 +47,6 @@ export const AuthModal: React.FC = () => {
       handleSuccess();
     } catch (error) {
       console.error('Google Sign-In Error:', error);
-      if (error instanceof Error) {
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      }
       setError('Failed to sign in with Google. Please try again.');
     }
   };
@@ -66,9 +58,7 @@ export const AuthModal: React.FC = () => {
         throw new Error('Auth instance is not initialized');
       }
 
-      console.log('Attempting Apple Sign-In with Popup...');
       const result = await signInWithPopup(auth, provider);
-      console.log('Apple Sign-In successful:', result.user.uid);
 
       // Get device info
       const deviceInfo = getDeviceInfo();
@@ -79,11 +69,6 @@ export const AuthModal: React.FC = () => {
       handleSuccess();
     } catch (error) {
       console.error('Apple Sign-In Error:', error);
-      if (error instanceof Error) {
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      }
       setError('Failed to sign in with Apple. Please try again.');
     }
   };

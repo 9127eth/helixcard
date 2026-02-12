@@ -22,18 +22,10 @@ let storage: FirebaseStorage | null = null;
 
 if (typeof window !== 'undefined') {
   try {
-    console.log('Initializing Firebase...');
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    console.log('Firebase app initialized:', app.name);
-    
     auth = getAuth(app);
-    console.log('Firebase auth initialized');
-    
     db = getFirestore(app);
-    console.log('Firebase Firestore initialized');
-    
     storage = getStorage(app);
-    console.log('Firebase storage initialized');
   } catch (error) {
     console.error('Error initializing Firebase:', error);
   }

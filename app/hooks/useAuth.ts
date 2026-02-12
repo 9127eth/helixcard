@@ -17,9 +17,7 @@ export function useAuth() {
       return;
     }
 
-    console.log('Setting up auth state listener...');
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('Auth state changed:', firebaseUser ? 'User authenticated: [redacted]' : 'No user');
       if (firebaseUser) {
         setUser(firebaseUser);
         setLoading(false);
@@ -52,29 +50,19 @@ export function useAuth() {
       throw new Error('Authentication is not initialized.');
     }
     try {
-      console.log('Starting user creation with email:', email);
       const userCredential = await import('firebase/auth').then(({ createUserWithEmailAndPassword }) => 
         createUserWithEmailAndPassword(auth!, email, password)
       );
-      console.log('User authenticated:', userCredential.user.uid);
       
       // Get device info
       const deviceInfo = getDeviceInfo();
       
-      console.log('Attempting to create user document...');
       await createUserDocument(userCredential.user, deviceInfo);
-      console.log('User document created successfully');
       
-      console.log('User signed up and document created successfully');
       return userCredential.user;
     } catch (error) {
       console.error('Error during sign up:', error);
       if (error instanceof Error) {
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        
-        // Check for specific Firebase error codes
         if (error.message.includes('auth/email-already-in-use')) {
           throw new Error('An account with this email already exists. Please try logging in instead.');
         }

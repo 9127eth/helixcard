@@ -21,9 +21,8 @@ if (!admin.apps.length) {
       storageBucket: storageBucket,
       databaseURL: `https://${projectId}.firebaseio.com`,
     });
-    console.log('Firebase Admin initialized successfully');
   } catch (error) {
-    console.error('Firebase admin initialization error', error);
+    console.error('Firebase admin initialization error');
   }
 }
 

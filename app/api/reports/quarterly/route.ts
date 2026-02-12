@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/app/lib/firebase-admin';
+import { verifyAdminAccess } from '@/app/lib/adminAuth';
 import { 
   generateQuarterlyReport, 
   generateGroupQuarterlyReport, 
@@ -19,14 +19,10 @@ export async function GET(req: NextRequest) {
 
     const idToken = authHeader.split('Bearer ')[1];
     
-    // Verify the Firebase ID token
-    const decodedToken = await auth.verifyIdToken(idToken);
+    // Verify admin access using centralized check
+    const decodedToken = await verifyAdminAccess(idToken);
     
-    // Check if user is admin (you can implement your own admin check logic)
-    // For now, we'll check if the user has a specific email or custom claim
-    const isAdmin = decodedToken.email === 'admin@helixcard.app' || decodedToken.admin === true;
-    
-    if (!isAdmin) {
+    if (!decodedToken) {
       return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
     }
 
