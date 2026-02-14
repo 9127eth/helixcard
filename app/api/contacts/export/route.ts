@@ -75,9 +75,22 @@ export async function POST(request: Request) {
       contact.contactSource || ''
     ])
 
+    // Sanitise a CSV cell value to prevent formula injection.
+    // Excel / Sheets treat cells starting with =, +, -, @, \t, \r as
+    // formulas.  Prefixing with a single-quote neutralises the formula
+    // while remaining human-readable.  Internal double-quotes are also
+    // escaped per RFC 4180.
+    function sanitizeCsvCell(value: string): string {
+      let sanitized = value.replace(/"/g, '""')
+      if (/^[=+\-@\t\r]/.test(sanitized)) {
+        sanitized = `'${sanitized}`
+      }
+      return sanitized
+    }
+
     const csvContent = [
       csvHeaders.join(','),
-      ...csvRows.map((row: string[]) => row.map((cell: string) => `"${cell}"`).join(','))
+      ...csvRows.map((row: string[]) => row.map((cell: string) => `"${sanitizeCsvCell(cell)}"`).join(','))
     ].join('\n')
 
     // Get the base URL from environment or request

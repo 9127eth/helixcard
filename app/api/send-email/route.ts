@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { auth } from '@/app/lib/firebase-admin';
+import { timingSafeEqual } from 'crypto';
 
 // Restrict CORS to your own domains (+ localhost for development)
 const ALLOWED_ORIGINS = [
@@ -16,6 +17,46 @@ function getCorsHeaders(origin: string | null) {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
+}
+
+// --- Rate limiting (per-instance, in-memory sliding window) ---
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1-minute window
+const RATE_LIMIT_MAX_UNAUTHED = 5;       // unauthenticated sends per IP per window
+const RATE_LIMIT_MAX_AUTHED = 20;        // authenticated sends per IP per window
+const rateLimitMap = new Map<string, number[]>();
+
+function getClientIp(request: Request): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
+
+/**
+ * Returns true if the caller should be blocked.
+ * Also garbage-collects stale entries on every call.
+ */
+function isRateLimited(ip: string, maxRequests: number): boolean {
+  const now = Date.now();
+
+  // Inline cleanup: remove stale IPs (keeps the Map from growing unbounded)
+  if (rateLimitMap.size > 10_000) {
+    for (const [key, ts] of rateLimitMap) {
+      if (ts.every(t => now - t >= RATE_LIMIT_WINDOW_MS)) rateLimitMap.delete(key);
+    }
+  }
+
+  const timestamps = (rateLimitMap.get(ip) || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+
+  if (timestamps.length >= maxRequests) {
+    rateLimitMap.set(ip, timestamps);
+    return true;
+  }
+
+  timestamps.push(now);
+  rateLimitMap.set(ip, timestamps);
+  return false;
 }
 
 // Simple HTML entity escaping to prevent injection
@@ -41,6 +82,16 @@ function sanitizeUrl(url: string): string {
   }
 }
 
+/** Timing-safe comparison for static API keys */
+function safeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  try {
+    return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  } catch {
+    return false;
+  }
+}
+
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS(request: Request) {
   const origin = request.headers.get('origin');
@@ -61,37 +112,47 @@ export async function POST(request: Request) {
 
     const { type, ...emailData } = await request.json();
 
+    // --- Determine authentication status ---
+    const authHeader = request.headers.get('Authorization');
+    let isAuthenticated = false;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+
+      // iOS API key (timing-safe comparison)
+      if (process.env.IOS_API_KEY && safeCompare(token, process.env.IOS_API_KEY)) {
+        isAuthenticated = true;
+      } else {
+        // Firebase ID token
+        try {
+          await auth.verifyIdToken(token);
+          isAuthenticated = true;
+        } catch {
+          // Token is invalid
+        }
+      }
+    }
+
+    // --- Rate limiting (stricter for unauthenticated callers) ---
+    const clientIp = getClientIp(request);
+    const maxRequests = isAuthenticated ? RATE_LIMIT_MAX_AUTHED : RATE_LIMIT_MAX_UNAUTHED;
+
+    if (isRateLimited(clientIp, maxRequests)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: corsHeaders }
+      );
+    }
+
     // Authentication: required for sensitive operations (csvExport),
     // but not for public card sharing (businessCard).
     const REQUIRES_AUTH = ['csvExport'];
 
-    if (REQUIRES_AUTH.includes(type)) {
-      const authHeader = request.headers.get('Authorization');
-      let isAuthenticated = false;
-
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split('Bearer ')[1];
-        
-        // Try iOS API key first
-        if (token === process.env.IOS_API_KEY) {
-          isAuthenticated = true;
-        } else {
-          // Try Firebase ID token
-          try {
-            await auth.verifyIdToken(token);
-            isAuthenticated = true;
-          } catch {
-            // Token is invalid
-          }
-        }
-      }
-
-      if (!isAuthenticated) {
-        return NextResponse.json(
-          { error: 'Authentication required' },
-          { status: 401, headers: corsHeaders }
-        );
-      }
+    if (REQUIRES_AUTH.includes(type) && !isAuthenticated) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401, headers: corsHeaders }
+      );
     }
     
     const transporter = nodemailer.createTransport({
