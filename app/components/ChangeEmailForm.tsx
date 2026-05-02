@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { updateEmail, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification } from 'firebase/auth';
+import { verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification } from 'firebase/auth';
 import { useAuth } from '../hooks/useAuth';
 
 interface ChangeEmailFormProps {
@@ -29,14 +29,17 @@ export const ChangeEmailForm: React.FC<ChangeEmailFormProps> = ({ onClose }) => 
         return;
       }
 
-      // Re-authenticate user before changing email
+      // Re-authenticate user before requesting email change
       const credential = EmailAuthProvider.credential(user.email!, password);
       await reauthenticateWithCredential(user, credential);
 
-      // Update email
-      await updateEmail(user, newEmail);
+      // Send a verification link to the new address. The account email is only
+      // updated after the user clicks that link.
+      await verifyBeforeUpdateEmail(user, newEmail);
 
-      alert('Email updated successfully');
+      alert(
+        `We've sent a verification link to ${newEmail}. Click the link in that email to complete the change. Until then, keep signing in with your current email.`
+      );
       onClose();
     } catch (err) {
       console.error('Error updating email:', err);
