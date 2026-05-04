@@ -104,36 +104,58 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function handleSubscriptionChange(subscription: Stripe.Subscription) {
-  const customerId = subscription.customer as string;
-  const status = subscription.status;
+/**
+ * Resolve the Firebase UID for a given Stripe customer using the same
+ * three-step fallback in every webhook handler:
+ *   1. Read from any metadata we already have (subscription or payment intent).
+ *   2. Look it up on the Stripe customer object's metadata.
+ *   3. Query Firestore by stripeCustomerId.
+ *
+ * Returns null if no match is found, so callers can log + bail out cleanly
+ * instead of accidentally writing to `users/undefined`.
+ */
+async function resolveFirebaseUID(
+  customerId: string,
+  metadataUID?: string | null
+): Promise<string | null> {
+  if (metadataUID) return metadataUID;
 
-  // First try to get Firebase UID from subscription metadata
-  let firebaseUID = subscription.metadata?.firebaseUID;
-  
-  if (!firebaseUID) {
-    // Fallback: get customer and check metadata
-    try {
-      const customer = await stripe.customers.retrieve(customerId);
-      firebaseUID = customer.metadata?.firebaseUID;
-    } catch (error) {
-      console.error('Error retrieving customer:', error);
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (!customer.deleted && customer.metadata?.firebaseUID) {
+      return customer.metadata.firebaseUID;
     }
+  } catch (error) {
+    console.error('Error retrieving Stripe customer:', error);
   }
 
-  if (!firebaseUID) {
-    // Final fallback: query Firestore
+  try {
     const userQuerySnapshot = await db.collection('users')
       .where('stripeCustomerId', '==', customerId)
       .limit(1)
       .get();
-
-    if (userQuerySnapshot.empty) {
-      console.error('No user found for Stripe customer');
-      return;
+    if (!userQuerySnapshot.empty) {
+      return userQuerySnapshot.docs[0].id;
     }
+  } catch (error) {
+    console.error('Error querying Firestore for stripeCustomerId:', error);
+  }
 
-    firebaseUID = userQuerySnapshot.docs[0].id;
+  return null;
+}
+
+async function handleSubscriptionChange(subscription: Stripe.Subscription) {
+  const customerId = subscription.customer as string;
+  const status = subscription.status;
+
+  const firebaseUID = await resolveFirebaseUID(
+    customerId,
+    subscription.metadata?.firebaseUID
+  );
+
+  if (!firebaseUID) {
+    console.error('No user found for Stripe customer in handleSubscriptionChange', { customerId });
+    return;
   }
 
   const isPro = status === 'active';
@@ -208,8 +230,16 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
-  const customerData = await stripe.customers.retrieve(customerId);
-  const firebaseUID = customerData.metadata.firebaseUID;
+  if (!customerId) {
+    console.error('Invoice has no customer; skipping');
+    return;
+  }
+
+  const firebaseUID = await resolveFirebaseUID(customerId);
+  if (!firebaseUID) {
+    console.error('No user found for Stripe customer in handleInvoicePaid', { customerId });
+    return;
+  }
 
   if (invoice.subscription) {
     await db.collection('users').doc(firebaseUID).update({

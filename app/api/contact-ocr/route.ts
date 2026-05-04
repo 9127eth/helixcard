@@ -57,30 +57,50 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    // Process text with OpenAI
+    // Process text with OpenAI.
+    // Notes:
+    //   - `gpt-4o-mini` matches the model used by /api/scan-card and is far cheaper
+    //     and faster than the legacy `gpt-4` we used here previously.
+    //   - `response_format: { type: 'json_object' }` forces the model to emit valid
+    //     JSON, eliminating the markdown-fence parsing failures we hit before.
+    //   - We still defensively strip code fences in case JSON mode is unavailable
+    //     for some reason and the model falls back to wrapped output.
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
       messages: [
         {
-          role: "system",
-          content: "You are an AI designed to extract and organize information from text. The text will be either a business card or a tradeshow badge. Extract key details and present them in a structured format following these rules:\n" +
+          role: 'system',
+          content:
+            "You are an AI designed to extract and organize information from text. The text will be either a business card or a tradeshow badge. Extract key details and present them in a structured format following these rules:\n" +
             "- Do not include prefixes like 'Mr.', 'Ms.', 'Dr.', etc. Names should start with first name\n" +
             "- Include suffixes like 'Jr.', 'Sr.', 'III', PharmD, MD, BSN, RN, etc.\n" +
             "- For phone numbers: Extract ONLY ONE phone number in this priority order: 1) mobile/cell number, 2) office/direct number. Never include fax numbers. Format as (123) 456-7890\n" +
             "- If website is not present but email is, assume the domain from email as website\n" +
             "- Do not include registered trademark symbols\n" +
-            "- Convert all-caps text to proper case while preserving company names and credentials (e.g., PharmD, MD, BSN, RN, CPhT)"
+            "- Convert all-caps text to proper case while preserving company names and credentials (e.g., PharmD, MD, BSN, RN, CPhT)\n" +
+            'Always respond with a JSON object containing the keys: name, position, company, phone, email, address, website. Use empty strings for missing fields.',
         },
         {
-          role: "user",
-          content: `Extract contact information from this text: ${detectedText}\n\n` +
-            'Return a JSON object with these fields: name, position, company, phone, email, address, website'
-        }
+          role: 'user',
+          content: `Extract contact information from this text: ${detectedText}`,
+        },
       ],
       temperature: 0.3,
     });
 
-    const contactData = JSON.parse(completion.choices[0].message?.content || '{}');
+    const rawContent = completion.choices[0].message?.content ?? '{}';
+    let contactData: Record<string, string> = {};
+    try {
+      const cleaned = rawContent.replace(/```json\n?|\n?```/g, '').trim();
+      contactData = JSON.parse(cleaned || '{}');
+    } catch (parseErr) {
+      console.error('Failed to parse OCR JSON response:', parseErr, 'raw:', rawContent);
+      return NextResponse.json(
+        { error: 'Could not parse contact information from this image. Please try again.' },
+        { status: 502 }
+      );
+    }
 
     // Parse name into first and last name
     const nameParts = contactData.name?.split(' ') || ['', ''];

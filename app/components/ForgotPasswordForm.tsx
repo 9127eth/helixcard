@@ -20,13 +20,19 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onCancel
     try {
       if (auth) {
         await sendPasswordResetEmail(auth, email, actionCodeSettings);
-        setMessage('Password reset email sent. Please check your inbox.');
+        // With email enumeration protection enabled in Firebase Auth,
+        // sendPasswordResetEmail succeeds even when no account exists for the email.
+        // We intentionally show a non-committal message so that we don't leak whether
+        // the email is registered.
+        setMessage(
+          'If an account exists for that email, we just sent a password reset link. Please check your inbox (and spam folder).'
+        );
         setIsSubmitted(true);
       } else {
         throw new Error('Authentication is not initialized');
       }
     } catch (err) {
-      setError('Failed to send password reset email. Please try again.');
+      setError('We could not send the reset email right now. Please try again in a moment.');
       console.error(err);
     }
   };

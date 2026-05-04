@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
 import { auth, db } from '@/app/lib/firebase-admin'
+import { FieldPath } from 'firebase-admin/firestore'
+
+// Firestore caps `in` / `documentId() in` queries at 30 values per query.
+// We chunk the requested IDs and merge the results client-side.
+const CONTACT_ID_CHUNK_SIZE = 30
 
 interface Contact {
   id: string;
@@ -33,14 +38,37 @@ export async function POST(request: Request) {
     }
 
     const { contactIds, email } = await request.json()
-    // Get full contact data for selected contacts using admin SDK
+
+    if (!Array.isArray(contactIds) || contactIds.length === 0) {
+      return NextResponse.json(
+        { error: 'No contacts selected for export' },
+        { status: 400 }
+      )
+    }
+
+    // Fetch only the selected contacts in chunks of 30 (Firestore's `in` query
+    // limit). Previously we read the entire contacts subcollection and filtered
+    // in-memory — fine for tens of contacts, expensive for thousands.
     const contactsRef = db.collection(`users/${decodedToken.uid}/contacts`)
-    const snapshot = await contactsRef.orderBy('dateModified', 'desc').get()
-    const contacts = snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({ 
-      id: doc.id, 
-      ...doc.data() 
-    })) as Contact[]
-    const selectedContacts = contacts.filter((c: Contact) => contactIds.includes(c.id))
+    const idChunks: string[][] = []
+    for (let i = 0; i < contactIds.length; i += CONTACT_ID_CHUNK_SIZE) {
+      idChunks.push(contactIds.slice(i, i + CONTACT_ID_CHUNK_SIZE))
+    }
+
+    const chunkSnapshots = await Promise.all(
+      idChunks.map((chunk) =>
+        contactsRef.where(FieldPath.documentId(), 'in', chunk).get()
+      )
+    )
+
+    const selectedContacts: Contact[] = chunkSnapshots
+      .flatMap((snap) =>
+        snap.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      )
+      .sort((a: Contact, b: Contact) => (b.dateModified ?? 0) - (a.dateModified ?? 0)) as Contact[]
 
     // Generate CSV content
     const csvHeaders = [

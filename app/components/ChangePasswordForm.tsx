@@ -55,17 +55,29 @@ export const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose 
       // Re-authenticate user before changing password
       const credential = EmailAuthProvider.credential(user.email!, currentPassword);
       await reauthenticateWithCredential(user, credential);
-      
+
       // Update password
       await updatePassword(user, newPassword);
       alert('Password updated successfully');
       onClose();
     } catch (err) {
       console.error('Error updating password:', err);
-      if (err instanceof Error) {
-        setError(err.message);
+      const message = err instanceof Error ? err.message : '';
+      if (
+        message.includes('auth/wrong-password') ||
+        message.includes('auth/invalid-credential')
+      ) {
+        setError('Your current password is incorrect.');
+      } else if (message.includes('auth/weak-password')) {
+        setError('Your new password is too weak. Please choose a stronger one.');
+      } else if (message.includes('auth/requires-recent-login')) {
+        setError('For security, please sign out and sign back in, then try again.');
+      } else if (message.includes('auth/too-many-requests')) {
+        setError('Too many attempts. Please wait a moment and try again.');
+      } else if (message.includes('auth/network-request-failed')) {
+        setError('Network error. Please check your connection and try again.');
       } else {
-        setError('Failed to update password. Please try again.');
+        setError('We could not update your password. Please try again.');
       }
     } finally {
       setIsLoading(false);
