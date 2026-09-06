@@ -927,6 +927,17 @@ export default function Home() {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               © {new Date().getFullYear()} Helix Business Card. All rights reserved.
             </p>
+            <div className="mt-3 flex items-center justify-center gap-4 text-sm">
+              <a href="/presskit" className="text-gray-500 hover:text-[#7CCEDA] dark:text-gray-400 dark:hover:text-[#7CCEDA]">
+                Press Kit
+              </a>
+              <a href="/privacy-policy" className="text-gray-500 hover:text-[#7CCEDA] dark:text-gray-400 dark:hover:text-[#7CCEDA]">
+                Privacy
+              </a>
+              <a href="/terms-of-service" className="text-gray-500 hover:text-[#7CCEDA] dark:text-gray-400 dark:hover:text-[#7CCEDA]">
+                Terms
+              </a>
+            </div>
           </div>
         </div>
       </div>

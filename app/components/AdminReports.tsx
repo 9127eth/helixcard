@@ -88,6 +88,7 @@ export const AdminReports: React.FC = () => {
     'vmcrx-partners',
     'nhma-members',
     'emprx-subscribers',
+    'cu-anschutz-skaggs',
     'partner-network-1',
     'partner-network-2',
     'affiliate-program-1'

@@ -189,18 +189,19 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
         
-        <div className="flex items-center mb-6">
-          <h1 className="text-6xl font-bold">Business Cards</h1>
+        <div className="mb-7 flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-800 dark:text-white md:text-4xl">
+            Business Cards
+          </h1>
           {hasCards && (
-            <div className="pl-4">
-              <button
-                onClick={handleCreateCard}
-                className="flex items-center justify-center gap-1 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--primary-text)] font-medium py-1.5 px-3 rounded-md text-sm transition-colors duration-200"
-              >
-                <PlusIcon className="h-4 w-4" />
-                <span>New Card</span>
-              </button>
-            </div>
+            <button
+              onClick={handleCreateCard}
+              aria-label="Create a new card"
+              title="Create a new card"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#B8EB41] text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-[#a9de31] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#B8EB41]/30"
+            >
+              <PlusIcon className="h-6 w-6" />
+            </button>
           )}
         </div>
         <BusinessCardList userId={user.uid} />

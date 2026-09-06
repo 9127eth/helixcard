@@ -1,4 +1,8 @@
-export type CardTheme = 'classic' | 'modern' | 'dark';
+import type { CardTheme } from './lib/cardThemes';
+import type { CardEffect } from './lib/cardEffects';
+import type { CardColors } from './lib/cardColors';
+
+export type { CardTheme, CardEffect, CardColors };
 
 export interface BusinessCard {
   cvUrl?: string;
@@ -42,6 +46,8 @@ export interface BusinessCard {
   isPro?: boolean; // Add this line
   cardDepthColor?: string; // Add this line
   theme?: CardTheme;
+  effect?: CardEffect;
+  customColors?: CardColors | null;
   enableTextMessage?: boolean;
 }
 
@@ -84,6 +90,8 @@ export interface BusinessCardData {
   isPro?: boolean;
   cardDepthColor?: string;
   theme: CardTheme;
+  effect?: CardEffect;
+  customColors?: CardColors | null;
   enableTextMessage?: boolean;
 }
 

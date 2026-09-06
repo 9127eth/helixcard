@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth } from '../../lib/firebase-admin';
+import { isTrackingOnlyCoupon } from '../../utils/groupMapping';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -23,6 +24,7 @@ const COUPON_RESTRICTIONS: Record<string, string[]> = {
   'NCPA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'UCONN25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
   'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
+  'CUCOP@%': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
 }
 
 export async function POST(req: Request) {
@@ -42,6 +44,22 @@ export async function POST(req: Request) {
         return NextResponse.json({ 
           error: 'This coupon code is not valid for the selected product type' 
         }, { status: 400 });
+      }
+
+      // Tracking-only codes attribute the purchase without changing the price
+      if (isTrackingOnlyCoupon(couponCode)) {
+        const price = await stripe.prices.retrieve(priceId);
+        const originalAmount = price.unit_amount || 0;
+
+        return NextResponse.json({
+          discountedAmount: originalAmount,
+          message: 'Code applied successfully',
+          isFree: false,
+          isTrackingOnly: true,
+          isVMCRX: false,
+          isMCKiS25: false,
+          isNCPA25: false
+        });
       }
 
       // First, retrieve the promotion code

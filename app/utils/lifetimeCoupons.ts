@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { db } from '../lib/firebase-admin';
 
 export interface LifetimeCouponUsage {
@@ -8,6 +9,17 @@ export interface LifetimeCouponUsage {
   couponCode: string;
   priceId: string;
   subscriptionType: string;
+}
+
+/**
+ * Stable, non-reversible fingerprint of an email address.
+ *
+ * Redemption records outlive the account that created them (they stop a coupon
+ * being reused), so when an account is deleted the plain email and name are
+ * stripped and only this fingerprint remains.
+ */
+export function hashCouponEmail(email: string): string {
+  return createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
 }
 
 export interface LifetimeCouponStats {
@@ -40,13 +52,17 @@ export async function hasUserUsedCoupon(couponCode: string, uid: string): Promis
  */
 export async function hasEmailUsedCoupon(couponCode: string, email: string): Promise<boolean> {
   try {
-    const emailQuery = await db.collection('lifetimesubs')
+    const customers = db.collection('lifetimesubs')
       .doc(couponCode)
-      .collection('customers')
-      .where('email', '==', email)
-      .get();
-    
-    return !emailQuery.empty;
+      .collection('customers');
+
+    // Records belonging to deleted accounts keep only the hashed address.
+    const [byEmail, byHash] = await Promise.all([
+      customers.where('email', '==', email).limit(1).get(),
+      customers.where('emailHash', '==', hashCouponEmail(email)).limit(1).get(),
+    ]);
+
+    return !byEmail.empty || !byHash.empty;
   } catch (error) {
     console.error('Error checking coupon usage by email:', error);
     throw error;
@@ -72,6 +88,7 @@ export async function recordCouponRedemption(
       .set({
         uid: uid,
         email: email,
+        emailHash: hashCouponEmail(email),
         name: name || '',
         claimedAt: new Date(),
         couponCode: couponCode,
@@ -176,3 +193,24 @@ export async function getAllLifetimeCoupons(): Promise<LifetimeCouponStats[]> {
     throw error;
   }
 } 
+/**
+ * Strip personal data from a deleted account's redemption records while keeping
+ * enough to stop the same person silently re-claiming a one-per-person coupon.
+ */
+export async function redactCouponRedemptions(uid: string, email: string): Promise<void> {
+  const coupons = await db.collection('lifetimesubs').get();
+
+  await Promise.all(
+    coupons.docs.map(async coupon => {
+      const record = coupon.ref.collection('customers').doc(uid);
+      if (!(await record.get()).exists) return;
+
+      await record.update({
+        email: '',
+        emailHash: email ? hashCouponEmail(email) : '',
+        name: '',
+        redactedAt: new Date(),
+      });
+    })
+  );
+}

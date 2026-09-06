@@ -36,3 +36,8 @@ yarn-error.log*
 next-env.d.ts
 
 AddStripePayment.txt
+# Firebase emulator debug output (rules tests)
+firestore-debug.log
+storage-debug.log
+ui-debug.log
+firebase-debug.log

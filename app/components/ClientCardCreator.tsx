@@ -148,7 +148,7 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({
       router.push('/dashboard');
     } catch (error) {
       console.error('Error creating card:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
     }
   }
 

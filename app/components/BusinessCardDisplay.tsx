@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload, FaAt, FaFileAlt } from 'react-icons/fa';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -11,10 +11,15 @@ import Image from 'next/image';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import LoadingSpinner from './LoadingSpinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
+import CardEffectLayer from './effects/CardEffectLayer';
+import { getCardColorStyle, normalizeCardColors } from '../lib/cardColors';
+import { getAvailableCardEffect } from '../lib/cardEffects';
+import { sanitizeEmailAddress, sanitizeExternalUrl, sanitizePhoneNumber } from '../lib/urlSafety';
 
 interface BusinessCardDisplayProps {
   card: BusinessCard;
   isPro: boolean;
+  isPreview?: boolean;
 }
 
 interface EmailModalProps {
@@ -150,9 +155,10 @@ const BlueSkyIcon: React.FC<{ size?: number, className?: string }> = ({ size = 2
   </svg>
 );
 
-const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }) => {
+const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, isPreview = false }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (card) {
@@ -163,6 +169,25 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
   if (isLoading) {
     return <LoadingSpinner />;
   }
+
+  // Card owners control every one of these values, so none of them reaches an
+  // href until it has been restricted to a safe scheme. The public API applies
+  // the same DTO sanitising; this is the render-time backstop that also covers
+  // previews and anything served from cache.
+  const safeLinks = {
+    linkedIn: sanitizeExternalUrl(card.linkedIn),
+    twitter: sanitizeExternalUrl(card.twitter),
+    facebookUrl: sanitizeExternalUrl(card.facebookUrl),
+    instagramUrl: sanitizeExternalUrl(card.instagramUrl),
+    threadsUrl: sanitizeExternalUrl(card.threadsUrl),
+    blueskyUrl: sanitizeExternalUrl(card.blueskyUrl),
+    cvUrl: sanitizeExternalUrl(card.cvUrl),
+  };
+  const safePhoneNumber = sanitizePhoneNumber(card.phoneNumber);
+  const safeEmail = sanitizeEmailAddress(card.email);
+  const safeWebLinks = (card.webLinks ?? [])
+    .map(link => ({ displayText: link.displayText, url: sanitizeExternalUrl(link.url) }))
+    .filter((link): link is { displayText: string; url: string } => Boolean(link.url));
 
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
@@ -230,7 +255,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
     return phoneNumber.formatNational();
   };
 
-  const showDocument = isPro && card.cvUrl;
+  const showDocument = isPro && Boolean(safeLinks.cvUrl);
 
   const handleEmailCard = async (email: string, note?: string) => {
     const response = await fetch('/api/send-email', {
@@ -244,7 +269,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
         note,
         cardUrl: window.location.href,
         cardOwner: card.firstName,
-        ...(card.email && { ownerEmail: card.email }),
+        ...(safeEmail && { ownerEmail: safeEmail }),
       }),
     });
 
@@ -254,6 +279,16 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
   };
 
   const getThemeClasses = () => {
+    if (customColors) {
+      return {
+        container: `custom-card-colors ${card.theme === 'editorial' || card.theme === 'neon' ? `theme-${card.theme}` : ''}`,
+        header: 'bg-[var(--card-header-bg)]',
+        buttons: 'bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] hover:opacity-90',
+        icons: 'text-[var(--link-icon-color)]',
+        socialIcons: 'bg-[var(--social-tile-bg)] border-[0.5px] border-[var(--social-tile-border)]',
+        footer: 'bg-[var(--end-card-bg)]',
+      };
+    }
     switch (card.theme) {
       case 'classic':
         return {
@@ -273,6 +308,22 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           socialIcons: 'bg-[#40444b]',
           footer: 'bg-[#323338]',
         };
+      case 'sunset':
+      case 'forest':
+      case 'editorial':
+      case 'aurora':
+      case 'neon':
+      case 'ocean':
+        // Fully variable-driven themes: each `theme-*` class in globals.css
+        // defines every CSS variable these classes consume.
+        return {
+          container: `theme-${card.theme}`,
+          header: 'bg-[var(--card-header-bg)]',
+          buttons: 'bg-[var(--save-contact-button-bg)] text-[var(--save-contact-button-text)] hover:opacity-90',
+          icons: 'text-[var(--link-icon-color)]',
+          socialIcons: 'bg-[var(--social-tile-bg)] border-[0.5px] border-[var(--social-tile-border)]',
+          footer: 'bg-[var(--end-card-bg)]',
+        };
       default: // modern
         return {
           container: '',
@@ -285,12 +336,23 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
     }
   };
 
+  const customColors = isPro ? normalizeCardColors(card.customColors) : null;
   const themeClasses = getThemeClasses();
 
   return (
-    <div className={`${themeClasses.container} w-screen min-h-screen flex flex-col`}>
-      <header className={`bg-card-header py-6 sm:py-8 lg:py-10 ${
-        card.theme === 'classic' ? 'border-b border-gray-300' : ''
+    <div
+      ref={containerRef}
+      className={`${themeClasses.container} w-full min-h-screen flex flex-col`}
+      style={customColors ? getCardColorStyle(customColors) : undefined}
+      onClickCapture={isPreview ? event => {
+        if ((event.target as Element).closest('a, button')) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      } : undefined}
+    >
+      <header data-fx="tilt" className={`bg-card-header py-6 sm:py-8 lg:py-10 ${
+        !customColors && card.theme === 'classic' ? 'border-b border-gray-300' : ''
       }`}>
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-row items-start justify-between pt-2">
@@ -309,10 +371,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                   </span>
                 )}
               </h1>
-              <div className="text-lg sm:text-xl text-[var(--header-footer-primary-text)] pr-2">
+              <div data-fx="chunk" className="text-lg sm:text-xl text-[var(--position-text-color,var(--header-footer-primary-text))] pr-2">
                 <span className="break-words">{card.jobTitle}</span> 
                 {card.company && (
-                  <span className="text-[var(--end-card-header-secondary-text-color)]">
+                  <span className={customColors ? '' : 'text-[var(--end-card-header-secondary-text-color)]'}>
                     <span> | </span>
                     <span className="break-words">{card.company}</span>
                   </span>
@@ -320,7 +382,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
               </div>
             </div>
             {card.imageUrl && (
-              <div className="min-w-24 min-h-24 w-24 h-24 sm:min-w-32 sm:min-h-32 sm:w-32 sm:h-32 rounded-full overflow-hidden relative flex-shrink-0">
+              <div data-fx="avatar" className="min-w-24 min-h-24 w-24 h-24 sm:min-w-32 sm:min-h-32 sm:w-32 sm:h-32 rounded-full overflow-hidden relative flex-shrink-0">
                 <Image
                   src={card.imageUrl}
                   alt={`${card.firstName} ${card.lastName}`}
@@ -359,40 +421,40 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-2">
               {/* Contact Information */}
-              {(card.phoneNumber || card.email) && (
+              {(safePhoneNumber || safeEmail) && (
                 <div>
                   <h2 className={`text-2xl font-bold mb-4 ${
-                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                    !customColors && card.theme === 'dark' ? 'text-[#dddee3]' : ''
                   }`}>Contact</h2>
-                  {card.phoneNumber && (
+                  {safePhoneNumber && (
                     <>
                       <div className="flex items-center mb-3">
                         <Phone className={`mr-3 ${
-                          card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                          !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                         }`} size={18} />
-                        <a href={`tel:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
-                          {formatPhoneNumberDisplay(card.phoneNumber)}
+                        <a href={`tel:${safePhoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
+                          {formatPhoneNumberDisplay(safePhoneNumber)}
                         </a>
                       </div>
                       {(card.enableTextMessage === undefined || card.enableTextMessage) && (
                         <div className="flex items-center mb-3">
                           <MessageCircle className={`mr-3 ${
-                            card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                            !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                           }`} size={18} />
-                          <a href={`sms:${card.phoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
+                          <a href={`sms:${safePhoneNumber}`} className="text-[var(--link-text-color)] hover:underline">
                             Send a text
                           </a>
                         </div>
                       )}
                     </>
                   )}
-                  {card.email && (
+                  {safeEmail && (
                     <div className="flex items-center mb-2">
                       <Mail className={`mr-3 ${
-                        card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                        !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                       }`} size={18} />
-                      <a href={`mailto:${card.email}`} className="text-[var(--link-text-color)] hover:underline">
-                        {card.email}
+                      <a href={`mailto:${safeEmail}`} className="text-[var(--link-text-color)] hover:underline">
+                        {safeEmail}
                       </a>
                     </div>
                   )}
@@ -400,31 +462,31 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
               )}
 
               {/* Social Links */}
-              {(card.linkedIn || card.twitter || card.facebookUrl || card.instagramUrl || card.threadsUrl || card.blueskyUrl) && (
+              {(safeLinks.linkedIn || safeLinks.twitter || safeLinks.facebookUrl || safeLinks.instagramUrl || safeLinks.threadsUrl || safeLinks.blueskyUrl) && (
                 <div>
                   <h2 className={`text-2xl font-bold mb-4 ${
-                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                    !customColors && card.theme === 'dark' ? 'text-[#dddee3]' : ''
                   }`}>Social</h2>
                   <div className="flex flex-wrap gap-8 justify-center">
-                    {card.linkedIn && (
+                    {safeLinks.linkedIn && (
                       <div className="flex flex-col items-center">
                         <a 
-                          href={card.linkedIn} 
+                          href={safeLinks.linkedIn} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
                         >
                           <Linkedin size={24} className={`${
-                            card.theme === 'classic' ? 'text-[var(--social-icon-color)]' : 'text-[var(--social-icon-color)]'
+                            !customColors && card.theme === 'classic' ? 'text-[var(--social-icon-color)]' : 'text-[var(--social-icon-color)]'
                           }`} />
                         </a>
                         <span className="text-sm text-[var(--social-text-color)]">LinkedIn</span>
                       </div>
                     )}
-                    {card.twitter && (
+                    {safeLinks.twitter && (
                       <div className="flex flex-col items-center">
                         <a 
-                          href={card.twitter} 
+                          href={safeLinks.twitter} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
@@ -434,10 +496,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                         <span className="text-sm text-[var(--social-text-color)]">X/Twitter</span>
                       </div>
                     )}
-                    {card.facebookUrl && (
+                    {safeLinks.facebookUrl && (
                       <div className="flex flex-col items-center">
                         <a 
-                          href={card.facebookUrl} 
+                          href={safeLinks.facebookUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
@@ -447,10 +509,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                         <span className="text-sm text-[var(--social-text-color)]">Facebook</span>
                       </div>
                     )}
-                    {card.instagramUrl && (
+                    {safeLinks.instagramUrl && (
                       <div className="flex flex-col items-center">
                         <a 
-                          href={card.instagramUrl} 
+                          href={safeLinks.instagramUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
@@ -460,10 +522,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                         <span className="text-sm text-[var(--social-text-color)]">Instagram</span>
                       </div>
                     )}
-                    {card.threadsUrl && (
+                    {safeLinks.threadsUrl && (
                       <div className="flex flex-col items-center">
                         <a 
-                          href={card.threadsUrl} 
+                          href={safeLinks.threadsUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
@@ -473,10 +535,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                         <span className="text-sm text-[var(--social-text-color)]">Threads</span>
                       </div>
                     )}
-                    {card.blueskyUrl && (
+                    {safeLinks.blueskyUrl && (
                       <div className="flex flex-col items-center">
                         <a 
-                          href={card.blueskyUrl} 
+                          href={safeLinks.blueskyUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className={`w-14 h-14 ${themeClasses.socialIcons} rounded-full flex items-center justify-center hover:opacity-80 transition-opacity mb-2`}
@@ -492,13 +554,13 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             </div>
 
             {/* Links Section */}
-            {card.webLinks && card.webLinks.length > 0 && card.webLinks.some(link => link.url && link.url.trim() !== '') && (
+            {safeWebLinks.length > 0 && (
               <div className="mt-8">
                 <h2 className={`text-2xl font-bold mb-4 ${
-                  card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                  !customColors && card.theme === 'dark' ? 'text-[#dddee3]' : ''
                 }`}>Links</h2>
                 <div className="flex flex-col space-y-2">
-                  {card.webLinks.filter(link => link.url && link.url.trim() !== '').map((link, index) => (
+                  {safeWebLinks.map((link, index) => (
                     <a
                       key={index}
                       href={link.url}
@@ -507,7 +569,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
                       className="flex items-center hover:opacity-80"
                     >
                       <LinkIcon className={`mr-3 ${
-                        card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                        !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                       }`} size={18} />
                       <span className="text-[var(--link-text-color)]">{link.displayText || link.url}</span>
                     </a>
@@ -522,9 +584,9 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             {card.aboutMe && (
               <div className="mt-8 lg:mt-0">
                 <h2 className={`text-2xl font-bold mb-4 ${
-                  card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                  !customColors && card.theme === 'dark' ? 'text-[#dddee3]' : ''
                 }`}>About Me</h2>
-                <p className={card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
+                <p className={!customColors && card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
                   {card.aboutMe}
                 </p>
               </div>
@@ -534,10 +596,10 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
               <div className="mt-8">
                 {card.customMessageHeader && (
                   <h2 className={`text-2xl font-bold mb-4 ${
-                    card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                    !customColors && card.theme === 'dark' ? 'text-[#dddee3]' : ''
                   }`}>{card.customMessageHeader}</h2>
                 )}
-                <p className={card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
+                <p className={!customColors && card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
                   {card.customMessage}
                 </p>
               </div>
@@ -547,21 +609,21 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
             {showDocument && (
               <div className="mt-8">
                 <h2 className={`text-2xl font-bold mb-4 ${
-                  card.theme === 'dark' ? 'text-[#dddee3]' : ''
+                  !customColors && card.theme === 'dark' ? 'text-[#dddee3]' : ''
                 }`}>{card.cvHeader || 'Documents'}</h2>
                 {card.cvDescription && (
-                  <p className={card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
+                  <p className={!customColors && card.theme === 'dark' ? 'text-[#dcddde]' : ''}>
                     {card.cvDescription}
                   </p>
                 )}
                 <a
-                  href={card.cvUrl}
+                  href={safeLinks.cvUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-4 flex items-center hover:opacity-80"
                 >
                   <FileText className={`mr-3 ${
-                    card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
+                    !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                   }`} size={18} />
                   <span className="text-[var(--link-text-color)]">{card.cvDisplayText || 'View document'}</span>
                 </a>
@@ -586,7 +648,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           </Link>
         </div>
       </footer>
-      {card.isActive === false && (
+      {!isPreview && card.isActive === false && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md">
             <h2 className="text-xl font-bold mb-4">This card is no longer active.</h2>
@@ -600,6 +662,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro }
           </div>
         </div>
       )}
+      <CardEffectLayer key={`${card.theme}:${JSON.stringify(customColors)}`} effect={getAvailableCardEffect(card.effect, isPro)} host={containerRef} />
       <EmailModal
         isOpen={showEmailModal}
         onClose={() => setShowEmailModal(false)}

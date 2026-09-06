@@ -72,7 +72,7 @@ Authorization: Bearer <OPENAI_API_KEY>
 Content-Type: application/json
 
 {
-  "model": "gpt-4o-mini",
+  "model": "gpt-4.1-nano",
   "temperature": 0.3,
   "messages": [
     {
@@ -96,7 +96,7 @@ anthropic-version: 2023-06-01
 Content-Type: application/json
 
 {
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-haiku-4-5-20251001",
   "max_tokens": 1024,
   "messages": [
     {

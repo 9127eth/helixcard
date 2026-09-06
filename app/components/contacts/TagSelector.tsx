@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Filter, ChevronDown, Check, X } from 'lucide-react'
+import { Filter, ChevronDown, Check, X, Tag as TagIcon, Plus } from 'lucide-react'
 import { Tag } from '@/app/types'
 import { useAuth } from '@/app/hooks/useAuth'
 import { getTags, createTag } from '@/app/lib/contacts'
 import LoadingSpinner from '../LoadingSpinner'
+import { btnSecondary, inputClass } from '../ui/editor'
 
 interface TagSelectorProps {
   selectedTags: string[]
@@ -12,8 +13,8 @@ interface TagSelectorProps {
   allowCreate?: boolean
 }
 
-export default function TagSelector({ 
-  selectedTags, 
+export default function TagSelector({
+  selectedTags,
   onChange,
   isFilter = false,
   allowCreate = true
@@ -51,7 +52,7 @@ export default function TagSelector({
     if (isFilterOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
-    
+
     // Cleanup event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
@@ -95,29 +96,31 @@ export default function TagSelector({
   const selectedTagObjects = tags.filter(tag => selectedTags.includes(tag.id))
 
   return (
-    <div className="space-y-2" ref={dropdownRef}>
+    <div className="relative space-y-2" ref={dropdownRef}>
       {!isFilter && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {selectedTagObjects.map((tag) => (
             <span
               key={tag.id}
-              className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-sm"
+              className="inline-flex items-center gap-1 rounded-full bg-[#7CCEDA]/15 py-1 pl-2.5 pr-1 text-xs font-medium text-[#2E7C89] dark:bg-[#7CCEDA]/10 dark:text-[#7CCEDA]"
             >
               {tag.name}
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation()
                   toggleTag(tag.id)
                 }}
-                className="ml-1.5 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full"
+                className="inline-flex h-5 w-5 items-center justify-center rounded-full transition hover:bg-[#7CCEDA]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7CCEDA]"
+                aria-label={`Remove tag ${tag.name}`}
               >
                 <X size={12} />
               </button>
             </span>
           ))}
           {selectedTagObjects.length === 0 && (
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              None
+            <span className="py-1 text-xs text-gray-500 dark:text-gray-400">
+              No tags yet
             </span>
           )}
         </div>
@@ -126,92 +129,107 @@ export default function TagSelector({
       <button
         type="button"
         onClick={() => setIsFilterOpen(!isFilterOpen)}
-        className={`flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full dark:border-gray-600 min-w-[80px] h-12 ${
-          isFilter && selectedTags.length > 0
-            ? 'bg-gray-300 dark:bg-gray-700'
-            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-        }`}
+        aria-expanded={isFilterOpen}
+        className={
+          isFilter
+            ? `flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-full dark:border-gray-600 min-w-[80px] h-12 ${
+                selectedTags.length > 0
+                  ? 'bg-gray-300 dark:bg-gray-700'
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`
+            : `${btnSecondary} px-3.5 py-2`
+        }
       >
-        {isFilter && <Filter className="h-3.5 w-3.5" />}
-        <span>
-          {isFilter 
-            ? selectedTags.length > 0 
-              ? `${selectedTags.length} selected` 
-              : 'Filter'
-            : 'Add/Remove Tags'
-          }
-        </span>
-        {!isFilter && (
-          <ChevronDown 
-            size={16}
-            className={`transform transition-transform ${isFilterOpen ? 'rotate-180' : ''} flex-shrink-0`} 
-          />
+        {isFilter ? (
+          <>
+            <Filter className="h-3.5 w-3.5" />
+            <span>{selectedTags.length > 0 ? `${selectedTags.length} selected` : 'Filter'}</span>
+          </>
+        ) : (
+          <>
+            <TagIcon size={15} className="text-gray-500 dark:text-gray-400" />
+            <span>Add or remove tags</span>
+            <ChevronDown
+              size={15}
+              className={`shrink-0 text-gray-400 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`}
+            />
+          </>
         )}
       </button>
 
       {/* Tag selector dropdown */}
       {isFilterOpen && (
-        <div className="absolute z-50 w-[250px] mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium">Tags</h3>
+        <div className="absolute left-0 top-full z-50 mt-2 w-[270px] rounded-2xl border border-black/[0.06] bg-white p-3 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.35)] ring-1 ring-black/5 dark:border-white/10 dark:bg-[#2c2d31] dark:ring-white/5">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold tracking-tight">Tags</h3>
             <button
+              type="button"
               onClick={() => setIsFilterOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+              aria-label="Close tag picker"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
           </div>
-          
+
           {allowCreate && (
             <div className="mb-2">
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 <input
                   type="text"
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
                   placeholder="New tag name"
-                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700"
+                  aria-label="New tag name"
+                  className={`${inputClass} px-3 py-2`}
                 />
                 <button
+                  type="button"
                   onClick={handleCreateTag}
                   disabled={!newTagName.trim() || isLoading}
-                  className="px-2 py-1 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-md hover:opacity-90 disabled:opacity-50"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-black shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
+                  <Plus size={14} strokeWidth={2.5} />
                   Add
                 </button>
               </div>
-              {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+              {error && <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">{error}</p>}
             </div>
           )}
 
-          <div className="space-y-2 max-h-48 overflow-y-auto">
+          <div className="max-h-48 space-y-1 overflow-y-auto">
             {isLoading ? (
               <div className="flex justify-center py-2">
-                <LoadingSpinner />
+                <LoadingSpinner fullScreen={false} />
               </div>
             ) : (
-              tags.map(tag => (
-                <div
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${
-                    selectedTags.includes(tag.id)
-                      ? 'bg-blue-50 dark:bg-blue-900'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    {tag.name}
-                  </span>
-                  {selectedTags.includes(tag.id) && (
-                    <Check size={16} className="text-blue-500" />
-                  )}
-                </div>
-              ))
+              tags.map(tag => {
+                const selected = selectedTags.includes(tag.id)
+                return (
+                  <div
+                    key={tag.id}
+                    role="option"
+                    aria-selected={selected}
+                    onClick={() => toggleTag(tag.id)}
+                    className={`flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-sm transition ${
+                      selected
+                        ? 'bg-[#7CCEDA]/15 font-medium text-[#2E7C89] dark:bg-[#7CCEDA]/10 dark:text-[#7CCEDA]'
+                        : 'hover:bg-gray-100 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {tag.name}
+                    </span>
+                    {selected && (
+                      <Check size={15} strokeWidth={2.5} />
+                    )}
+                  </div>
+                )
+              })
             )}
             {!isLoading && tags.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-2">
-                No tags available
+              <p className="py-3 text-center text-sm text-gray-500 dark:text-gray-400">
+                No tags yet. Create one above.
               </p>
             )}
           </div>

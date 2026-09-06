@@ -79,11 +79,11 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
 
   return (
     <div className="flex justify-start">
-      <div className={`max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6 px-2 ${
+      <div className={`grid w-full max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2 ${
         isPreviewOpen ? 'lg:w-2/3' : 'w-full'
       } transition-all duration-300`}>
         {cards.map((card) => (
-          <div className="w-full max-w-[400px] mx-auto" key={card.id}>
+          <div className="mx-auto w-full max-w-[420px]" key={card.id}>
             <BusinessCardItem
               card={card}
               onView={() => handleViewCard(card)}
@@ -93,7 +93,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
             />
           </div>
         ))}
-        <div className="w-full max-w-[400px] mx-auto">
+        <div className="mx-auto w-full max-w-[420px]">
           <CreateCardButton />
         </div>
       </div>

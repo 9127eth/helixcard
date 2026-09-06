@@ -1,28 +1,76 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------
+    // Shared helpers
+    // ---------------------------------------------------------------------
+
+    function isHttpUrl(value) {
+      return value is string
+        && value.size() <= 2000
+        && value.matches('^https?://[^\\s]+$');
+    }
+
+    // A URL field is valid when it is absent, empty, or an http(s) URL.
+    // Anything else (javascript:, data:, vbscript:, …) is rejected here so it
+    // can never reach an href on a public card.
+    function validUrlField(data, field) {
+      let value = data.get(field, '');
+      return value == '' || isHttpUrl(value);
+    }
+
     match /users/{userId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
       // Fields that may only be written by the Admin SDK (server-side).
       // Client writes to any of these are rejected; the server (webhook,
-      // create-subscription, etc.) uses the Admin SDK which bypasses rules.
+      // create-subscription, username registry, usage sync, etc.) uses the
+      // Admin SDK which bypasses rules.
       function isNotChangingProtectedFields() {
-        let protected = [
+        let protectedFields = [
           'isPro', 'isProType', 'subscriptionType',
           'stripeSubscriptionId', 'stripeCustomerId',
           'subscriptionStatus', 'subscriptionUpdatedAt',
           'subscriptionCreatedAt', 'lifetimePurchase',
-          'couponUsed', 'admin'
+          'couponUsed', 'admin',
+          // Handles are allocated transactionally in /usernames; `source` and
+          // `group` drive affiliate reporting and must not be self-assigned.
+          'username', 'source', 'group'
         ];
-        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(protected);
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedFields);
       }
 
-      allow read: if request.auth != null && request.auth.uid == userId;
+      // Usage counters may be raised by exactly one (alongside the create that
+      // consumes the quota) and can never be lowered by a client. Quota is
+      // returned only by the server recount in /api/usage.
+      function counterIncrementsAtMostOne(field) {
+        let before = resource.data.get(field, 0);
+        let after = request.resource.data.get(field, before);
+        return after == before || after == before + 1;
+      }
+
+      // The handle written on create must already be reserved for this account
+      // by /api/generate-username.
+      function usernameIsReserved() {
+        let username = request.resource.data.get('username', '');
+        return username is string
+          && exists(/databases/$(database)/documents/usernames/$(username))
+          && get(/databases/$(database)/documents/usernames/$(username)).data.uid == request.auth.uid;
+      }
+
+      allow read: if isOwner();
 
       // On create, enforce safe defaults so a client can never
       // bootstrap itself as a pro / admin user.
-      allow create: if request.auth != null && request.auth.uid == userId
+      allow create: if isOwner()
         && request.resource.data.isPro == false
         && request.resource.data.get('isProType', 'free') == 'free'
+        && usernameIsReserved()
+        && request.resource.data.get('cardCount', 0) == 0
+        && request.resource.data.get('contactCount', 0) == 0
         && !request.resource.data.keys().hasAny([
           'subscriptionType', 'stripeSubscriptionId', 'stripeCustomerId',
           'subscriptionStatus', 'subscriptionUpdatedAt', 'subscriptionCreatedAt',
@@ -30,20 +78,220 @@ service cloud.firestore {
         ]);
 
       // On update, allow changes only to non-protected fields.
-      allow update: if request.auth != null && request.auth.uid == userId
-        && isNotChangingProtectedFields();
+      allow update: if isOwner()
+        && isNotChangingProtectedFields()
+        && counterIncrementsAtMostOne('cardCount')
+        && counterIncrementsAtMostOne('contactCount');
 
-      allow delete: if request.auth != null && request.auth.uid == userId;
-      
+      allow delete: if isOwner();
+
       match /businessCards/{cardId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        function isOwner() {
+          return request.auth != null && request.auth.uid == userId;
+        }
+
+        function userNow() {
+          return get(/databases/$(database)/documents/users/$(userId)).data;
+        }
+
+        function userAfter() {
+          return getAfter(/databases/$(database)/documents/users/$(userId)).data;
+        }
+
+        function ownerIsPro() {
+          return userNow().get('isPro', false) == true;
+        }
+
+        function isHex(color) {
+          return color is string && color.matches('^#[0-9A-F]{6}$');
+        }
+
+        function validCustomColors() {
+          let colors = request.resource.data.get('customColors', null);
+          return colors == null || (ownerIsPro() && colors is map
+            && colors.keys().hasAll(['background', 'button', 'buttonText', 'text', 'icon', 'position'])
+            && colors.keys().hasOnly(['background', 'button', 'buttonText', 'text', 'icon', 'position'])
+            && isHex(colors.background) && isHex(colors.button) && isHex(colors.buttonText)
+            && isHex(colors.text) && isHex(colors.icon) && isHex(colors.position));
+        }
+
+        function validEffect() {
+          let effect = request.resource.data.get('effect', 'none');
+          return effect in ['none', 'portal-grid', 'repel']
+            || (ownerIsPro() && effect in ['portal', 'holo', 'stardust', 'scramble', 'shatter']);
+        }
+
+        // Every field that is rendered into an href on the public card.
+        function validLinkFields() {
+          let data = request.resource.data;
+          return validUrlField(data, 'facebookUrl')
+            && validUrlField(data, 'instagramUrl')
+            && validUrlField(data, 'linkedIn')
+            && validUrlField(data, 'twitter')
+            && validUrlField(data, 'tiktokUrl')
+            && validUrlField(data, 'youtubeUrl')
+            && validUrlField(data, 'discordUrl')
+            && validUrlField(data, 'twitchUrl')
+            && validUrlField(data, 'snapchatUrl')
+            && validUrlField(data, 'telegramUrl')
+            && validUrlField(data, 'whatsappUrl')
+            && validUrlField(data, 'blueskyUrl')
+            && validUrlField(data, 'threadsUrl')
+            && validUrlField(data, 'imageUrl')
+            && validUrlField(data, 'cvUrl')
+            && validWebLinks();
+        }
+
+        // Rules have no list comprehension, so each slot is checked explicitly.
+        function validWebLink(links, index) {
+          return index >= links.size()
+            || (links[index] is map
+                && (links[index].get('url', '') == '' || isHttpUrl(links[index].get('url', ''))));
+        }
+
+        function validWebLinks() {
+          let links = request.resource.data.get('webLinks', []);
+          return links is list
+            && links.size() <= 25
+            && validWebLink(links, 0)
+            && validWebLink(links, 1)
+            && validWebLink(links, 2)
+            && validWebLink(links, 3)
+            && validWebLink(links, 4)
+            && validWebLink(links, 5)
+            && validWebLink(links, 6)
+            && validWebLink(links, 7)
+            && validWebLink(links, 8)
+            && validWebLink(links, 9)
+            && validWebLink(links, 10)
+            && validWebLink(links, 11)
+            && validWebLink(links, 12)
+            && validWebLink(links, 13)
+            && validWebLink(links, 14)
+            && validWebLink(links, 15)
+            && validWebLink(links, 16)
+            && validWebLink(links, 17)
+            && validWebLink(links, 18)
+            && validWebLink(links, 19)
+            && validWebLink(links, 20)
+            && validWebLink(links, 21)
+            && validWebLink(links, 22)
+            && validWebLink(links, 23)
+            && validWebLink(links, 24);
+        }
+
+        // `isPrimary` must agree with the owner document after the write, so a
+        // client cannot mark a second card primary; `isActive` is derived from
+        // the (server-controlled) Pro flag, so a downgraded account cannot
+        // republish the cards the webhook deactivated.
+        function validPrimaryFlag() {
+          return request.resource.data.get('isPrimary', false)
+            == (userAfter().get('primaryCardId', '') == cardId);
+        }
+
+        function validActiveFlag() {
+          return request.resource.data.get('isActive', false)
+            == (ownerIsPro() || request.resource.data.get('isPrimary', false));
+        }
+
+        function cardLimit() {
+          return ownerIsPro() ? 10 : 1;
+        }
+
+        // The create must be batched with a +1 to the owner's `cardCount`,
+        // and the resulting total must stay inside the plan's limit.
+        function withinCardLimit() {
+          return userAfter().get('cardCount', 0) == userNow().get('cardCount', 0) + 1
+            && userAfter().get('cardCount', 0) <= cardLimit();
+        }
+
+        function touches(fields) {
+          return request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+        }
+
+        // Only the link fields an update actually changes are validated. Cards
+        // saved before this rule existed can hold a scheme-less value in a field
+        // the current write never touches; checking the whole merged document
+        // would make those cards permanently unsaveable. Anything the write does
+        // change still has to be http(s), and the public API strips whatever is
+        // left over before it reaches a browser.
+        function touchesAnyLinkField() {
+          return touches([
+            'facebookUrl', 'instagramUrl', 'linkedIn', 'twitter', 'tiktokUrl',
+            'youtubeUrl', 'discordUrl', 'twitchUrl', 'snapchatUrl', 'telegramUrl',
+            'whatsappUrl', 'blueskyUrl', 'threadsUrl', 'imageUrl', 'cvUrl',
+            'webLinks'
+          ]);
+        }
+
+        allow read, delete: if isOwner();
+
+        allow create: if isOwner()
+          && validCustomColors()
+          && validEffect()
+          && validLinkFields()
+          && validPrimaryFlag()
+          && validActiveFlag()
+          && withinCardLimit();
+
+        // Retain saved Pro settings after downgrade without blocking contact edits.
+        // Public rendering uses the owner's current entitlement, not card.isPro.
+        allow update: if isOwner()
+          && (!touches(['customColors']) || validCustomColors())
+          && (!touches(['effect']) || validEffect())
+          && (!touches(['isPrimary']) || validPrimaryFlag())
+          && (!touches(['isActive']) || validActiveFlag())
+          && (!touchesAnyLinkField() || validLinkFields());
       }
 
       match /contacts/{contactId} {
+        function isOwner() {
+          return request.auth != null && request.auth.uid == userId;
+        }
+
+        function userNow() {
+          return get(/databases/$(database)/documents/users/$(userId)).data;
+        }
+
+        function userAfter() {
+          return getAfter(/databases/$(database)/documents/users/$(userId)).data;
+        }
+
+        function contactLimit() {
+          return userNow().get('isPro', false) == true ? 1000 : 2;
+        }
+
+        function withinContactLimit() {
+          return userAfter().get('contactCount', 0) == userNow().get('contactCount', 0) + 1
+            && userAfter().get('contactCount', 0) <= contactLimit();
+        }
+
+        allow read, update, delete: if isOwner();
+        allow create: if isOwner() && withinContactLimit();
+      }
+
+      match /tags/{tagId} {
+        // Tags are private to the owner. Without this rule the catch-all deny
+        // below blocked every tag read and write.
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
-    
+
+    // Username reservations — allocated transactionally by the Admin SDK only.
+    match /usernames/{username} {
+      allow read, write: if false;
+    }
+
+    // Durable abuse quotas for the email/OCR endpoints — server-side only.
+    match /usageQuotas/{bucketId} {
+      allow read, write: if false;
+    }
+
+    // Durable record of in-flight/failed account deletions — server-side only.
+    match /accountDeletions/{uid} {
+      allow read, write: if false;
+    }
+
     // Lifetime coupon tracking
     match /lifetimeCoupons/{couponId} {
       allow read, write: if false; // Admin SDK only
@@ -55,10 +303,10 @@ service cloud.firestore {
 
     // Allow admin access to reports
     match /reports/{reportId} {
-      allow read, write: if request.auth != null && 
+      allow read, write: if request.auth != null &&
         request.auth.token.admin == true;
     }
-    
+
     match /{document=**} {
       allow read, write: if false;
     }

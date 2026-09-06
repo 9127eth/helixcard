@@ -1,10 +1,50 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+// Storage layout used by the app:
+//   images/{uid}/{file}    card photos      — shown on public business cards
+//   docs/{uid}/{file}      card documents   — linked from public business cards
+//   contacts/{uid}/{file}  scanned contacts — private to the account
+//
+// The previous ruleset denied every read and write, which broke all three
+// upload paths as soon as it was deployed.
 service firebase.storage {
   match /b/{bucket}/o {
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function underSize(megabytes) {
+      return request.resource.size < megabytes * 1024 * 1024;
+    }
+
+    // Card photos are part of a public card, so anyone may read them.
+    match /images/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isImage() && underSize(10);
+      allow delete: if isOwner(userId);
+    }
+
+    // Documents attached to a card (CV/PDF) are linked publicly from the card.
+    match /docs/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId)
+        && request.resource.contentType == 'application/pdf'
+        && underSize(5);
+      allow delete: if isOwner(userId);
+    }
+
+    // Scanned contact images belong to the account holder alone.
+    match /contacts/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isImage() && underSize(10);
+      allow delete: if isOwner(userId);
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

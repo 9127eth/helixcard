@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { auth } from '@/app/lib/firebase-admin';
 import { timingSafeEqual } from 'crypto';
+import { consumeQuota } from '@/app/lib/usageQuota';
+import { sendEmail, textAttachment } from '@/app/lib/resend';
+import { sanitizeEmailAddress } from '@/app/lib/urlSafety';
 
 // Restrict CORS to your own domains (+ localhost for development)
 const ALLOWED_ORIGINS = [
@@ -92,6 +94,18 @@ function safeCompare(a: string, b: string): boolean {
   }
 }
 
+function safeCsvFileName(value: unknown): string {
+  if (typeof value !== 'string') return 'helix-card-export.csv';
+
+  const base = value.split(/[/\\]/).pop()?.trim() || '';
+  const cleaned = base.replace(/[^\w.\- ]/g, '');
+  if (cleaned.length > 0 && cleaned.length <= 120 && /\.csv$/i.test(cleaned)) {
+    return cleaned;
+  }
+
+  return 'helix-card-export.csv';
+}
+
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS(request: Request) {
   const origin = request.headers.get('origin');
@@ -103,10 +117,10 @@ export async function POST(request: Request) {
   const corsHeaders = getCorsHeaders(origin);
 
   try {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(
         { error: 'Email service not configured properly' },
-        { status: 500, headers: corsHeaders }
+        { status: 503, headers: corsHeaders }
       );
     }
 
@@ -115,6 +129,7 @@ export async function POST(request: Request) {
     // --- Determine authentication status ---
     const authHeader = request.headers.get('Authorization');
     let isAuthenticated = false;
+    let callerUid: string | null = null;
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split('Bearer ')[1];
@@ -122,11 +137,13 @@ export async function POST(request: Request) {
       // iOS API key (timing-safe comparison)
       if (process.env.IOS_API_KEY && safeCompare(token, process.env.IOS_API_KEY)) {
         isAuthenticated = true;
+        callerUid = 'ios-api-key';
       } else {
         // Firebase ID token
         try {
-          await auth.verifyIdToken(token);
+          const decoded = await auth.verifyIdToken(token);
           isAuthenticated = true;
+          callerUid = decoded.uid;
         } catch {
           // Token is invalid
         }
@@ -134,6 +151,9 @@ export async function POST(request: Request) {
     }
 
     // --- Rate limiting (stricter for unauthenticated callers) ---
+    // The in-memory window below only bounds a burst against one serverless
+    // instance; the Firestore-backed quota after it is shared across every
+    // instance, which is what actually caps abuse.
     const clientIp = getClientIp(request);
     const maxRequests = isAuthenticated ? RATE_LIMIT_MAX_AUTHED : RATE_LIMIT_MAX_UNAUTHED;
 
@@ -141,6 +161,30 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429, headers: corsHeaders }
+      );
+    }
+
+    // Deliberately generous — an abuse ceiling, not a product limit. Sharing a
+    // card with everyone you meet at a conference will not come close.
+    const HOUR = 60 * 60 * 1000;
+    const quota = await consumeQuota([
+      { key: `email:ip:${clientIp}`, limit: isAuthenticated ? 120 : 40, windowMs: HOUR },
+      { key: `email:ip:day:${clientIp}`, limit: isAuthenticated ? 600 : 150, windowMs: 24 * HOUR },
+      ...(callerUid
+        ? [
+            { key: `email:user:${callerUid}`, limit: 150, windowMs: HOUR },
+            { key: `email:user:day:${callerUid}`, limit: 750, windowMs: 24 * HOUR },
+          ]
+        : []),
+    ]);
+
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        {
+          status: 429,
+          headers: { ...corsHeaders, 'Retry-After': String(quota.retryAfterSeconds) },
+        }
       );
     }
 
@@ -155,33 +199,26 @@ export async function POST(request: Request) {
       );
     }
     
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
-
-    let mailOptions;
-
     switch (type) {
-      case 'businessCard':
+      case 'businessCard': {
         const { email, cardUrl, cardOwner, ownerEmail, note } = emailData;
-        
-        // Sanitize all user-provided values
-        const safeCardOwner = escapeHtml(cardOwner || '');
-        const safeNote = escapeHtml(note || '');
-        const safeCardUrl = sanitizeUrl(cardUrl || '');
-        
-        mailOptions = {
-          from: {
-            name: 'HelixCard',
-            address: process.env.GMAIL_USER
-          },
-          ...(ownerEmail && { replyTo: ownerEmail }),
-          to: email,
-          subject: `Here is ${safeCardOwner}'s business card`,
+        const recipient = sanitizeEmailAddress(email);
+        if (!recipient) {
+          return NextResponse.json(
+            { error: 'Enter a valid email address' },
+            { status: 400, headers: corsHeaders }
+          );
+        }
+
+        const cardOwnerName = typeof cardOwner === 'string' ? cardOwner.trim().slice(0, 120) : '';
+        const safeCardOwner = escapeHtml(cardOwnerName);
+        const safeNote = escapeHtml(typeof note === 'string' ? note : '');
+        const safeCardUrl = sanitizeUrl(typeof cardUrl === 'string' ? cardUrl : '');
+        const replyTo = sanitizeEmailAddress(ownerEmail);
+
+        await sendEmail({
+          to: recipient,
+          subject: `Here is ${cardOwnerName || 'a'}'s business card`,
           html: `
             <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
               <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 16px; color: #111827;">Here is ${safeCardOwner}'s business card</h1>
@@ -190,7 +227,7 @@ export async function POST(request: Request) {
                 <p style="font-size: 16px; color: #374151; margin-bottom: 24px;">${safeNote}</p>
               ` : ''}
               <a href="${safeCardUrl}" style="display: inline-block; background-color: #18181B; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 24px; font-weight: 500; margin: 16px 0;">View Business Card</a>
-              ${ownerEmail 
+              ${replyTo
                 ? `<p style="font-size: 14px; color: #4B5563; margin-top: 24px;">You can reply directly to this email to contact ${safeCardOwner}.</p>`
                 : ''
               }
@@ -203,18 +240,39 @@ export async function POST(request: Request) {
                 P.S. Want your own digital business card? Create one for free at <a href="https://www.helixcard.app" style="color: #2563EB; text-decoration: none;">www.helixcard.app</a>
               </p>
             </div>
-          `
-        };
+          `,
+          text: [
+            `Here is ${cardOwnerName || 'a'}'s business card`,
+            safeNote ? `Note: ${typeof note === 'string' ? note : ''}` : '',
+            safeCardUrl !== '#' ? `View business card: ${safeCardUrl}` : '',
+            replyTo ? `You can reply directly to this email to contact ${cardOwnerName}.` : '',
+            'Hope you have a great day!',
+            'Best regards,\nHelixCard Team',
+            'P.S. Want your own digital business card? Create one for free at https://www.helixcard.app',
+          ].filter(Boolean).join('\n\n'),
+          ...(replyTo ? { replyTo } : {}),
+        });
         break;
+      }
 
-      case 'csvExport':
+      case 'csvExport': {
         const { email: recipientEmail, csvData, fileName } = emailData;
-        mailOptions = {
-          from: {
-            name: 'HelixCard',
-            address: process.env.GMAIL_USER
-          },
-          to: recipientEmail,
+        const recipient = sanitizeEmailAddress(recipientEmail);
+        if (!recipient) {
+          return NextResponse.json(
+            { error: 'Enter a valid email address' },
+            { status: 400, headers: corsHeaders }
+          );
+        }
+        if (typeof csvData !== 'string' || !csvData.trim()) {
+          return NextResponse.json(
+            { error: 'CSV data is required' },
+            { status: 400, headers: corsHeaders }
+          );
+        }
+
+        await sendEmail({
+          to: recipient,
           subject: 'Your Helix Contacts Export',
           html: `
             <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
@@ -222,21 +280,19 @@ export async function POST(request: Request) {
               <p style="font-size: 16px; color: #374151; margin-bottom: 24px;"> Your requested contacts export from Helix is attached to this email as a CSV file.</p>
             </div>
           `,
-          attachments: [
-            {
-              filename: fileName || 'helix-card-export.csv',
-              content: csvData,
-              contentType: 'text/csv'
-            }
-          ]
-        };
+          text: 'Your requested contacts export from Helix is attached to this email as a CSV file.',
+          attachments: [textAttachment(safeCsvFileName(fileName), csvData)],
+        });
         break;
+      }
 
       default:
-        throw new Error('Invalid email type');
+        return NextResponse.json(
+          { error: 'Invalid email type' },
+          { status: 400, headers: corsHeaders }
+        );
     }
 
-    await transporter.sendMail(mailOptions);
     return NextResponse.json({ success: true }, { headers: corsHeaders });
   } catch (error) {
     console.error('Error sending email:', error);

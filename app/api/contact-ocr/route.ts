@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/app/lib/firebase-admin';
+import { consumeQuota, getClientIp } from '@/app/lib/usageQuota';
 import vision from '@google-cloud/vision';
 import OpenAI from 'openai';
 
@@ -23,11 +24,32 @@ export async function POST(req: Request) {
 
     // Extract and verify the ID token
     const idToken = authHeader.split('Bearer ')[1];
+    let uid: string;
     try {
-      await auth.verifyIdToken(idToken);
+      uid = (await auth.verifyIdToken(idToken)).uid;
     } catch (error) {
       console.error('Token verification failed:', error);
       return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+    }
+
+    // Durable per-user and per-IP quotas, shared across serverless instances.
+    // Each request pays for a Google Vision call and an OpenAI call, so this is
+    // the ceiling that stops a valid account from running up the bill. The
+    // numbers are far above what scanning a whole conference badge stack costs,
+    // and the per-IP allowance is wide enough for a shared booth connection.
+    const HOUR = 60 * 60 * 1000;
+    const quota = await consumeQuota([
+      { key: `ocr:user:${uid}`, limit: 120, windowMs: HOUR },
+      { key: `ocr:user:day:${uid}`, limit: 500, windowMs: 24 * HOUR },
+      { key: `ocr:ip:${getClientIp(req)}`, limit: 400, windowMs: HOUR },
+      { key: `ocr:ip:day:${getClientIp(req)}`, limit: 1500, windowMs: 24 * HOUR },
+    ]);
+
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: 'Scan limit reached. Please try again a little later.' },
+        { status: 429, headers: { 'Retry-After': String(quota.retryAfterSeconds) } }
+      );
     }
 
     // Get image data from request
@@ -59,14 +81,13 @@ export async function POST(req: Request) {
 
     // Process text with OpenAI.
     // Notes:
-    //   - `gpt-4o-mini` matches the model used by /api/scan-card and is far cheaper
-    //     and faster than the legacy `gpt-4` we used here previously.
+    //   - `gpt-4.1-nano` matches the model used by /api/scan-card.
     //   - `response_format: { type: 'json_object' }` forces the model to emit valid
     //     JSON, eliminating the markdown-fence parsing failures we hit before.
     //   - We still defensively strip code fences in case JSON mode is unavailable
     //     for some reason and the model falls back to wrapped output.
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1-nano',
       response_format: { type: 'json_object' },
       messages: [
         {

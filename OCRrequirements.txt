@@ -55,7 +55,7 @@ Implement a feature that allows users to create new contacts by uploading existi
         ]
         
         let requestBody: [String: Any] = [
-            "model": "gpt-4o-mini",
+            "model": "gpt-4.1-nano",
             "messages": messages,
             "temperature": 0.3
         ]

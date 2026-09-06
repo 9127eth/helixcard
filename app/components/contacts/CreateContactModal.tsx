@@ -4,18 +4,23 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { motion } from 'framer-motion'
+import { X, Camera, Edit3, UserPlus, AlertTriangle, CheckCircle, ArrowLeft } from 'react-feather'
 import TagSelector from './TagSelector'
 import { Contact } from '@/app/types'
 import { createContact, uploadContactImage, updateContact, canCreateContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
-import { X } from 'react-feather'
 import { ContactOCRUpload } from '../ContactOCRUpload'
-import { Camera, Edit } from 'react-feather'
 import { FREE_USER_CONTACT_LIMIT } from '@/app/lib/constants'
 import CardLimitModal from '../CardLimitModal'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/app/lib/firebase'
+import { cn } from '@/app/lib/utils'
+import {
+  inputClass, textareaClass, labelClass, btnPrimary, btnSecondary, btnGhost, btnDanger,
+  iconButtonClass, sectionIconClass, Field,
+} from '../ui/editor'
 
 // Validation schema
 const contactSchema = z.object({
@@ -43,11 +48,13 @@ interface ScannedData extends Partial<Contact> {
   imageFile?: File;
 }
 
-export default function CreateContactModal({ 
-  isOpen, 
-  onClose, 
+const autoFilledClass = 'border-[#7CCEDA] bg-[#7CCEDA]/10 dark:bg-[#7CCEDA]/10'
+
+export default function CreateContactModal({
+  isOpen,
+  onClose,
   onSuccess,
-  lastUsedTag 
+  lastUsedTag
 }: CreateContactModalProps) {
   const { user } = useAuth()
   const [selectedTags, setSelectedTags] = useState<string[]>(
@@ -61,13 +68,13 @@ export default function CreateContactModal({
   const [showLimitModal, setShowLimitModal] = useState(false)
   const [isPro, setIsPro] = useState(false)
 
-  const { 
-    register, 
-    handleSubmit, 
+  const {
+    register,
+    handleSubmit,
     formState: { errors },
     reset,
     setValue,
-    getValues 
+    getValues
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema)
   })
@@ -97,7 +104,7 @@ export default function CreateContactModal({
     setScannedData(contactData)
     // Set form values with OCR data
     const fields = new Set<string>()
-    
+
     if (contactData.name) {
       setValue('name', contactData.name)
       fields.add('name')
@@ -134,14 +141,9 @@ export default function CreateContactModal({
     console.error('OCR Error:', error)
   }
 
-  // Rest of the component remains the same, but we'll add highlighting for auto-filled fields
-  const getInputClassName = (fieldName: string) => {
-    return `w-full px-2 py-1 border rounded-md text-sm 
-      ${autoFilledFields.has(fieldName) 
-        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-        : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700'} 
-      dark:text-[var(--input-text)]`
-  }
+  // Auto-filled fields get a teal tint so scanned values are easy to double-check
+  const getInputClassName = (fieldName: string, base: string = inputClass) =>
+    cn(base, autoFilledFields.has(fieldName) && autoFilledClass)
 
   const onSubmit = async (data: ContactFormData) => {
     if (!user) {
@@ -233,44 +235,90 @@ export default function CreateContactModal({
 
   if (!isOpen) return null
 
+  const panelMotion = {
+    initial: { opacity: 0, y: 24, scale: 0.98 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    transition: { type: 'spring' as const, stiffness: 420, damping: 36 },
+  }
+
+  const renderHeader = (subtitle: string) => (
+    <div className="flex items-start justify-between gap-3 border-b border-black/[0.06] px-5 py-4 dark:border-white/10">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className={sectionIconClass}>
+          <UserPlus size={16} />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold tracking-tight">New contact</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        {entryMethod !== null && (
+          <button
+            type="button"
+            onClick={() => setEntryMethod(null)}
+            className={btnGhost}
+            aria-label="Change entry method"
+          >
+            <ArrowLeft size={14} />
+            <span className="hidden sm:inline">Change method</span>
+          </button>
+        )}
+        <button type="button" onClick={handleClose} className={iconButtonClass} aria-label="Close">
+          <X size={18} />
+        </button>
+      </div>
+    </div>
+  )
+
   // Show entry method selection if no method chosen
   if (entryMethod === null) {
     return (
-      <div className="fixed inset-0 z-50">
-        <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Create New Contact</h2>
-              <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="flex gap-4">
+      <div className="fixed inset-0 z-50 font-sans">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+        <div className="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4">
+          <motion.div
+            {...panelMotion}
+            role="dialog"
+            aria-modal="true"
+            aria-label="New contact"
+            className="relative w-full max-w-lg overflow-hidden rounded-t-3xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#2c2d31] dark:ring-white/10 sm:rounded-2xl"
+          >
+            {renderHeader('How would you like to add them?')}
+            <div className="grid gap-3 p-5 sm:grid-cols-2">
               <button
+                type="button"
                 onClick={() => setEntryMethod('scan')}
-                className="flex-1 p-6 border-2 border-dashed rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                className="group flex flex-col items-start gap-3 rounded-2xl border-2 border-black/[0.06] p-4 text-left transition hover:border-[#7CCEDA] hover:bg-[#7CCEDA]/5 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#7CCEDA]/40 dark:border-white/10 dark:hover:border-[#7CCEDA]"
               >
-                <div className="flex flex-col items-center gap-3">
-                  <Camera className="w-8 h-8 text-gray-400" />
-                  <span className="font-medium">Scan Business Card</span>
-                  <span className="text-sm text-gray-500">Upload an image to automatically extract contact details</span>
-                </div>
+                <span className={sectionIconClass}>
+                  <Camera size={16} />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">Scan a business card</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                    Snap a photo and we&apos;ll pull out the details automatically.
+                  </span>
+                </span>
               </button>
 
               <button
+                type="button"
                 onClick={() => setEntryMethod('manual')}
-                className="flex-1 p-6 border-2 border-dashed rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                className="group flex flex-col items-start gap-3 rounded-2xl border-2 border-black/[0.06] p-4 text-left transition hover:border-[#7CCEDA] hover:bg-[#7CCEDA]/5 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#7CCEDA]/40 dark:border-white/10 dark:hover:border-[#7CCEDA]"
               >
-                <div className="flex flex-col items-center gap-3">
-                  <Edit className="w-8 h-8 text-gray-400" />
-                  <span className="font-medium">Manual Entry</span>
-                  <span className="text-sm text-gray-500">Enter contact information manually</span>
-                </div>
+                <span className={sectionIconClass}>
+                  <Edit3 size={16} />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">Enter manually</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                    Type in their name, contact details, and notes yourself.
+                  </span>
+                </span>
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     )
@@ -278,180 +326,186 @@ export default function CreateContactModal({
 
   // Show OCR upload or form based on selected method
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
-      <div className="absolute inset-0 flex items-start justify-center overflow-y-auto pt-4 px-4 pb-4">
-        <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow-lg my-auto">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Create New Contact</h2>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setEntryMethod(null)}
-                  className="text-sm text-blue-500 hover:text-blue-600"
-                >
-                  Change Method
-                </button>
-                <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
+    <div className="fixed inset-0 z-50 font-sans">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+      <div className="absolute inset-0 flex items-end justify-center sm:items-center sm:p-4">
+        <motion.div
+          {...panelMotion}
+          role="dialog"
+          aria-modal="true"
+          aria-label="New contact"
+          className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#2c2d31] dark:ring-white/10 sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
+        >
+          {renderHeader(entryMethod === 'scan' ? 'Scanned from a business card' : 'Entered manually')}
 
-            {entryMethod === 'scan' && (
-              <ContactOCRUpload
-                onScanComplete={handleOCRComplete}
-                onError={handleOCRError}
-              />
-            )}
+          <form onSubmit={handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
+              {entryMethod === 'scan' && (
+                <ContactOCRUpload
+                  onScanComplete={handleOCRComplete}
+                  onError={handleOCRError}
+                />
+              )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-medium">
-                  Name *
-                </label>
+              {autoFilledFields.size > 0 && (
+                <div className="flex items-start gap-2.5 rounded-xl border border-[#7CCEDA]/40 bg-[#7CCEDA]/10 px-3.5 py-3 text-sm">
+                  <CheckCircle size={16} className="mt-0.5 shrink-0 text-[#2E7C89] dark:text-[#7CCEDA]" />
+                  <p className="text-gray-700 dark:text-gray-200">
+                    We filled in the highlighted fields from the scan. Give them a quick check before saving.
+                  </p>
+                </div>
+              )}
+
+              <Field label="Name" htmlFor="name" required error={errors.name?.message}>
                 <input
                   id="name"
                   {...register('name')}
-                  placeholder="Enter full name"
+                  placeholder="Full name"
+                  aria-invalid={!!errors.name}
                   className={getInputClassName('name')}
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name.message}</p>
-                )}
-              </div>
+              </Field>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium">
-                    Email
-                  </label>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Email" htmlFor="email" error={errors.email?.message}>
                   <input
                     id="email"
                     type="email"
                     {...register('email')}
-                    placeholder="Email address"
+                    placeholder="name@company.com"
+                    aria-invalid={!!errors.email}
                     className={getInputClassName('email')}
                   />
-                </div>
+                </Field>
 
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="block text-sm font-medium">
-                    Phone
-                  </label>
+                <Field label="Phone" htmlFor="phone">
                   <input
                     id="phone"
                     {...register('phone')}
                     placeholder="Phone number"
                     className={getInputClassName('phone')}
                   />
-                </div>
+                </Field>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="position" className="block text-sm font-medium">
-                    Position
-                  </label>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Position" htmlFor="position">
                   <input
                     id="position"
                     {...register('position')}
                     placeholder="Job title"
                     className={getInputClassName('position')}
                   />
-                </div>
+                </Field>
 
-                <div className="space-y-2">
-                  <label htmlFor="company" className="block text-sm font-medium">
-                    Company
-                  </label>
+                <Field label="Company" htmlFor="company">
                   <input
                     id="company"
                     {...register('company')}
                     placeholder="Company name"
                     className={getInputClassName('company')}
                   />
-                </div>
+                </Field>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="address" className="block text-sm font-medium">
-                  Address
-                </label>
+              <Field label="Address" htmlFor="address">
                 <input
                   id="address"
                   {...register('address')}
                   placeholder="Address"
                   className={getInputClassName('address')}
                 />
-              </div>
+              </Field>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Tags</label>
+              <div>
+                <span className={labelClass}>Tags</span>
                 <TagSelector
                   selectedTags={selectedTags}
                   onChange={setSelectedTags}
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="note" className="block text-sm font-medium">
-                  Notes
-                </label>
+              <Field label="Notes" htmlFor="note">
                 <textarea
                   id="note"
                   {...register('note')}
-                  placeholder="Add a note..."
+                  placeholder="Where you met, what you talked about…"
                   rows={3}
-                  className={getInputClassName('note')}
+                  className={getInputClassName('note', textareaClass)}
                 />
-              </div>
+              </Field>
+            </div>
 
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-3 py-1.5 text-sm bg-[var(--save-contact-button-bg)] text-[var(--button-text)] rounded-full hover:opacity-90 disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Contact'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            <div className="flex items-center justify-end gap-2 border-t border-black/[0.06] bg-gray-50/70 px-5 py-3 dark:border-white/10 dark:bg-white/[0.03]">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className={btnSecondary}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={btnPrimary}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black" aria-hidden />
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={16} />
+                    Create contact
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </motion.div>
       </div>
 
       {/* Add confirmation dialog */}
       {showConfirmation && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirmation(false)} />
-          <div className="relative bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">Discard Changes?</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Are you sure you want to cancel? All unsaved changes will be lost.
-            </p>
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowConfirmation(false)} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Discard changes?"
+            className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-[#2c2d31] dark:ring-white/10"
+          >
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
+                <AlertTriangle size={18} />
+              </span>
+              <div>
+                <h3 className="text-base font-semibold tracking-tight">Discard changes?</h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  Anything you&apos;ve entered for this contact will be lost.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
               <button
+                type="button"
                 onClick={() => setShowConfirmation(false)}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-full hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                className={btnSecondary}
               >
-                Keep Editing
+                Keep editing
               </button>
               <button
+                type="button"
                 onClick={handleConfirmedCancel}
-                className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-full hover:bg-red-600"
+                className={btnDanger}
               >
-                Discard Changes
+                Discard
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ Allow: /get-helix-pro
 Allow: /shop
 Allow: /register
 Allow: /support
+Allow: /presskit
 Allow: /privacy-policy
 Allow: /terms-of-service
 Allow: /nhma
@@ -15,6 +16,7 @@ Allow: /emprx
 Allow: /uttyler
 Allow: /lipscomb
 Allow: /uconn
+Allow: /cucop
 Allow: /discount
 
 # Block private user areas

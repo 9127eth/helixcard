@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { ArrowLeft } from 'react-feather';
 import Layout from '../components/Layout';
 import ClientCardCreator from '../components/ClientCardCreator';
 import { useAuth } from '../hooks/useAuth';
@@ -10,15 +12,26 @@ const CreateCardPage: React.FC = () => {
 
   return (
     <Layout title="Create Business Card - HelixCard">
-      <div className="flex flex-col md:flex-row p-6 pb-12"> {/* Added padding here */}
-        <div className="w-full md:w-3/5 md:pr-8">
-          <h1 className="text-3xl font-bold mb-4">Create New Card</h1>
-          <ClientCardCreator 
-            user={user} 
-            onClose={() => {}} 
+      <div className="px-4 pb-16 pt-2 font-sans sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            >
+              <ArrowLeft size={15} />
+              My cards
+            </Link>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Create new card</h1>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Fill in the details and watch your card come together in the live preview.
+            </p>
+          </div>
+          <ClientCardCreator
+            user={user}
+            onClose={() => {}}
           />
         </div>
-        <div className="hidden md:block md:w-2/5 bg-background"></div>
       </div>
     </Layout>
   );

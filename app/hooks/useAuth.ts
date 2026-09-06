@@ -58,6 +58,25 @@ export function useAuth() {
       const deviceInfo = getDeviceInfo();
       
       await createUserDocument(userCredential.user, deviceInfo);
+
+      try {
+        const idToken = await userCredential.user.getIdToken();
+        const response = await fetch('/api/auth/email', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ type: 'welcome' }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Welcome email request failed (${response.status})`);
+        }
+      } catch (emailError) {
+        // Account creation should still succeed if email delivery is temporarily unavailable.
+        console.error('Unable to send welcome email:', emailError);
+      }
       
       return userCredential.user;
     } catch (error) {

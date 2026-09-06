@@ -1,24 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { deleteCv } from '../lib/firebaseOperations';
 import { uploadImage, deleteImage } from '../lib/uploadUtils';
 import Image from 'next/image';
 import CollapsibleSection from './CollapsibleSection';
-import { 
-  Linkedin, Facebook, Instagram, Youtube, 
+import {
+  Linkedin, Facebook, Instagram, Youtube,
   Link as LinkIcon, Plus, AtSign, Eye, Copy, Trash2, Phone,
+  Tag, User, Share2, Camera, MessageSquare, FileText, Layers,
+  Check, Lock, Upload, AlertCircle, Smartphone, MousePointer,
 } from 'react-feather';
 import { FaTiktok, FaTwitch, FaSnapchatGhost, FaTelegram, FaDiscord } from 'react-icons/fa';
 import { parsePhoneNumberFromString } from 'libphonenumber-js'; // Import the library
 import ReactPhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
-import LoadingSpinner from './LoadingSpinner';
 import Link from 'next/link';
 import { X as XIcon } from 'react-feather';
 import { MyXIcon } from './MyIcons';
-import { CardTheme } from '../types';
+import { BusinessCard, CardTheme, CardEffect, CardColors } from '../types';
+import { CARD_THEMES } from '../lib/cardThemes';
+import { CARD_EFFECTS, DEFAULT_CARD_EFFECT, isProCardEffect } from '../lib/cardEffects';
+import { getCardColorDefaults, normalizeCardColors } from '../lib/cardColors';
+import CardColorEditor from './CardColorEditor';
+import LiveCardPreview from './LiveCardPreview';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
+import {
+  inputClass, labelClass, hintClass, legendClass, iconTileClass,
+  btnPrimary, btnSecondary, btnGhost, btnDangerGhost, addButtonClass, removeButtonClass,
+  Field, ProBadge,
+} from './ui/editor';
 
 // Create Bluesky icon component
 const BlueSkyIcon: React.FC<{ size?: number, className?: string }> = ({ size = 24, className = '' }) => (
@@ -81,6 +93,8 @@ export interface BusinessCardData {
   imageUrl?: string;
   isActive: boolean;
   theme: CardTheme;
+  effect?: CardEffect;
+  customColors?: CardColors | null;
   enableTextMessage: boolean;
   blueskyUrl: string;
 }
@@ -133,6 +147,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     imageUrl: initialData?.imageUrl || '',
     isActive: initialData?.isActive ?? true, // Default to true if not provided
     theme: initialData?.theme || 'classic',
+    effect: initialData?.effect || DEFAULT_CARD_EFFECT,
+    customColors: initialData?.customColors ?? null,
     enableTextMessage: initialData ? (initialData.enableTextMessage ?? true) : false,
   });
 
@@ -147,9 +163,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl || null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
-    console.log('Initial data:', initialData);
     if (initialData) {
       setFormData(prevData => ({
         ...prevData,
@@ -162,31 +178,16 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         'telegramUrl', 'whatsappUrl', 'blueskyUrl'
       ];
       const existingSocialLinks = socialLinks.filter(link => initialData[link as keyof BusinessCardData]);
-      console.log('Existing social links:', existingSocialLinks);
       setAdditionalSocialLinks(existingSocialLinks);
     }
   }, [initialData]);
 
   useEffect(() => {
-    console.log('Form data:', formData);
-    console.log('Additional social links:', additionalSocialLinks);
-  }, [formData, additionalSocialLinks]);
-
-  useEffect(() => {
-    const fetchUserStatus = async () => {
-      if (!db) {
-        throw new Error('Firestore is not initialized.');
-      }
-
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setIsPro(userDoc.data().isPro || false);
-        }
-      }
-    };
-
-    fetchUserStatus();
+    setIsPro(false);
+    if (!db || !user) return;
+    return onSnapshot(doc(db, 'users', user.uid), snapshot => {
+      setIsPro(snapshot.data()?.isPro === true);
+    }, () => setIsPro(false));
   }, [user]);
 
   useEffect(() => {
@@ -290,7 +291,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         setImageToDelete(null); // Reset the imageToDelete state
       } catch (error) {
         console.error('Error saving business card:', error);
-        setError('Failed to save business card. Please try again.');
+        setError(error instanceof Error ? error.message : 'Failed to save business card. Please try again.');
       } finally {
         setIsSubmitting(false);
       }
@@ -489,44 +490,65 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   };
 
   if (!user) {
-    return <div className="text-sm">Please log in to create or edit a business card.</div>;
+    return (
+      <div className="rounded-2xl border border-black/[0.06] bg-white p-6 text-sm text-gray-600 shadow-sm dark:border-white/10 dark:bg-[#2c2d31] dark:text-gray-300">
+        Please log in to create or edit a business card.
+      </div>
+    );
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6 text-sm">
-      {error && <p className="text-red-500 text-xs">{error}</p>}
+  const colors = normalizeCardColors(formData.customColors);
+  const previewCard: BusinessCard = {
+    ...formData,
+    id: formData.id || 'preview',
+    username: '',
+    firstName: formData.firstName || 'Your name',
+    imageUrl: imageUrl || '',
+    isActive: true,
+  };
 
-      {/* First Section - Always Open */}
-      <CollapsibleSection title="Card Description" isOpen={shouldSectionBeOpen()}>
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <label htmlFor="description" className="block text-xs mb-1 font-bold text-gray-400">
-              Card Label *
-            </label>
-            <input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Card Description (e.g., Work, Personal, Side Biz, etc.)"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
-              required
-            />
-            <p className="text-xs text-gray-500 italic">
-              Note: This is for your reference only and will not be visible on your digital business card.
-            </p>
-          </div>
-        </div>
+  const updateAppearance = (changes: Partial<Pick<BusinessCardData, 'theme' | 'effect' | 'customColors'>>) => {
+    const next = { ...formData, ...changes };
+    setFormData(next);
+    onChange?.(next);
+  };
+
+  return (
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_420px]">
+    <form onSubmit={handleSubmit} className="min-w-0 space-y-4 text-sm lg:col-start-1 lg:row-start-1">
+
+      {/* Card label */}
+      <CollapsibleSection
+        title="Card Description"
+        description="A private label so you can tell your cards apart."
+        icon={<Tag size={16} />}
+        isOpen={shouldSectionBeOpen()}
+      >
+        <Field label="Card Label" htmlFor="description" required hint="For your reference only. It never appears on your card.">
+          <input
+            id="description"
+            type="text"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. Work, Personal, Side Biz"
+            className={inputClass}
+            required
+          />
+        </Field>
       </CollapsibleSection>
-      {/* Second Section - Always Open */}
-      <CollapsibleSection title="Basic Information" isOpen={shouldSectionBeOpen()}>
+
+      {/* Basic information */}
+      <CollapsibleSection
+        title="Basic Information"
+        description="Who you are and what you do."
+        icon={<User size={16} />}
+        isOpen={shouldSectionBeOpen()}
+      >
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-xs mb-1 font-bold text-gray-400">
-                First Name *
-              </label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <Field label="First Name" htmlFor="firstName" required>
               <input
                 id="firstName"
                 type="text"
@@ -534,13 +556,12 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.firstName}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="First Name"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="First name"
+                className={inputClass}
                 required
               />
-            </div>
-            <div>
-              <label htmlFor="middleName" className="block text-xs mb-1 font-bold text-gray-400">Middle Name</label>
+            </Field>
+            <Field label="Middle Name" htmlFor="middleName">
               <input
                 id="middleName"
                 type="text"
@@ -548,12 +569,11 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.middleName}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Middle Name"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="Middle name"
+                className={inputClass}
               />
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-xs mb-1 font-bold text-gray-400">Last Name</label>
+            </Field>
+            <Field label="Last Name" htmlFor="lastName">
               <input
                 id="lastName"
                 type="text"
@@ -561,14 +581,13 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.lastName}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Last Name"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="Last name"
+                className={inputClass}
               />
-            </div>
+            </Field>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="jobTitle" className="block text-xs mb-1 font-bold text-gray-400">Job Title</label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Job Title" htmlFor="jobTitle">
               <input
                 id="jobTitle"
                 type="text"
@@ -576,12 +595,11 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.jobTitle}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Job Title"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="Job title"
+                className={inputClass}
               />
-            </div>
-            <div>
-              <label htmlFor="company" className="block text-xs mb-1 font-bold text-gray-400">Company</label>
+            </Field>
+            <Field label="Company" htmlFor="company">
               <input
                 id="company"
                 type="text"
@@ -590,11 +608,10 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 placeholder="Company"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                className={inputClass}
               />
-            </div>
-            <div>
-              <label htmlFor="pronouns" className="block text-xs mb-1 font-bold text-gray-400">Pronouns</label>
+            </Field>
+            <Field label="Pronouns" htmlFor="pronouns">
               <input
                 id="pronouns"
                 type="text"
@@ -602,12 +619,11 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.pronouns}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Pronouns"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="e.g. she/her"
+                className={inputClass}
               />
-            </div>
-            <div>
-              <label htmlFor="prefix" className="block text-xs mb-1 font-bold text-gray-400">Prefix</label>
+            </Field>
+            <Field label="Prefix" htmlFor="prefix">
               <input
                 id="prefix"
                 type="text"
@@ -615,12 +631,11 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.prefix}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Prefix"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="e.g. Dr."
+                className={inputClass}
               />
-            </div>
-            <div>
-              <label htmlFor="credentials" className="block text-xs mb-1 font-bold text-gray-400">Credentials</label>
+            </Field>
+            <Field label="Credentials" htmlFor="credentials">
               <input
                 id="credentials"
                 type="text"
@@ -628,33 +643,36 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.credentials}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Credentials"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="e.g. MBA, PhD"
+                className={inputClass}
               />
-            </div>
+            </Field>
           </div>
-          <div>
-            <label htmlFor="aboutMe" className="block text-xs mb-1 font-bold text-gray-400">About Me</label>
+          <Field label="About Me" htmlFor="aboutMe">
             <textarea
               id="aboutMe"
               name="aboutMe"
               value={formData.aboutMe}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="About Me"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+              placeholder="A short introduction"
+              className={`${inputClass} min-h-[88px] resize-y`}
               rows={3}
             />
-          </div>
+          </Field>
         </div>
       </CollapsibleSection>
 
-      {/* Remaining Sections - Open if editing, closed if creating */}
-      <CollapsibleSection title="Contact Information" isOpen={shouldSectionBeOpen()}>
+      {/* Contact */}
+      <CollapsibleSection
+        title="Contact Information"
+        description="How people can reach you."
+        icon={<Phone size={16} />}
+        isOpen={shouldSectionBeOpen()}
+      >
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="phoneNumber" className="block text-xs mb-1 font-bold text-gray-400">Phone Number</label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Phone Number" htmlFor="phoneNumber">
               <ReactPhoneInput
                 placeholder="Enter phone number"
                 value={formData.phoneNumber}
@@ -662,11 +680,10 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 defaultCountry="US" // Change as needed
                 international
                 countryCallingCodeEditable={true}
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm phone-input-custom"
+                className={`${inputClass} phone-input-custom`}
               />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-xs mb-1 font-bold text-gray-400">Email</label>
+            </Field>
+            <Field label="Email" htmlFor="email">
               <input
                 id="email"
                 type="email"
@@ -674,135 +691,163 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 value={formData.email}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Email"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                placeholder="you@example.com"
+                className={inputClass}
               />
-            </div>
+            </Field>
           </div>
-          <div className="mt-2">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="enableTextMessage"
-                checked={formData.enableTextMessage}
-                onChange={(e) => setFormData({ ...formData, enableTextMessage: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              />
-              <span className="text-sm text-gray-600 dark:text-gray-400">Enable &quot;Send a text&quot; Button</span>
-            </label>
-          </div>
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-black/[0.06] bg-gray-50/70 p-3.5 transition hover:border-gray-300 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20">
+            <input
+              type="checkbox"
+              name="enableTextMessage"
+              checked={formData.enableTextMessage}
+              onChange={(e) => setFormData({ ...formData, enableTextMessage: e.target.checked })}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-[#3B8A99] focus:ring-4 focus:ring-[#7CCEDA]/30"
+            />
+            <span>
+              <span className="block text-sm font-medium">Enable &quot;Send a text&quot; button</span>
+              <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">Lets people open a text message to your number straight from the card.</span>
+            </span>
+          </label>
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Social Links" isOpen={shouldSectionBeOpen()}>
-        <div className="space-y-4">
-          <div className="overflow-y-auto">
+      {/* Social links */}
+      <CollapsibleSection
+        title="Social Links"
+        description="The platforms you want on your card."
+        icon={<Share2 size={16} />}
+        isOpen={shouldSectionBeOpen()}
+      >
+        <div className="space-y-3">
+          {additionalSocialLinks.length === 0 && (
+            <p className="rounded-xl border border-dashed border-gray-300 px-4 py-5 text-center text-xs text-gray-500 dark:border-white/15 dark:text-gray-400">
+              No social links yet. Add one below.
+            </p>
+          )}
+          <div className="space-y-2">
             {additionalSocialLinks.map((link) => {
               const socialLink = availableSocialLinks.find(sl => sl.name === link);
               const IconComponent = socialLink?.icon || LinkIcon;
               return (
-                <div key={link} className="flex items-center space-x-2 mb-2">
-                  <IconComponent size={16} className="text-gray-400" />
+                <div key={link} className="flex items-center gap-2">
+                  <span className={iconTileClass} title={socialLink?.label}>
+                    <IconComponent size={16} />
+                  </span>
                   <input
                     type={link === 'twitter' ? 'text' : 'url'}
                     name={link}
                     value={formData[link as keyof BusinessCardData] as string}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
-                    placeholder={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'Handle' : 'URL'}`}
-                    className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+                    placeholder={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'handle' : 'URL'}`}
+                    aria-label={`${socialLink?.label || 'Social'} ${link === 'twitter' ? 'handle' : 'URL'}`}
+                    className={inputClass}
                   />
                   <button
                     type="button"
                     onClick={() => removeSocialLink(link)}
-                    className="text-gray-400 hover:text-[#FF6A42] transition-colors"
+                    className={removeButtonClass}
+                    aria-label={`Remove ${socialLink?.label || link}`}
                   >
-                    <XIcon size={16} className="text-gray-400" />
+                    <XIcon size={16} />
                   </button>
                 </div>
               );
             })}
           </div>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowSocialLinkDropdown(!showSocialLinkDropdown)}
-              className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-4 py-1.5 rounded-full text-sm flex items-center mt-2 min-w-[140px] justify-center"
-            >
-              <Plus size={16} className="mr-2" />
-              Add Social Link
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowSocialLinkDropdown(!showSocialLinkDropdown)}
+            className={addButtonClass}
+          >
+            <Plus size={16} />
+            Add social link
+          </button>
         </div>
       </CollapsibleSection>
 
-      {/* Move the dropdown outside of the CollapsibleSection */}
-      {showSocialLinkDropdown && (
-        <div className="inline-block align-bottom bg-white dark:bg-[#40444b] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white dark:bg-[#40444b] px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
-            <button
-              onClick={() => setShowSocialLinkDropdown(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-500 dark:text-[var(--body-primary-text)] dark:hover:text-[var(--primary-text)] focus:outline-none"
-            >
-              <XIcon size={20} className="text-gray-400" />
-            </button>
-            <div className="sm:flex sm:items-start">
-              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-[var(--body-primary-text)]" id="modal-title">
-                  Add Social Link
-                </h3>
-                <div className="mt-2">
-                  {availableSocialLinks
-                    .filter((link) => !additionalSocialLinks.includes(link.name))
-                    .map((link) => (
-                      <button
-                        key={link.name}
-                        type="button"
-                        onClick={() => {
-                          handleAddSocialLink(link.name);
-                          setShowSocialLinkDropdown(false);
-                        }}
-                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-[var(--primary-hover)] flex items-center text-sm text-gray-700 dark:text-[var(--body-primary-text)]"
-                      >
-                        <link.icon size={16} className="mr-2 text-gray-400 dark:text-[var(--social-icon-color)]" />
-                        <span className="truncate">{link.label}</span>
-                      </button>
-                    ))}
-                </div>
-              </div>
-            </div>
+      {/* Social link picker */}
+      <Dialog open={showSocialLinkDropdown} onOpenChange={setShowSocialLinkDropdown}>
+        <DialogContent className="max-w-md rounded-2xl border-black/5 bg-white p-0 font-sans shadow-2xl dark:border-white/10 dark:bg-[#2c2d31] sm:rounded-2xl">
+          <div className="px-6 pb-2 pt-6">
+            <DialogTitle className="text-lg font-semibold tracking-tight">Add a social link</DialogTitle>
+            <DialogDescription className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Pick a platform. You can add the link right after.
+            </DialogDescription>
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-2 gap-2 px-6 pb-6 pt-2 sm:grid-cols-3">
+            {availableSocialLinks
+              .filter((link) => !additionalSocialLinks.includes(link.name))
+              .map((link) => (
+                <button
+                  key={link.name}
+                  type="button"
+                  onClick={() => {
+                    handleAddSocialLink(link.name);
+                    setShowSocialLinkDropdown(false);
+                  }}
+                  className="flex items-center gap-2.5 rounded-xl border border-black/[0.06] bg-gray-50/70 px-3 py-2.5 text-left text-sm font-medium transition hover:border-[#7CCEDA] hover:bg-[#7CCEDA]/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#7CCEDA]/30 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-[#7CCEDA]/10"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-gray-700 shadow-sm ring-1 ring-black/5 dark:bg-white/10 dark:text-gray-100 dark:ring-white/10">
+                    <link.icon size={16} />
+                  </span>
+                  <span className="truncate">{link.label}</span>
+                </button>
+              ))}
+            {availableSocialLinks.every((link) => additionalSocialLinks.includes(link.name)) && (
+              <p className="col-span-full py-4 text-center text-sm text-gray-500 dark:text-gray-400">You&apos;ve added every platform.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <CollapsibleSection title="Web Links" isOpen={shouldSectionBeOpen()}>
-        <div className="space-y-4">
-          <div className="overflow-y-auto">
+      {/* Web links */}
+      <CollapsibleSection
+        title="Web Links"
+        description="Your website, portfolio, booking page. Anything with a URL."
+        icon={<LinkIcon size={16} />}
+        isOpen={shouldSectionBeOpen()}
+      >
+        <div className="space-y-3">
+          {formData.webLinks.length === 0 && (
+            <p className="rounded-xl border border-dashed border-gray-300 px-4 py-5 text-center text-xs text-gray-500 dark:border-white/15 dark:text-gray-400">
+              No web links yet. Add one below.
+            </p>
+          )}
+          <div className="space-y-2">
             {formData.webLinks.map((link, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-2">
-                <LinkIcon size={16} className="text-gray-400" />
-                <input
-                  type="url"
-                  value={link.url}
-                  onChange={(e) => handleWebLinkChange(index, 'url', e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="URL"
-                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
-                />
-                <input
-                  type="text"
-                  value={link.displayText}
-                  onChange={(e) => handleWebLinkChange(index, 'displayText', e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Display Text"
-                  className="flex-grow px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
-                />
+              <div key={index} className="flex items-start gap-2">
+                <span className={`${iconTileClass} mt-0`}>
+                  <LinkIcon size={16} />
+                </span>
+                <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
+                  <input
+                    type="url"
+                    value={link.url}
+                    onChange={(e) => handleWebLinkChange(index, 'url', e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="https://example.com"
+                    aria-label={`Web link ${index + 1} URL`}
+                    className={inputClass}
+                  />
+                  <input
+                    type="text"
+                    value={link.displayText}
+                    onChange={(e) => handleWebLinkChange(index, 'displayText', e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Display text"
+                    aria-label={`Web link ${index + 1} display text`}
+                    className={inputClass}
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => removeWebLink(index)}
-                  className="text-gray-400 hover:text-[#FF6A42] transition-colors"
+                  className={removeButtonClass}
+                  aria-label={`Remove web link ${index + 1}`}
                 >
-                  <XIcon size={16} className="text-gray-400" />
+                  <XIcon size={16} />
                 </button>
               </div>
             ))}
@@ -810,322 +855,464 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
           <button
             type="button"
             onClick={addWebLink}
-            className="bg-blue-500 text-white dark:text-[var(--button-text-dark)] px-4 py-1.5 rounded-full text-sm flex items-center mt-2 min-w-[140px] justify-center"
+            className={addButtonClass}
           >
-            <Plus size={16} className="mr-2" />
-            Add Web Link
+            <Plus size={16} />
+            Add web link
           </button>
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Profile Image Upload" isOpen={shouldSectionBeOpen()}>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="image" className="block text-xs font-medium text-gray-400">
-              Upload Image
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="file"
-                id="image"
-                name="image"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    if (file.size > 5 * 1024 * 1024) {
-                      alert("File size must be less than 5MB");
-                      e.target.value = '';
-                      return;
-                    }
-                    setImageFile(file);
-                    setImageUrl(URL.createObjectURL(file));
-                  }
-                }}
-                accept="image/jpeg,image/png,image/gif"
-                className="w-full px-2 py-1 border border-gray-300 rounded-md text-xs"
+      {/* Profile image */}
+      <CollapsibleSection
+        title="Profile Image Upload"
+        description="Shown at the top of your card."
+        icon={<Camera size={16} />}
+        isOpen={shouldSectionBeOpen()}
+      >
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-gray-100 shadow-inner ring-4 ring-white dark:bg-white/5 dark:ring-white/10">
+            {(imageFile || imageUrl) ? (
+              <Image
+                src={imageUrl || formData.imageUrl || ''}
+                alt="Profile"
+                width={96}
+                height={96}
+                className="h-full w-full object-cover"
               />
-            </div>
-            <p className="text-xs text-gray-500 italic">Accepted formats: JPEG, PNG, GIF. Max size: 5MB</p>
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-gray-400">
+                <User size={32} />
+              </span>
+            )}
           </div>
-          {(imageFile || imageUrl) && (
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden">
-                <Image
-                  src={imageUrl || formData.imageUrl || ''}
-                  alt="Profile"
-                  width={64}
-                  height={64}
-                  className="w-full h-full object-cover"
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <label htmlFor="image" className={`${btnSecondary} cursor-pointer`}>
+                <Upload size={15} />
+                {(imageFile || imageUrl) ? 'Replace image' : 'Upload image'}
+                <input
+                  type="file"
+                  id="image"
+                  name="image"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert("File size must be less than 5MB");
+                        e.target.value = '';
+                        return;
+                      }
+                      setImageFile(file);
+                      setImageUrl(URL.createObjectURL(file));
+                    }
+                  }}
+                  accept="image/jpeg,image/png,image/gif"
+                  className="sr-only"
                 />
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (formData.imageUrl) {
-                    setImageToDelete(formData.imageUrl);
-                  }
-                  setImageFile(null);
-                  setImageUrl(null);
-                  setFormData(prevData => ({ ...prevData, imageUrl: '' }));
-                }}
-                className="text-red-500 hover:text-red-700 transition-colors"
-              >
-                Remove Image
-              </button>
+              </label>
+              {(imageFile || imageUrl) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (formData.imageUrl) {
+                      setImageToDelete(formData.imageUrl);
+                    }
+                    setImageFile(null);
+                    setImageUrl(null);
+                    setFormData(prevData => ({ ...prevData, imageUrl: '' }));
+                  }}
+                  className={btnDangerGhost}
+                >
+                  <Trash2 size={15} />
+                  Remove
+                </button>
+              )}
             </div>
-          )}
+            <p className={hintClass}>JPEG, PNG or GIF. Max size 5MB. A square image looks best.</p>
+          </div>
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Custom Header & Message" isOpen={shouldSectionBeOpen()}>
+      {/* Custom header & message */}
+      <CollapsibleSection
+        title="Custom Header & Message"
+        description="A personal note for people who open your card."
+        icon={<MessageSquare size={16} />}
+        isOpen={shouldSectionBeOpen()}
+      >
         <div className="space-y-4">
-          <div>
-            <label htmlFor="customMessageHeader" className="block text-xs mb-1 font-bold text-gray-400">Custom Message Header</label>
+          <Field label="Custom Message Header" htmlFor="customMessageHeader">
             <input
               id="customMessageHeader"
               name="customMessageHeader"
               value={formData.customMessageHeader}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="Custom Message Header (optional)"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+              placeholder="e.g. Let's work together"
+              className={inputClass}
             />
-          </div>
-          <div>
-            <label htmlFor="customMessage" className="block text-xs mb-1 font-bold text-gray-400">Custom Message</label>
+          </Field>
+          <Field label="Custom Message" htmlFor="customMessage">
             <textarea
               id="customMessage"
               name="customMessage"
               value={formData.customMessage}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="Custom Message"
-              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)]"
+              placeholder="Your message"
+              className={`${inputClass} min-h-[72px] resize-y`}
               rows={2}
             />
-          </div>
+          </Field>
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Document" isOpen={shouldSectionBeOpen()}>
+      {/* Document */}
+      <CollapsibleSection
+        title="Document"
+        description="Attach a PDF such as a résumé, menu, or brochure."
+        icon={<FileText size={16} />}
+        badge={<ProBadge />}
+        isOpen={shouldSectionBeOpen()}
+      >
         <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="cv" className="block text-xs font-medium text-gray-400">
-              Upload Document {!isPro && (
-                <Link 
-                  href="/get-helix-pro" 
-                  className="text-xs text-blue-500 hover:text-blue-600 hover:underline"
-                >
-                  (Get Helix Pro to upload a document)
-                </Link>
-              )}
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="file"
-                id="cv"
-                name="cv"
-                onChange={handleCvUpload}
-                accept=".pdf"
-                className={`w-full px-2 py-1 border border-gray-300 rounded-md text-xs ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-                disabled={!isPro}
-              />
+          {!isPro && (
+            <div className="flex items-start gap-3 rounded-xl border border-[#7CCEDA]/40 bg-[#7CCEDA]/10 p-3.5 text-sm dark:border-[#7CCEDA]/30 dark:bg-[#7CCEDA]/10">
+              <Lock size={16} className="mt-0.5 shrink-0 text-[#2E7C89] dark:text-[#7CCEDA]" />
+              <p className="text-gray-700 dark:text-gray-200">
+                Documents are a Helix Pro feature.{' '}
+                <Link href="/get-helix-pro" className="font-semibold text-[#2E7C89] underline decoration-[#7CCEDA]/60 underline-offset-2 hover:decoration-[#7CCEDA] dark:text-[#7CCEDA]">
+                  Get Helix Pro
+                </Link>{' '}
+                to upload a document.
+              </p>
             </div>
-            <p className="text-xs text-gray-500 italic">Document must be a PDF</p>
-          </div>
-          {(cvFile || formData.cvUrl) && (
-            <div className="flex items-center space-x-6 text-sm">
-              {formData.cvUrl && (
-                <>
-                  <a
-                    href={formData.cvUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-[var(--body-primary-text)] hover:underline flex items-center ${!isPro && 'pointer-events-none opacity-50'}`}
-                  >
-                    <Eye size={16} className="mr-2 text-gray-400" /> View Document
-                  </a>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={handleCopyUrl}
-                      className={`text-[var(--body-primary-text)] hover:underline flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-                      disabled={!isPro}
-                    >
-                      <Copy size={16} className="mr-2 text-gray-400" /> Copy URL
-                    </button>
-                    {showCopyTooltip && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded">
-                        URL Copied!
-                      </div>
-                    )}
-                  </div>
-                </>
+          )}
+
+          <div className="space-y-2">
+            <span className={labelClass}>Upload Document</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                htmlFor="cv"
+                className={`${btnSecondary} ${!isPro ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                aria-disabled={!isPro}
+              >
+                <Upload size={15} />
+                {cvFile ? 'Replace PDF' : 'Upload PDF'}
+                <input
+                  type="file"
+                  id="cv"
+                  name="cv"
+                  onChange={handleCvUpload}
+                  accept=".pdf"
+                  className="sr-only"
+                  disabled={!isPro}
+                />
+              </label>
+              {cvFile && (
+                <span className="inline-flex max-w-full items-center gap-1.5 truncate rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs text-gray-700 dark:bg-white/5 dark:text-gray-200">
+                  <FileText size={13} className="shrink-0 text-gray-400" />
+                  <span className="truncate">{cvFile.name}</span>
+                </span>
               )}
+            </div>
+            <p className={hintClass}>Document must be a PDF.</p>
+          </div>
+
+          {formData.cvUrl && (
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-black/[0.06] bg-gray-50/70 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+              <span className={iconTileClass}>
+                <FileText size={16} />
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">Current document</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <a
+                  href={formData.cvUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${btnGhost} ${!isPro && 'pointer-events-none opacity-50'}`}
+                >
+                  <Eye size={15} /> View
+                </a>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={handleCopyUrl}
+                    className={`${btnGhost} ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                    disabled={!isPro}
+                  >
+                    <Copy size={15} /> Copy URL
+                  </button>
+                  {showCopyTooltip && (
+                    <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg">
+                      Copied!
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCvDelete}
+                  className={`${btnDangerGhost} ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                  disabled={!isPro}
+                >
+                  <Trash2 size={15} /> Delete
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Local file selected but nothing saved yet: keep the delete action reachable as before */}
+          {cvFile && !formData.cvUrl && (
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={handleCvDelete}
-                className={`text-red-500 hover:text-red-700 transition-colors flex items-center ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+                className={`${btnDangerGhost} ${!isPro && 'opacity-50 cursor-not-allowed'}`}
                 disabled={!isPro}
               >
-                <Trash2 size={16} className="mr-2" /> Delete Document
+                <Trash2 size={15} /> Delete Document
               </button>
             </div>
           )}
-          <div>
-            <label htmlFor="cvHeader" className="block text-xs mb-1 font-bold text-gray-400">Document Header</label>
-            <input
-              id="cvHeader"
-              name="cvHeader"
-              value={formData.cvHeader}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Defaults to 'Documents' if left blank"
-              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)] ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-              disabled={!isPro}
-            />
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Document Header" htmlFor="cvHeader">
+              <input
+                id="cvHeader"
+                name="cvHeader"
+                value={formData.cvHeader}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Defaults to 'Documents'"
+                className={inputClass}
+                disabled={!isPro}
+              />
+            </Field>
+            <Field label="Document Display Text" htmlFor="cvDisplayText">
+              <input
+                id="cvDisplayText"
+                name="cvDisplayText"
+                value={formData.cvDisplayText}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Defaults to 'View Document'"
+                className={inputClass}
+                disabled={!isPro}
+              />
+            </Field>
           </div>
-          <div>
-            <label htmlFor="cvDescription" className="block text-xs mb-1 font-bold text-gray-400">Document Description</label>
+          <Field label="Document Description" htmlFor="cvDescription">
             <textarea
               id="cvDescription"
               name="cvDescription"
               value={formData.cvDescription}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="Doc Description (optional)"
-              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)] ${!isPro && 'opacity-50 cursor-not-allowed'}`}
+              placeholder="A short description (optional)"
+              className={`${inputClass} min-h-[72px] resize-y`}
               rows={2}
               disabled={!isPro}
             />
-          </div>
-          <div>
-            <label htmlFor="cvDisplayText" className="block text-xs mb-1 font-bold text-gray-400">Document Display Text</label>
-            <input
-              id="cvDisplayText"
-              name="cvDisplayText"
-              value={formData.cvDisplayText}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Defaults to 'View Document' if left blank"
-              className={`w-full px-2 py-1 border border-gray-300 rounded-md text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-[var(--input-text)] ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-              disabled={!isPro}
-            />
-          </div>
+          </Field>
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Appearance" isOpen={true}>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="grid grid-cols-1 gap-3 max-w-xl">
-              {/* Classic Theme */}
-              <div
-                className={`relative bg-white dark:bg-[#2c2d31] rounded-xl p-4 cursor-pointer transition-all border-2 ${
-                  formData.theme === 'classic' 
-                    ? 'border-[#7CCEDA]' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-                onClick={() => handleChange({ 
-                  target: { 
-                    name: 'theme', 
-                    value: 'classic' 
-                  } 
-                } as React.ChangeEvent<HTMLInputElement>)}
-              >
-                <h3 className="text-lg font-bold mb-1">Classic</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Traditional black and white theme</p>
-                {formData.theme === 'classic' && (
-                  <div className="absolute top-1/2 -translate-y-1/2 right-4">
-                    <svg className="w-5 h-5 text-[#7CCEDA]" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Modern Theme */}
-              <div
-                className={`relative bg-white dark:bg-[#2c2d31] rounded-xl p-4 cursor-pointer transition-all border-2 ${
-                  formData.theme === 'modern' 
-                    ? 'border-[#7CCEDA]' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-                onClick={() => handleChange({ 
-                  target: { 
-                    name: 'theme', 
-                    value: 'modern' 
-                  } 
-                } as React.ChangeEvent<HTMLInputElement>)}
-              >
-                <h3 className="text-lg font-bold mb-1">Modern</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">A modern look with blue-green accents</p>
-                {formData.theme === 'modern' && (
-                  <div className="absolute top-1/2 -translate-y-1/2 right-4">
-                    <svg className="w-5 h-5 text-[#7CCEDA]" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Dark Theme */}
-              <div
-                className={`relative bg-white dark:bg-[#2c2d31] rounded-xl p-4 cursor-pointer transition-all border-2 ${
-                  formData.theme === 'dark' 
-                    ? 'border-[#7CCEDA]' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-                onClick={() => handleChange({ 
-                  target: { 
-                    name: 'theme', 
-                    value: 'dark' 
-                  } 
-                } as React.ChangeEvent<HTMLInputElement>)}
-              >
-                <h3 className="text-lg font-bold mb-1">Dark</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Dark colors with shades of black and gray</p>
-                {formData.theme === 'dark' && (
-                  <div className="absolute top-1/2 -translate-y-1/2 right-4">
-                    <svg className="w-5 h-5 text-[#7CCEDA]" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </div>
+      {/* Appearance */}
+      <CollapsibleSection
+        title="Appearance"
+        description="Design, colors, and interactive effects."
+        icon={<Layers size={16} />}
+        isOpen={true}
+      >
+        <div className="space-y-7">
+          {/* Design */}
+          <fieldset className="space-y-3">
+            <legend className={legendClass}>Design</legend>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {CARD_THEMES.map(option => {
+                const selected = formData.theme === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => updateAppearance({ theme: option.id })}
+                    className={`group relative rounded-2xl border-2 p-2 text-left transition focus:outline-none focus-visible:ring-4 focus-visible:ring-[#7CCEDA]/40 ${selected ? 'border-[#7CCEDA] bg-[#7CCEDA]/5 shadow-[0_8px_24px_-12px_rgba(124,206,218,0.8)]' : 'border-black/[0.06] hover:border-gray-300 dark:border-white/10 dark:hover:border-white/25'}`}
+                    title={option.description}
+                  >
+                    <span
+                      className="block h-16 rounded-xl ring-1 ring-inset ring-black/10 transition group-hover:scale-[1.01]"
+                      style={{ background: option.preview }}
+                    />
+                    <span className="mt-2 flex items-center justify-between gap-2 px-1 pb-0.5">
+                      <span className="text-sm font-semibold">{option.name}</span>
+                      {selected && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#7CCEDA] text-gray-900">
+                          <Check size={12} strokeWidth={3} />
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+          </fieldset>
+
+          {/* Custom colors */}
+          <div className="space-y-4 rounded-2xl border border-black/[0.06] bg-gray-50/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex cursor-pointer items-center gap-3">
+                <span className="relative inline-flex shrink-0 items-center">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(colors)}
+                    disabled={!isPro}
+                    onChange={event => updateAppearance({ customColors: event.target.checked ? getCardColorDefaults(formData.theme) : null })}
+                    className="peer sr-only"
+                  />
+                  <span className="h-6 w-11 rounded-full bg-gray-300 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition after:content-[''] peer-checked:bg-[#3B8A99] peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-[#7CCEDA]/40 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:bg-white/20" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">Custom colors</span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">Override the design with your own palette.</span>
+                </span>
+              </label>
+              <ProBadge />
+            </div>
+            {!isPro ? (
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <Link href="/get-helix-pro" className="font-semibold text-[#2E7C89] underline decoration-[#7CCEDA]/60 underline-offset-2 dark:text-[#7CCEDA]">Upgrade to Pro</Link> to customize your card colors and unlock every effect.
+                {colors && ' Your saved colors are kept and will return when you upgrade.'}
+              </p>
+            ) : colors ? (
+              <>
+                <CardColorEditor colors={colors} onChange={customColors => updateAppearance({ customColors })} />
+                <button
+                  type="button"
+                  className="text-xs font-medium text-gray-600 underline decoration-gray-300 underline-offset-2 transition hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  onClick={() => updateAppearance({ customColors: null })}
+                >
+                  Restore design colors
+                </button>
+              </>
+            ) : (
+              <p className="text-sm text-gray-600 dark:text-gray-400">Choose your own colors and watch your card update in the live preview.</p>
+            )}
           </div>
+
+          {/* Effects */}
+          <fieldset className="space-y-3">
+            <legend className={legendClass}>Effect</legend>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Try effects in the live preview. Portal · The Grid and Repel are free.</p>
+            {!isPro && isProCardEffect(formData.effect || DEFAULT_CARD_EFFECT) && (
+              <p className="flex items-start gap-2 rounded-xl border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                <span>Your saved Pro effect is paused. Upgrade to use it again, or choose a free effect.</span>
+              </p>
+            )}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {CARD_EFFECTS.map(option => {
+                const selected = (formData.effect || DEFAULT_CARD_EFFECT) === option.id;
+                const locked = !isPro && isProCardEffect(option.id);
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    disabled={locked}
+                    aria-pressed={selected}
+                    onClick={() => updateAppearance({ effect: option.id })}
+                    className={`relative rounded-2xl border-2 p-3.5 text-left transition focus:outline-none focus-visible:ring-4 focus-visible:ring-[#7CCEDA]/40 disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-[#7CCEDA] bg-[#7CCEDA]/5 shadow-[0_8px_24px_-12px_rgba(124,206,218,0.8)]' : 'border-black/[0.06] hover:border-gray-300 dark:border-white/10 dark:hover:border-white/25'}`}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 font-semibold">
+                        {locked && <Lock size={13} className="text-gray-400" />}
+                        {option.name}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        {isProCardEffect(option.id) && <ProBadge />}
+                        {selected && (
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#7CCEDA] text-gray-900">
+                            <Check size={12} strokeWidth={3} />
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                    <span className="mt-1.5 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">{option.description}</span>
+                    {option.interaction && (
+                      <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#7CCEDA]/15 px-2 py-0.5 text-[11px] font-medium text-[#2E7C89] dark:text-[#7CCEDA]">
+                        <MousePointer size={11} />
+                        {option.interaction}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
         </div>
       </CollapsibleSection>
 
-      <div className="flex justify-between items-center">
-        {isSubmitting ? (
-          <LoadingSpinner fullScreen={false} />
-        ) : (
-          <button 
-            type="submit" 
-            className="bg-primary text-black px-4 py-2 rounded-full hover:bg-primary-hover"
-          >
-            Save Changes
-          </button>
+      {/* Sticky action bar */}
+      <div className="sticky bottom-0 z-30 pt-2">
+        {error && (
+          <div role="alert" className="mb-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 shadow-sm dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
         )}
-        
-        {initialData && (
-          <div className="relative group">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-black/[0.06] bg-white/85 px-3 py-3 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.2)] backdrop-blur-md dark:border-white/10 dark:bg-[#2c2d31]/85 sm:px-4">
+          {initialData ? (
             <button
               type="button"
               onClick={handleDelete}
-              className="text-red-500 hover:text-red-700 transition-colors"
+              className={btnDangerGhost}
               aria-label="Delete card"
+              title="Delete this card"
             >
-              <Trash2 size={25} />
+              <Trash2 size={16} />
+              <span className="hidden sm:inline">Delete card</span>
             </button>
-            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-              Danger! Clicking here will delete this card.
-            </span>
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPreviewOpen(true)}
+              className={`${btnSecondary} lg:hidden`}
+            >
+              <Smartphone size={16} />
+              Preview
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={btnPrimary}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black" aria-hidden />
+                  Saving…
+                </>
+              ) : (
+                <>
+                  <Check size={16} strokeWidth={2.5} />
+                  {isEditing ? 'Save changes' : 'Create card'}
+                </>
+              )}
+            </button>
           </div>
-        )}
+        </div>
       </div>
     </form>
+
+    <LiveCardPreview
+      card={previewCard}
+      isPro={isPro}
+      mobileOpen={previewOpen}
+      onMobileClose={() => setPreviewOpen(false)}
+    />
+    </div>
   );
 };

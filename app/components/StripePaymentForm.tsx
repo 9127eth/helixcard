@@ -151,16 +151,6 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         return;
       }
 
-      // Handle successful subscription creation
-      if (data.subscriptionId || data.success) {
-        // Refresh user claims
-        await user.getIdToken(true);
-        
-        // Redirect to success page
-        window.location.href = '/dashboard?success=true';
-        return;
-      }
-
       // Handle free subscription
       if (data.isFreeWithCard) {
         router.push('/dashboard?subscription=success');
@@ -210,8 +200,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
           typeof error === 'object' && 
           'type' in error &&
           'message' in error &&
-          (error as StripeError).type === 'card_error' || 
-          (error as StripeError).type === 'validation_error') {
+          ((error as StripeError).type === 'card_error' ||
+           (error as StripeError).type === 'validation_error')) {
         setErrorMessage((error as StripeError).message);
       } else {
         setErrorMessage('An unexpected error occurred. Please try again.');
@@ -252,8 +242,12 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         setIsMCKiS25Coupon(false);
         setIsNCPA25Coupon(false);
       } else {
-        setCouponMessage('Coupon applied successfully!');
-        setDiscountedAmount(data.discountedAmount);
+        setCouponMessage(
+          data.isTrackingOnly
+            ? 'Code applied. Your purchase will be attributed to the fundraiser.'
+            : 'Coupon applied successfully!'
+        );
+        setDiscountedAmount(data.isTrackingOnly ? null : data.discountedAmount);
         setIsFreeWithCoupon(data.isFree || data.isVMCRX || data.isMCKiS25 || data.isNCPA25);
         setIsVMCRXCoupon(data.isVMCRX);
         setIsMCKiS25Coupon(data.isMCKiS25);

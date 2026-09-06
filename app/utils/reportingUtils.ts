@@ -176,6 +176,20 @@ export async function generateQuarterlyReport(
 }
 
 /**
+ * Neutralise a CSV cell before it reaches an administrator's spreadsheet.
+ *
+ * Users control fields such as `username` and `source`, and Excel / Sheets
+ * execute any cell that starts with =, +, -, @, tab or carriage return. The
+ * leading apostrophe keeps the value readable while stripping the formula, and
+ * doubling internal quotes keeps the row valid per RFC 4180.
+ */
+function sanitizeCsvCell(value: unknown): string {
+  const text = value === null || value === undefined ? '' : String(value);
+  const escaped = text.replace(/"/g, '""');
+  return /^[=+\-@\t\r]/.test(escaped) ? `'${escaped}` : escaped;
+}
+
+/**
  * Export report to CSV format
  */
 export function exportReportToCSV(report: QuarterlyReport): string {
@@ -209,7 +223,7 @@ export function exportReportToCSV(report: QuarterlyReport): string {
         user.registeredAt?.toISOString() || '',
         user.subscriptionCreatedAt?.toISOString() || ''
       ];
-      csvContent += row.map(field => `"${field}"`).join(',') + '\n';
+      csvContent += row.map(field => `"${sanitizeCsvCell(field)}"`).join(',') + '\n';
     }
   }
   
@@ -227,7 +241,7 @@ export function exportReportToCSV(report: QuarterlyReport): string {
       user.registeredAt?.toISOString() || '',
       user.subscriptionCreatedAt?.toISOString() || ''
     ];
-    csvContent += row.map(field => `"${field}"`).join(',') + '\n';
+    csvContent += row.map(field => `"${sanitizeCsvCell(field)}"`).join(',') + '\n';
   }
   
   return csvContent;

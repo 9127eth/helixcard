@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { auth,db } from '../../lib/firebase-admin';
+import { createHash } from 'crypto';
+import { auth, db } from '../../lib/firebase-admin';
 import { hasUserUsedCoupon, hasEmailUsedCoupon, recordCouponRedemption } from '../../utils/lifetimeCoupons';
-import { getGroupFromCoupon } from '../../utils/groupMapping';
+import { getGroupFromCoupon, isTrackingOnlyCoupon } from '../../utils/groupMapping';
+import { LIFETIME_PRICE_CENTS, PRICE_IDS, planForPriceId } from '../../lib/stripePrices';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -10,13 +12,97 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Define restricted coupon code mappings
 const COUPON_RESTRICTIONS: Record<string, string[]> = {
-  'LIPSCOMB25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'UTTYLER25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'VMCRX': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'NHMA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'MCKiS25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'NCPA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
+  'LIPSCOMB25': [PRICE_IDS.lifetime],
+  'UTTYLER25': [PRICE_IDS.lifetime],
+  'VMCRX': [PRICE_IDS.lifetime],
+  'NHMA25': [PRICE_IDS.lifetime],
+  'MCKiS25': [PRICE_IDS.lifetime],
+  'NCPA25': [PRICE_IDS.lifetime],
+  'EMPRX25': [PRICE_IDS.monthly, PRICE_IDS.yearly], // Monthly & Yearly
+  'CUCOP@%': [PRICE_IDS.lifetime],
+}
+
+/** Stripe subscription statuses that mean the user is already paying us. */
+const LIVE_SUBSCRIPTION_STATUSES = new Set<Stripe.Subscription.Status>([
+  'active',
+  'trialing',
+  'past_due',
+  'unpaid',
+  'incomplete',
+]);
+
+/**
+ * A stable key for this exact purchase attempt.
+ *
+ * Stripe replays the original response for a repeated key, so a double-click or
+ * a network retry can no longer create a second customer, subscription or
+ * charge.
+ */
+function idempotencyKey(...parts: string[]): string {
+  return createHash('sha256').update(parts.join('|')).digest('hex');
+}
+
+/**
+ * Reuse the account's Stripe customer instead of creating a new one per request.
+ *
+ * Creating a customer on every attempt is what allowed a user to accumulate
+ * several customers — and therefore several subscriptions — while the user
+ * document only ever remembered the last one.
+ */
+async function getOrCreateCustomer(
+  uid: string,
+  email: string | undefined,
+  couponCode: string | undefined
+): Promise<Stripe.Customer> {
+  const userRef = db.collection('users').doc(uid);
+  const existingId = (await userRef.get()).data()?.stripeCustomerId;
+
+  if (typeof existingId === 'string' && existingId) {
+    try {
+      const existing = await stripe.customers.retrieve(existingId);
+      if (!existing.deleted) return existing as Stripe.Customer;
+    } catch (error) {
+      console.error('Stored Stripe customer could not be retrieved:', error);
+    }
+  }
+
+  const customer = await stripe.customers.create(
+    {
+      ...(email && { email }),
+      metadata: {
+        firebaseUID: uid,
+        ...(couponCode && { couponCode }),
+      },
+    },
+    { idempotencyKey: idempotencyKey('customer', uid) }
+  );
+
+  // Persist the mapping before creating any payment resources. Stripe can
+  // deliver their webhooks before this request finishes.
+  await userRef.update({ stripeCustomerId: customer.id });
+
+  return customer;
+}
+
+/** True when the account already holds an entitlement we should not duplicate. */
+async function hasLiveEntitlement(uid: string, customerId?: string): Promise<boolean> {
+  const userData = (await db.collection('users').doc(uid).get()).data();
+
+  if (userData?.isPro === true || userData?.lifetimePurchase === true) {
+    return true;
+  }
+
+  if (!customerId) return false;
+
+  const subscriptions = await stripe.subscriptions.list({
+    customer: customerId,
+    status: 'all',
+    limit: 100,
+  });
+
+  return subscriptions.data.some((subscription: Stripe.Subscription) =>
+    LIVE_SUBSCRIPTION_STATUSES.has(subscription.status)
+  );
 }
 
 export async function POST(req: Request) {
@@ -31,13 +117,19 @@ export async function POST(req: Request) {
     const decodedToken = await auth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
+    // Only prices this application sells are ever forwarded to Stripe.
+    const plan = planForPriceId(priceId);
+    if (!plan) {
+      return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
+    }
+
     // Handle free VMCRX subscription
-    if (isFreeSubscription && (couponCode === 'VMCRX' || couponCode === 'MCKiS25' || couponCode === 'NCPA25') && priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+    if (isFreeSubscription && (couponCode === 'VMCRX' || couponCode === 'MCKiS25' || couponCode === 'NCPA25') && plan === 'lifetime') {
       try {
         // Check if user already has an active subscription
         const userDoc = await db.collection('users').doc(uid).get();
         const userData = userDoc.data();
-        
+
         if (userData?.isPro) {
           return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 });
         }
@@ -110,9 +202,19 @@ export async function POST(req: Request) {
       }
     }
 
+    if (typeof paymentMethodId !== 'string' || !paymentMethodId) {
+      return NextResponse.json({ error: 'No payment method provided' }, { status: 400 });
+    }
+
     try {
       // Check coupon code validity if provided
-      if (couponCode) {
+      if (couponCode && isTrackingOnlyCoupon(couponCode)) {
+        if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
+          return NextResponse.json({
+            error: 'This coupon code is not valid for the selected product type'
+          }, { status: 400 });
+        }
+      } else if (couponCode) {
         try {
           // First, retrieve the promotion code
           const promotionCodes = await stripe.promotionCodes.list({
@@ -129,27 +231,27 @@ export async function POST(req: Request) {
 
           // Then retrieve the coupon using the coupon ID
           const coupon = await stripe.coupons.retrieve(couponId);
-          
+
           if (!coupon.valid) {
             return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 });
           }
 
           // Check custom coupon restrictions first
           if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
-            return NextResponse.json({ 
-              error: 'This coupon code is not valid for the selected product type' 
+            return NextResponse.json({
+              error: 'This coupon code is not valid for the selected product type'
             }, { status: 400 });
           }
 
           // Get the price to check product restrictions
           const price = await stripe.prices.retrieve(priceId);
-          
+
           // Check if the coupon has product restrictions
           if (coupon.applies_to && coupon.applies_to.products && coupon.applies_to.products.length > 0) {
             // Check if the price's product is in the allowed products list
             if (!coupon.applies_to.products.includes(price.product as string)) {
-              return NextResponse.json({ 
-                error: 'This coupon code is not valid for the selected product type' 
+              return NextResponse.json({
+                error: 'This coupon code is not valid for the selected product type'
               }, { status: 400 });
             }
           }
@@ -159,13 +261,17 @@ export async function POST(req: Request) {
         }
       }
 
-      // Create a new Stripe customer
-      const customer = await stripe.customers.create({
-        metadata: {
-          firebaseUID: uid,
-          ...(couponCode && { couponCode: couponCode })
-        },
-      });
+      const customer = await getOrCreateCustomer(uid, decodedToken.email, couponCode);
+
+      // One paid entitlement per account. Without this an existing subscriber
+      // could start a second subscription and be charged twice, while only the
+      // most recent id was stored (and therefore cancellable).
+      if (await hasLiveEntitlement(uid, customer.id)) {
+        return NextResponse.json(
+          { error: 'You already have an active Helix Pro subscription' },
+          { status: 409 }
+        );
+      }
 
       // Attach the payment method to the customer
       await stripe.paymentMethods.attach(paymentMethodId, {
@@ -180,21 +286,21 @@ export async function POST(req: Request) {
       });
 
       // Check if it's a lifetime subscription (one-time payment)
-      if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
+      if (plan === 'lifetime') {
         // Calculate the payment amount, applying coupon discount if applicable
-        let paymentAmount = 1999; // Default amount in cents ($19.99)
-        
+        let paymentAmount = LIFETIME_PRICE_CENTS;
+
         if (couponCode) {
           try {
             const promotionCodes = await stripe.promotionCodes.list({
               code: couponCode,
               active: true,
             });
-            
+
             if (promotionCodes.data.length > 0) {
               const promoCode = promotionCodes.data[0];
               const coupon = await stripe.coupons.retrieve(promoCode.coupon.id);
-              
+
               if (coupon.percent_off) {
                 paymentAmount = Math.round(paymentAmount * (1 - coupon.percent_off / 100));
               } else if (coupon.amount_off) {
@@ -208,27 +314,28 @@ export async function POST(req: Request) {
         }
 
         // Create a payment intent for one-time payment instead of subscription
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: paymentAmount,
-          currency: 'usd',
-          customer: customer.id,
-          payment_method: paymentMethodId,
-          confirmation_method: 'manual',
-          confirm: true,
-          payment_method_types: ['card'],
-          metadata: {
-            firebaseUID: uid,
-            priceId: priceId,
-            type: 'lifetime',
-            ...(couponCode && { couponCode: couponCode })
+        const paymentIntent = await stripe.paymentIntents.create(
+          {
+            amount: paymentAmount,
+            currency: 'usd',
+            customer: customer.id,
+            payment_method: paymentMethodId,
+            confirmation_method: 'manual',
+            confirm: true,
+            payment_method_types: ['card'],
+            metadata: {
+              firebaseUID: uid,
+              priceId: priceId,
+              type: 'lifetime',
+              ...(couponCode && { couponCode: couponCode })
+            }
+          },
+          {
+            idempotencyKey: idempotencyKey(
+              'lifetime', uid, priceId, paymentMethodId, couponCode || ''
+            ),
           }
-        });
-
-        // Only store the customer ID now — isPro will be set by the webhook
-        // when payment_intent.succeeded fires
-        await db.collection('users').doc(uid).update({
-          stripeCustomerId: customer.id,
-        });
+        );
 
         return NextResponse.json({
           clientSecret: paymentIntent.client_secret,
@@ -246,6 +353,9 @@ export async function POST(req: Request) {
           save_default_payment_method: 'on_subscription',
         },
         default_payment_method: paymentMethodId,
+        metadata: {
+          firebaseUID: uid,
+        },
         expand: ['latest_invoice.payment_intent'],
       };
 
@@ -265,26 +375,19 @@ export async function POST(req: Request) {
         }
       }
 
-      const subscription = await stripe.subscriptions.create(subscriptionData);
+      const subscription = await stripe.subscriptions.create(subscriptionData, {
+        idempotencyKey: idempotencyKey(
+          'subscription', uid, priceId, paymentMethodId, couponCode || ''
+        ),
+      });
 
       const invoice = subscription.latest_invoice as Stripe.Invoice;
 
       // For free subscriptions (100% discount), activate immediately since no payment is needed
       if (invoice.amount_due === 0) {
-        let proType: 'monthly' | 'yearly' | 'lifetime';
-        if (priceId === 'price_1QEXRZ2Mf4JwDdD1pdam2mHo') {
-          proType = 'monthly';
-        } else if (priceId === 'price_1QEfJH2Mf4JwDdD1j2ME28Fw') {
-          proType = 'yearly';
-        } else if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
-          proType = 'lifetime';
-        } else {
-          throw new Error('Invalid price ID');
-        }
-
         await db.collection('users').doc(uid).update({
           isPro: true,
-          isProType: proType,
+          isProType: plan,
           stripeSubscriptionId: subscription.id,
           stripeCustomerId: customer.id,
         });
@@ -319,14 +422,14 @@ export async function POST(req: Request) {
 
     } catch (stripeError) {
       console.error('Stripe operation failed:', stripeError);
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Payment processing failed. Please try again.'
       }, { status: 400 });
     }
 
   } catch (error) {
     console.error('Request processing failed:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Request processing failed. Please try again.'
     }, { status: 400 });
   }

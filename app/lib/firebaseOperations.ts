@@ -1,5 +1,6 @@
 import { db } from './firebase';
 import {
+  increment,
   setDoc,
   collection,
   query,
@@ -21,6 +22,11 @@ import { DeviceInfo } from '../utils/deviceDetection';
 import { Timestamp } from 'firebase/firestore';
 import { getSourceForRegistration, clearStoredSource } from '../utils/sourceTracking';
 import { getGroupFromSource } from '../utils/groupMapping';
+import type { CardColors, CardEffect } from '../types';
+import { prepareCardAppearance } from './cardAppearance';
+import { normalizeCardUrls } from './cardUrls';
+import { refreshUsageAfterDelete, syncUsage } from './usageClient';
+import { auth } from './firebase';
 
 // Added UserData interface
 interface UserData {
@@ -41,6 +47,8 @@ interface UserRegistrationData extends UserData {
 }
 
 interface BusinessCardData {
+  customColors?: CardColors | null;
+  effect?: CardEffect;
   id?: string;
   description: string;
   firstName: string;
@@ -75,6 +83,12 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   const userDoc = await getDoc(userRef);
   const userData = userDoc.data() as UserData;
 
+  cardData = prepareCardAppearance(cardData, userData.isPro === true);
+  // Constrain every link to http(s) before it is stored — Firestore rules
+  // reject anything else, and this is what keeps a legacy scheme-less value
+  // (e.g. "linkedin.com/in/me") saving cleanly.
+  cardData = normalizeCardUrls(cardData);
+
   const businessCardsRef = collection(userRef, 'businessCards');
 
   const isFirstCard = !userData.primaryCardId || userData.primaryCardPlaceholder;
@@ -85,6 +99,21 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   }
 
   const newCardRef = doc(businessCardsRef, cardSlug);
+
+  // The server owns the entitlement decision and seeds the counter that the
+  // Firestore rule compares against.
+  const isNewCard = !(await getDoc(newCardRef)).exists();
+  if (isNewCard) {
+    const usage = await syncUsage();
+    if (usage && !usage.canCreateCard) {
+      throw new Error(
+        usage.isPro
+          ? `You have reached the ${usage.cardLimit} card limit for your plan.`
+          : 'Upgrade to Helix Pro to create additional cards.'
+      );
+    }
+  }
+
   const batch = writeBatch(db);
 
   let cvUrl: string | undefined;
@@ -146,12 +175,16 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
     isActive: userData.isPro || isFirstCard,
   });
 
-  if (isFirstCard) {
-    batch.update(userRef, {
+  // Creating a card consumes one unit of quota. The rule requires this +1 to be
+  // part of the same batch as the card document itself.
+  batch.update(userRef, {
+    ...(isFirstCard && {
       primaryCardId: cardSlug,
       primaryCardPlaceholder: false,
-    });
-  }
+    }),
+    ...(isNewCard && { cardCount: increment(1) }),
+    updatedAt: serverTimestamp(),
+  });
 
   await batch.commit();
 
@@ -180,15 +213,19 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
 
   const batch = writeBatch(db);
 
-  // Set the current primary card to non-primary
+  // Set the current primary card to non-primary. `isActive` is derived from the
+  // owner's plan plus primacy (and Firestore rules enforce exactly that), so it
+  // has to move with `isPrimary`.
   const userData = userDoc.data() as UserData;
-  if (userData.primaryCardId) {
+  const isPro = userData.isPro === true;
+
+  if (userData.primaryCardId && userData.primaryCardId !== cardSlug) {
     const currentPrimaryCardRef = doc(userRef, 'businessCards', userData.primaryCardId);
-    batch.update(currentPrimaryCardRef, { isPrimary: false });
+    batch.update(currentPrimaryCardRef, { isPrimary: false, isActive: isPro });
   }
 
   // Set the new card as primary
-  batch.update(cardRef, { isPrimary: true });
+  batch.update(cardRef, { isPrimary: true, isActive: true });
 
   // Update the user's primaryCardId
   batch.update(userRef, { primaryCardId: cardSlug });
@@ -199,21 +236,29 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
   await generateCardUrl(userId, cardSlug, true);
 }
 
+/**
+ * Change the account's handle.
+ *
+ * `username` is server-owned now: Firestore rules reject client writes to it and
+ * the handle is reserved transactionally in `/usernames`, so two accounts can no
+ * longer end up on the same public URL.
+ */
 export async function updateUsername(userId: string, newUsername: string): Promise<void> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
+  const user = auth?.currentUser;
+  if (!user || user.uid !== userId) {
+    throw new Error('User is not authenticated');
   }
 
-  const userRef = doc(db, 'users', userId);
-  
-  try {
-    await updateDoc(userRef, {
-      username: newUsername,
-      updatedAt: serverTimestamp(),
-    });
-  } catch (error) {
-    console.error('Error updating username:', error);
-    throw error;
+  const idToken = await user.getIdToken();
+  const response = await fetch('/api/username', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken, username: newUsername }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || 'Failed to update username');
   }
 }
 
@@ -326,6 +371,13 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
 
   const cardRef = doc(db, 'users', userId, 'businessCards', cardId);
 
+  const [owner, existingCard] = await Promise.all([
+    getDoc(doc(db, 'users', userId)),
+    getDoc(cardRef),
+  ]);
+  cardData = prepareCardAppearance(cardData, owner.data()?.isPro === true, existingCard.data());
+  cardData = normalizeCardUrls(cardData);
+
   // Handle CV file upload
   if (cardData.cv instanceof File) {
     try {
@@ -350,10 +402,13 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
     return acc;
   }, {} as Partial<BusinessCardData>);
 
-  // Only set isActive if it's explicitly provided in cardData
-  if ('isActive' in cardData) {
-    cleanedCardData.isActive = cardData.isActive;
-  }
+  // `isPrimary` and `isActive` are derived, not editable. The card form carries
+  // them along with everything else, and a stale value there would be rejected
+  // by the Firestore rule that ties them to the owner's plan and primary card —
+  // so recompute both from the authoritative state instead of trusting the form.
+  const isPrimary = existingCard.data()?.isPrimary === true;
+  cleanedCardData.isPrimary = isPrimary;
+  cleanedCardData.isActive = owner.data()?.isPro === true || isPrimary;
 
   await updateDoc(cardRef, cleanedCardData);
 }
@@ -386,6 +441,9 @@ export const deleteBusinessCard = async (user: User, cardSlug: string) => {
   }
 
   await batch.commit();
+
+  // The client can never lower its own counter; the server recount does it.
+  refreshUsageAfterDelete();
 };
 
 export async function deleteCv(userId: string, cardId: string) {
@@ -422,24 +480,34 @@ export async function getUserCardCount(userId: string): Promise<number> {
   return querySnapshot.size;
 }
 
+/**
+ * Ask the server whether another card may be created.
+ *
+ * This used to be decided entirely in the browser by counting documents, which
+ * anyone could skip. The answer now comes from `/api/usage`, which also writes
+ * the counter that Firestore rules check the create against.
+ */
 export async function canCreateCard(userId: string): Promise<boolean> {
-  if (!db) throw new Error('Firestore is not initialized');
-  
-  const userDoc = await getDoc(doc(db, 'users', userId));
-  const userData = userDoc.data();
-  const isPro = userData?.isPro || false;
-  const primaryCardPlaceholder = userData?.primaryCardPlaceholder || false;
+  if (auth?.currentUser?.uid !== userId) return false;
 
-  // If there's a primary card placeholder, allow creating a new card
-  if (primaryCardPlaceholder) {
-    return true;
-  }
+  const usage = await syncUsage();
+  if (usage) return usage.canCreateCard;
+
+  // Offline or transient failure: fall back to the local count so the UI still
+  // renders something sensible. The write itself is still gated by rules.
+  const userDoc = await getDoc(doc(db!, 'users', userId));
+  const userData = userDoc.data();
+  if (userData?.primaryCardPlaceholder) return true;
 
   const cardCount = await getUserCardCount(userId);
-  const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
-  return cardCount < limit;
+  return cardCount < (userData?.isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT);
 }
 
+/**
+ * Browser-side variant, kept for in-app use. Server code must use
+ * `syncCardActiveStatus` in `lib/adminCards.ts` — the browser SDK cannot
+ * authenticate from an API route.
+ */
 export async function updateCardActiveStatus(userId: string, isPro: boolean) {
   if (!db) throw new Error('Firestore is not initialized');
 

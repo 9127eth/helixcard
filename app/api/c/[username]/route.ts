@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/app/lib/firebase-admin';
-import { BusinessCard } from '@/app/types';
+import { toPublicCard } from '@/app/lib/publicCard';
+import { resolveUsername } from '@/app/lib/usernames';
 
 export async function GET(
   request: NextRequest,
@@ -9,19 +10,18 @@ export async function GET(
   const { username } = await params;
 
   try {
-    // Find user by username
-    const userQuery = db.collection('users').where('username', '==', username);
-    const userSnapshot = await userQuery.get();
+    // Handles resolve through the reservation registry, so a duplicate
+    // `username` field can no longer hijack somebody else's public link.
+    const userId = await resolveUsername(username);
 
-    if (userSnapshot.empty) {
+    if (!userId) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const userDoc = userSnapshot.docs[0];
-    const userId = userDoc.id;
+    const userDoc = await db.collection('users').doc(userId).get();
     const userData = userDoc.data();
 
-    if (!userData.primaryCardId) {
+    if (!userData?.primaryCardId) {
       return NextResponse.json({ error: 'Primary card not found' }, { status: 404 });
     }
 
@@ -33,18 +33,22 @@ export async function GET(
       return NextResponse.json({ error: 'Primary card not found' }, { status: 404 });
     }
 
-    const cardData = { id: cardDoc.id, ...cardDoc.data() } as BusinessCard;
+    const cardData = cardDoc.data();
+    if (!cardData || cardData.isActive === false) {
+      return NextResponse.json({ error: 'Primary card not found' }, { status: 404 });
+    }
+
+    const isPro = userData.isPro === true;
 
     return NextResponse.json({
       user: {
-        isPro: userData.isPro || false,  // Add this line to include isPro status
+        isPro,
         primaryCardId: userData.primaryCardId,
         primaryCardPlaceholder: userData.primaryCardPlaceholder || false,
       },
-      card: {
-        ...cardData,
-        id: cardDoc.id,
-      },
+      // An explicit DTO: only whitelisted fields leave the server, and every
+      // value that ends up in an href is restricted to http(s).
+      card: toPublicCard(cardDoc.id, cardData, isPro),
     }, { headers: { 'Cache-Control': 'no-store' }, status: 200 });
   } catch (error) {
     console.error('Error fetching primary business card:', error);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification } from 'firebase/auth';
+import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { useAuth } from '../hooks/useAuth';
 
 interface ChangeEmailFormProps {
@@ -21,21 +21,24 @@ export const ChangeEmailForm: React.FC<ChangeEmailFormProps> = ({ onClose }) => 
     setError(null);
 
     try {
-      // Check if the user's current email is verified
-      if (!user.emailVerified) {
-        setError('Please verify your current email address before changing it.');
-        await sendEmailVerification(user);
-        setIsLoading(false);
-        return;
-      }
-
       // Re-authenticate user before requesting email change
       const credential = EmailAuthProvider.credential(user.email!, password);
       await reauthenticateWithCredential(user, credential);
 
-      // Send a verification link to the new address. The account email is only
-      // updated after the user clicks that link.
-      await verifyBeforeUpdateEmail(user, newEmail);
+      const idToken = await user.getIdToken(true);
+      const response = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'emailChange', newEmail }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error || 'Unable to send confirmation email');
+      }
 
       alert(
         `We've sent a verification link to ${newEmail}. Click the link in that email to complete the change. Until then, keep signing in with your current email.`

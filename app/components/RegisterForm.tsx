@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -25,16 +26,65 @@ interface RegisterFormProps {
   onSuccess: () => void;
 }
 
+const inputClassName =
+  'w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white';
+
+function PasswordInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  showPassword,
+  onToggleVisibility,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  showPassword: boolean;
+  onToggleVisibility: () => void;
+}) {
+  return (
+    <div className="relative">
+      <input
+        type={showPassword ? 'text' : 'password'}
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClassName}
+        placeholder={placeholder}
+        required
+      />
+      <button
+        type="button"
+        onClick={onToggleVisibility}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        aria-label={showPassword ? 'Hide password' : 'Show password'}
+      >
+        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
+  );
+}
+
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
     // Validate password complexity
     const passwordError = validatePassword(password);
@@ -71,14 +121,23 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         />
       </div>
       <div className="mb-4">
-        <input
-          type="password"
+        <PasswordInput
           id="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          onChange={setPassword}
           placeholder="Password"
-          required
+          showPassword={showPassword}
+          onToggleVisibility={() => setShowPassword((prev) => !prev)}
+        />
+      </div>
+      <div className="mb-4">
+        <PasswordInput
+          id="confirm-password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          placeholder="Confirm password"
+          showPassword={showConfirmPassword}
+          onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
         />
       </div>
       <div className="mb-4">

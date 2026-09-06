@@ -13,8 +13,16 @@ export const COUPON_GROUPS: Record<string, string> = {
   'MCKiS25': 'mckis-group',
   'NCPA25': 'ncpa-group',
   'UCONN25': 'uconn-apha-asp',
-  'EMPRX25': 'emprx-subscribers'
+  'EMPRX25': 'emprx-subscribers',
+  'CUCOP@%': 'cu-anschutz-skaggs'
 };
+
+// Coupons that attribute a purchase without changing the price
+export const TRACKING_ONLY_COUPONS = new Set(['CUCOP@%']);
+
+export function isTrackingOnlyCoupon(couponCode: string): boolean {
+  return TRACKING_ONLY_COUPONS.has(couponCode);
+}
 
 // Map source parameters to their respective groups
 export const SOURCE_GROUPS: Record<string, string> = {
@@ -24,6 +32,7 @@ export const SOURCE_GROUPS: Record<string, string> = {
   'nhma': 'nhma-members',
   'uconn': 'uconn-apha-asp',
   'emprx': 'emprx-subscribers',
+  'cucop': 'cu-anschutz-skaggs',
   'partner1': 'partner-network-1',
   'partner2': 'partner-network-2',
   'affiliate1': 'affiliate-program-1'

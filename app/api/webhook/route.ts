@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db, auth } from '@/app/lib/firebase-admin';
-import { updateCardActiveStatus } from '@/app/lib/firebaseOperations';
-import { deleteField, FieldValue } from 'firebase/firestore';
+import { syncCardActiveStatus } from '@/app/lib/adminCards';
+import { planForPriceId } from '@/app/lib/stripePrices';
+import { FieldValue } from 'firebase-admin/firestore';
 import { getGroupFromCoupon } from '@/app/utils/groupMapping';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -154,22 +155,25 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   );
 
   if (!firebaseUID) {
-    console.error('No user found for Stripe customer in handleSubscriptionChange', { customerId });
-    return;
+    throw new Error(
+      `No user found for Stripe customer in handleSubscriptionChange: ${customerId}`
+    );
   }
 
-  const isPro = status === 'active';
-  
-  // Determine subscription type based on price ID
-  let subscriptionType = 'monthly'; // default
-  if (subscription.items.data.length > 0) {
-    const priceId = subscription.items.data[0].price.id;
-    if (priceId === 'price_1QKWqI2Mf4JwDdD1NaOiqhhg') {
-      subscriptionType = 'lifetime';
-    } else if (priceId === 'price_1QEfJH2Mf4JwDdD1j2ME28Fw') {
-      subscriptionType = 'yearly';
-    }
+  // Resolve the plan from the price id. Anything that is not one of our own
+  // prices grants nothing — this used to silently fall back to monthly Pro.
+  const priceId = subscription.items.data[0]?.price.id;
+  const subscriptionType = planForPriceId(priceId);
+
+  if (status === 'active' && !subscriptionType) {
+    // Log rather than throw: throwing would make Stripe retry this event
+    // forever. The subscription is still recorded, just without an entitlement.
+    console.error(
+      `Not granting Pro for unrecognised Stripe price ${priceId} (customer ${customerId})`
+    );
   }
+
+  const isPro = status === 'active' && subscriptionType !== null;
 
   // Get coupon information for group assignment
   let group = null;
@@ -204,8 +208,8 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   // Prepare update data
   const updateData: SubscriptionUpdateData = {
     isPro,
-    isProType: isPro ? (subscriptionType as 'monthly' | 'yearly' | 'lifetime') : deleteField(),
-    subscriptionType: isPro ? (subscriptionType as 'monthly' | 'yearly' | 'lifetime') : deleteField(),
+    isProType: isPro && subscriptionType ? subscriptionType : FieldValue.delete(),
+    subscriptionType: isPro && subscriptionType ? subscriptionType : FieldValue.delete(),
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: customerId,
     subscriptionStatus: status,
@@ -224,8 +228,9 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   // Update custom claims
   await auth.setCustomUserClaims(firebaseUID, { isPro });
 
-  // Update card active statuses
-  await updateCardActiveStatus(firebaseUID, isPro);
+  // Update card active statuses (Admin SDK — the previous helper used the
+  // browser SDK, which cannot authenticate here and so never applied).
+  await syncCardActiveStatus(firebaseUID, isPro);
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
@@ -237,41 +242,82 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 
   const firebaseUID = await resolveFirebaseUID(customerId);
   if (!firebaseUID) {
-    console.error('No user found for Stripe customer in handleInvoicePaid', { customerId });
+    throw new Error(
+      `No user found for Stripe customer in handleInvoicePaid: ${customerId}`
+    );
+  }
+
+  if (!invoice.subscription) return;
+
+  // Any line billing one of our prices is enough; proration and credit lines
+  // are not guaranteed to come first.
+  const billsAKnownPlan = invoice.lines.data.some(
+    (line: Stripe.InvoiceLineItem) => planForPriceId(line.price?.id) !== null
+  );
+
+  if (!billsAKnownPlan) {
+    console.error(
+      `Ignoring paid invoice with no recognised Stripe price (customer ${customerId})`
+    );
     return;
   }
 
-  if (invoice.subscription) {
-    await db.collection('users').doc(firebaseUID).update({
-      isPro: true,
-    });
+  await db.collection('users').doc(firebaseUID).update({
+    isPro: true,
+  });
 
-    await auth.setCustomUserClaims(firebaseUID, { isPro: true });
-  }
+  await auth.setCustomUserClaims(firebaseUID, { isPro: true });
+  await syncCardActiveStatus(firebaseUID, true);
 }
 
 async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
 
-  const userQuerySnapshot = await db.collection('users')
-    .where('stripeCustomerId', '==', customerId)
-    .limit(1)
-    .get();
+  const firebaseUID = await resolveFirebaseUID(
+    customerId,
+    subscription.metadata?.firebaseUID
+  );
+  if (!firebaseUID) {
+    throw new Error(
+      `No user found for Stripe customer in handleSubscriptionCancellation: ${customerId}`
+    );
+  }
 
-  if (userQuerySnapshot.empty) {
-    console.error('No user found for cancelled subscription');
+  const userRef = db.collection('users').doc(firebaseUID);
+  const userData = (await userRef.get()).data();
+
+  // A lifetime purchase is not a subscription and must survive the
+  // cancellation of any recurring plan.
+  if (userData?.lifetimePurchase === true) {
+    if (userData?.stripeSubscriptionId === subscription.id) {
+      await userRef.update({ stripeSubscriptionId: null, subscriptionStatus: 'canceled' });
+    }
     return;
   }
 
-  const userDoc = userQuerySnapshot.docs[0];
-  const uid = userDoc.id;
-
-  await db.collection('users').doc(uid).update({
-    isPro: false,
-    stripeSubscriptionId: null,
+  // Cancellation used to revoke Pro from whatever id happened to be stored last.
+  // Check Stripe for any other live subscription on this customer first.
+  const remaining = await stripe.subscriptions.list({
+    customer: customerId,
+    status: 'active',
+    limit: 100,
   });
 
-  await auth.setCustomUserClaims(uid, { isPro: false });
+  const stillActive = remaining.data.some(
+    (item: Stripe.Subscription) => item.id !== subscription.id
+  );
+
+  await userRef.update({
+    isPro: stillActive,
+    subscriptionStatus: stillActive ? 'active' : 'canceled',
+    subscriptionUpdatedAt: new Date(),
+    ...(userData?.stripeSubscriptionId === subscription.id && !stillActive
+      ? { stripeSubscriptionId: null }
+      : {}),
+  });
+
+  await auth.setCustomUserClaims(firebaseUID, { isPro: stillActive });
+  await syncCardActiveStatus(firebaseUID, stillActive);
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
@@ -326,6 +372,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   try {
     await db.collection('users').doc(firebaseUID).update(updateData as unknown as { [key: string]: unknown });
     await auth.setCustomUserClaims(firebaseUID, { isPro: true });
+    await syncCardActiveStatus(firebaseUID, true);
 
     // Record coupon redemption if a coupon was used
     if (couponUsed) {
@@ -349,5 +396,6 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     }
   } catch (error) {
     console.error('Error updating user after payment intent succeeded:', error);
+    throw error;
   }
 }

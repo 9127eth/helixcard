@@ -285,9 +285,43 @@ h3 .business-card-form {
   letter-spacing: theme('letterSpacing.normal');
 }
 
-.phone-input-custom input {
-  background-color: var(--phone-input-bg) !important;
-  color: var(--phone-input-text) !important;
+/* Phone field in the card editor: the wrapper carries the input styling, the
+   library's inner input is reset so it blends in and the focus ring shows on
+   the wrapper. */
+.phone-input-custom {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.phone-input-custom .PhoneInputInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.phone-input-custom .PhoneInputInput::placeholder {
+  color: #9ca3af;
+}
+
+.dark .phone-input-custom .PhoneInputInput::placeholder {
+  color: #6b7280;
+}
+
+.phone-input-custom:focus-within {
+  border-color: #7CCEDA;
+  box-shadow: 0 0 0 4px rgba(124, 206, 218, 0.25);
+}
+
+.phone-input-custom .PhoneInputCountrySelect {
+  background-color: var(--phone-input-bg);
+  color: var(--phone-input-text);
 }
 
 .phone-input-custom .country-list {
@@ -333,6 +367,244 @@ h3 .business-card-form {
   --save-contact-button-text: #ffffff;
   --header-footer-secondary-text: #b9bbbe;
   --end-card-bg: #323338;
+}
+
+/* ============================================================
+   Card designs (sunset / forest / editorial / aurora / neon / ocean)
+   Each design is self-contained: it sets every CSS variable the
+   public card display consumes, and keeps its own look regardless
+   of the viewer's light/dark preference. Designs are static;
+   motion lives in the card effects further below.
+   ============================================================ */
+
+.theme-sunset {
+  background: linear-gradient(165deg, #FFF6EC 0%, #FFE4D6 35%, #FFC9B8 70%, #F8A98F 100%);
+  color: #43302B;
+  --card-header-bg: rgba(255, 255, 255, 0.35);
+  --end-card-bg: rgba(255, 255, 255, 0.25);
+  --header-footer-primary-text: #3B2A25;
+  --header-footer-secondary-text: #7A5A4F;
+  --end-card-header-secondary-text-color: #8A6355;
+  --save-contact-button-bg: #C2410C;
+  --save-contact-button-text: #FFF7ED;
+  --link-icon-color: #C2410C;
+  --link-text-color: #5C4033;
+  --social-tile-bg: rgba(255, 255, 255, 0.65);
+  --social-tile-border: rgba(194, 65, 12, 0.25);
+  --social-icon-color: #9A3412;
+  --social-text-color: #5C4033;
+}
+
+.theme-forest {
+  background: linear-gradient(180deg, #101F18 0%, #16281F 55%, #1C3327 100%);
+  color: #E4EDE2;
+  --card-header-bg: rgba(0, 0, 0, 0.25);
+  --end-card-bg: rgba(0, 0, 0, 0.2);
+  --header-footer-primary-text: #F1F6EE;
+  --header-footer-secondary-text: #A9BCA7;
+  --end-card-header-secondary-text-color: #9FB49D;
+  --save-contact-button-bg: #D9B45B;
+  --save-contact-button-text: #1A2B21;
+  --link-icon-color: #D9B45B;
+  --link-text-color: #DCE7D9;
+  --social-tile-bg: rgba(255, 255, 255, 0.08);
+  --social-tile-border: rgba(217, 180, 91, 0.35);
+  --social-icon-color: #E9D8A6;
+  --social-text-color: #C9D8C5;
+}
+
+.theme-editorial {
+  background: #F7F3EA;
+  color: #1A1712;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  --card-header-bg: #F1EBDE;
+  --end-card-bg: #EFE9DC;
+  --header-footer-primary-text: #14110C;
+  --header-footer-secondary-text: #6B6353;
+  --end-card-header-secondary-text-color: #8A7F6A;
+  --save-contact-button-bg: #14110C;
+  --save-contact-button-text: #F7F3EA;
+  --link-icon-color: #B3261E;
+  --link-text-color: #1A1712;
+  --social-tile-bg: #FFFDF7;
+  --social-tile-border: #1A1712;
+  --social-icon-color: #14110C;
+  --social-text-color: #3D372C;
+}
+
+.theme-aurora {
+  background: linear-gradient(130deg, #0B1026, #123A4E, #0F4D3C, #241B4E, #3B1F5E, #0B1026);
+  color: #E6EEFB;
+  --card-header-bg: rgba(10, 14, 34, 0.35);
+  --end-card-bg: rgba(10, 14, 34, 0.35);
+  --header-footer-primary-text: #F2F6FF;
+  --header-footer-secondary-text: #A9B8D8;
+  --end-card-header-secondary-text-color: #9FB3D1;
+  --save-contact-button-bg: #7FF0C3;
+  --save-contact-button-text: #0B1026;
+  --link-icon-color: #7FF0C3;
+  --link-text-color: #DCE6F7;
+  --social-tile-bg: rgba(255, 255, 255, 0.1);
+  --social-tile-border: rgba(127, 240, 195, 0.35);
+  --social-icon-color: #CFF9E8;
+  --social-text-color: #C4D2E8;
+}
+
+.theme-neon {
+  position: relative;
+  isolation: isolate;
+  background: #0A0A12;
+  color: #E8E8F0;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --card-header-bg: rgba(255, 255, 255, 0.03);
+  --end-card-bg: rgba(255, 255, 255, 0.03);
+  --header-footer-primary-text: #F4F4FA;
+  --header-footer-secondary-text: #8B90A8;
+  --end-card-header-secondary-text-color: #9BA0B8;
+  --save-contact-button-bg: #22D3EE;
+  --save-contact-button-text: #0A0A12;
+  --link-icon-color: #F472B6;
+  --link-text-color: #D6D9E8;
+  --social-tile-bg: rgba(34, 211, 238, 0.08);
+  --social-tile-border: rgba(34, 211, 238, 0.4);
+  --social-icon-color: #67E8F9;
+  --social-text-color: #C7CBDC;
+}
+
+.theme-neon::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(600px circle at 15% 10%, rgba(244, 114, 182, 0.16), transparent 60%),
+    radial-gradient(700px circle at 85% 85%, rgba(34, 211, 238, 0.14), transparent 60%);
+}
+
+.theme-ocean {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, #E7F8FA 0%, #D4EEF7 60%, #C4E4F2 100%);
+  color: #10394A;
+  --card-header-bg: rgba(255, 255, 255, 0.45);
+  --end-card-bg: rgba(255, 255, 255, 0.4);
+  --header-footer-primary-text: #0C2F3E;
+  --header-footer-secondary-text: #48707F;
+  --end-card-header-secondary-text-color: #4E7A8A;
+  --save-contact-button-bg: #0E7490;
+  --save-contact-button-text: #F0FBFF;
+  --link-icon-color: #0E7490;
+  --link-text-color: #175366;
+  --social-tile-bg: rgba(255, 255, 255, 0.75);
+  --social-tile-border: rgba(14, 116, 144, 0.25);
+  --social-icon-color: #0E7490;
+  --social-text-color: #175366;
+}
+
+.theme-ocean::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(380px circle at 25% 25%, rgba(45, 212, 191, 0.35), transparent 65%),
+    radial-gradient(460px circle at 75% 65%, rgba(59, 130, 246, 0.25), transparent 65%),
+    radial-gradient(320px circle at 55% 90%, rgba(14, 165, 233, 0.3), transparent 65%);
+  filter: blur(40px);
+}
+
+/* The card editor's live preview renders the card inside a phone frame;
+   hide desktop scrollbars there so it reads like a real phone screen. */
+.helix-preview-frame {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.helix-preview-frame::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom colors replace preset decoration with one solid background. */
+.custom-card-colors::before {
+  display: none;
+}
+
+.custom-card-colors button svg {
+  color: var(--link-icon-color);
+}
+
+/* ============================================================
+   Card effects (interaction layer, independent of the design)
+   Portal and Stardust are canvas-driven; Holographic is CSS
+   driven by --tilt-x / --tilt-y (-1..1) that HoloEffect updates.
+   ============================================================ */
+
+@keyframes fx-hint-in {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.fx-hint {
+  animation: fx-hint-in 0.45s ease-out both;
+}
+
+/* Portal: the page container sits above a canvas placed behind it (z 0) and
+   gets a clip-path hole cut into it while the portal is open. */
+.fx-portal-host {
+  position: relative;
+  z-index: 1;
+}
+
+.fx-holo {
+  --tilt-x: 0;
+  --tilt-y: 0;
+}
+
+.fx-holo [data-fx="tilt"] {
+  transform: perspective(1100px) rotateX(calc(var(--tilt-y) * -4deg)) rotateY(calc(var(--tilt-x) * 6deg)) scale(0.985);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.fx-holo [data-fx="avatar"] {
+  transform: translate3d(calc(var(--tilt-x) * -8px), calc(var(--tilt-y) * -8px), 0);
+  box-shadow: calc(var(--tilt-x) * 10px) calc(var(--tilt-y) * 10px) 24px rgba(0, 0, 0, 0.25);
+  will-change: transform;
+}
+
+.fx-holo-sheen {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background-size: 260% 260%, 320% 320%;
+  background-position:
+    calc(50% + var(--tilt-x) * 55%) calc(50% + var(--tilt-y) * 55%),
+    calc(50% - var(--tilt-x) * 40%) calc(50% - var(--tilt-y) * 40%);
+}
+
+/* Light surfaces: rainbow bands multiply in like foil on paper */
+.fx-holo[data-fx-surface="light"] .fx-holo-sheen {
+  background-image:
+    linear-gradient(115deg, transparent 38%, rgba(0, 0, 0, 0.05) 46%, transparent 54%),
+    linear-gradient(115deg,
+      rgba(255, 0, 128, 0.22), rgba(255, 170, 0, 0.22), rgba(0, 220, 150, 0.22),
+      rgba(0, 140, 255, 0.22), rgba(170, 0, 255, 0.22), rgba(255, 0, 128, 0.22));
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+}
+
+/* Dark surfaces: bands and a glint screen on top like light across foil */
+.fx-holo[data-fx-surface="dark"] .fx-holo-sheen {
+  background-image:
+    linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.16) 46%, transparent 54%),
+    linear-gradient(115deg,
+      rgba(255, 0, 128, 0.2), rgba(255, 170, 0, 0.2), rgba(0, 220, 150, 0.2),
+      rgba(0, 140, 255, 0.2), rgba(170, 0, 255, 0.2), rgba(255, 0, 128, 0.2));
+  mix-blend-mode: screen;
+  opacity: 0.75;
 }
 
 @keyframes pulse-border {

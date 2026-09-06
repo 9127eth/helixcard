@@ -5,6 +5,7 @@ import {
   getDocs,
   getDoc,
   addDoc,
+  increment,
   updateDoc,
   deleteDoc,
   query,
@@ -17,6 +18,8 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import { v4 as uuidv4 } from 'uuid';
 import { Contact, Tag } from '@/app/types';
 import { FREE_USER_CONTACT_LIMIT } from './constants';
+import { auth } from './firebase';
+import { refreshUsageAfterDelete, syncUsage } from './usageClient';
 
 // Create a new contact
 export async function createContact(userId: string, contactData: Partial<Contact>) {
@@ -45,8 +48,25 @@ export async function createContact(userId: string, contactData: Partial<Contact
     tags: contactData.tags || []
   };
 
-  const docRef = await addDoc(contactsRef, newContact);
-  
+  // The server owns the entitlement decision and seeds the counter that the
+  // Firestore rule checks this create against.
+  const usage = await syncUsage();
+  if (usage && !usage.canCreateContact) {
+    throw new Error(
+      usage.isPro
+        ? `You have reached the ${usage.contactLimit} contact limit for your plan.`
+        : 'Upgrade to Helix Pro to save more contacts.'
+    );
+  }
+
+  // The rule requires the +1 on the owner document to be part of the same batch
+  // as the contact itself, so a create always pays for its quota.
+  const docRef = doc(contactsRef);
+  const batch = writeBatch(db);
+  batch.set(docRef, newContact);
+  batch.update(doc(db, 'users', userId), { contactCount: increment(1) });
+  await batch.commit();
+
   // Create a properly typed contact object for return
   const createdContact: Contact = {
     id: docRef.id,
@@ -108,6 +128,9 @@ export async function deleteContact(userId: string, contactId: string) {
   }
   
   await deleteDoc(contactRef);
+
+  // Clients can never lower their own counter; the server recount does it.
+  refreshUsageAfterDelete();
 }
 
 // Get all contacts for a user
@@ -199,6 +222,8 @@ export async function batchDeleteContacts(userId: string, contactIds: string[]) 
   }
   
   await batch.commit();
+
+  refreshUsageAfterDelete();
 }
 
 export async function batchUpdateContactTags(
@@ -299,15 +324,28 @@ export async function updateTag(userId: string, tagId: string, updates: Partial<
   await updateDoc(tagRef, updates);
 }
 
+/**
+ * Ask the server whether another contact may be saved.
+ *
+ * Counting in the browser was advisory only — anyone could skip it. The answer
+ * now comes from `/api/usage`, which also writes the counter that Firestore
+ * rules check the create against.
+ */
 export async function canCreateContact(userId: string) {
+  if (auth?.currentUser?.uid !== userId) return false;
+
+  const usage = await syncUsage();
+  if (usage) return usage.canCreateContact;
+
+  // Transient failure: fall back to the local count for the UI only.
   if (!db) throw new Error('Firestore is not initialized');
-  
+
   const userDoc = await getDoc(doc(db, 'users', userId));
   const isPro = userDoc.data()?.isPro || false;
-  
+
   const contactsRef = collection(db, 'users', userId, 'contacts');
   const contactsSnapshot = await getDocs(contactsRef);
   const contactCount = contactsSnapshot.size;
-  
+
   return isPro || contactCount < FREE_USER_CONTACT_LIMIT;
 }

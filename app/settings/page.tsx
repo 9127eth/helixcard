@@ -11,7 +11,6 @@ import { User, CreditCard, Settings as SettingsIcon, AlertTriangle, Mail } from 
 import { FaApple } from 'react-icons/fa';
 import { ChangeEmailForm } from '../components/ChangeEmailForm';
 import { ChangePasswordForm } from '../components/ChangePasswordForm';
-import { sendEmailVerification } from 'firebase/auth';
 import { User as FirebaseUser } from 'firebase/auth';
 
 interface SubscriptionData {
@@ -34,7 +33,19 @@ const EmailVerificationWarning: React.FC<{ user: FirebaseUser | null }> = ({ use
     
     try {
       setIsSending(true);
-      await sendEmailVerification(user);
+      const idToken = await user.getIdToken();
+      const response = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'verification' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Verification email request failed (${response.status})`);
+      }
       alert('Verification email sent successfully. Please check your inbox.');
     } catch (error: unknown) {
       console.error('Error sending verification email:', error);

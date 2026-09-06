@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { RegisterForm } from './RegisterForm';
 import { LoginForm } from './LoginForm';
 import { useAuth } from '../hooks/useAuth';
-import { signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { getAdditionalUserInfo, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
@@ -29,6 +29,28 @@ export const AuthModal: React.FC = () => {
     // No need to redirect, the home page will handle it
   };
 
+  const sendWelcomeEmail = async (user: NonNullable<typeof auth>['currentUser']) => {
+    if (!user) return;
+
+    try {
+      const idToken = await user.getIdToken();
+      const response = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'welcome' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Welcome email request failed (${response.status})`);
+      }
+    } catch (emailError) {
+      console.error('Unable to send welcome email:', emailError);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -43,6 +65,10 @@ export const AuthModal: React.FC = () => {
 
       // Create user document with device info
       await createUserDocument(result.user, deviceInfo);
+
+      if (getAdditionalUserInfo(result)?.isNewUser) {
+        await sendWelcomeEmail(result.user);
+      }
 
       handleSuccess();
     } catch (error) {
@@ -65,6 +91,10 @@ export const AuthModal: React.FC = () => {
 
       // Create user document with device info
       await createUserDocument(result.user, deviceInfo);
+
+      if (getAdditionalUserInfo(result)?.isNewUser) {
+        await sendWelcomeEmail(result.user);
+      }
 
       handleSuccess();
     } catch (error) {
