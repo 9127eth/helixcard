@@ -1205,7 +1205,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
           {/* Effects */}
           <fieldset className="space-y-3">
-            <legend className={legendClass}>Effect</legend>
+            <legend className={legendClass}>Special Effects</legend>
             <p className="text-sm text-gray-600 dark:text-gray-400">Try effects in the live preview. Portal · The Grid and Repel are free.</p>
             {!isPro && isProCardEffect(formData.effect || DEFAULT_CARD_EFFECT) && (
               <p className="flex items-start gap-2 rounded-xl border border-amber-300/60 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">

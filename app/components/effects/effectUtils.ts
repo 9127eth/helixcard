@@ -1,4 +1,4 @@
-export type RGB = [number, number, number];
+export type RGB = readonly [number, number, number];
 
 /** Parses `#rgb`, `#rrggbb`, `rgb()` / `rgba()` strings. Alpha is ignored. */
 export function parseColor(input: string, fallback: RGB): RGB {
