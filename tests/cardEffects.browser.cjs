@@ -42,6 +42,18 @@ const card = {
     const shot = async name => { if (screenshots) { fs.mkdirSync(screenshots, { recursive: true }); await page.screenshot({ path: `${screenshots}/${name}.png` }); } };
     const hidden = () => frame.locator('[data-fx-content]').evaluate(el => getComputedStyle(el).visibility === 'hidden' && el.inert);
 
+    // Hold-driven effects own long presses on mobile. Their text cannot enter
+    // native selection, while contact links stay selectable/copyable and an
+    // early finger move remains available to native scrolling.
+    for (const effect of ['portal', 'portal-grid', 'black-hole', 'glitch', 'scramble', 'repel', 'shatter']) {
+      await update(effect);
+      assert.equal(await host().evaluate(el => getComputedStyle(el).userSelect), 'none', `${effect} suppresses mobile text selection`);
+      assert.notEqual(await host().evaluate(el => getComputedStyle(el).touchAction), 'none', `${effect} preserves native scrolling`);
+      assert.equal(await frame.locator('a').first().evaluate(el => getComputedStyle(el).userSelect), 'text', `${effect} preserves link selection`);
+    }
+    await update('ripple');
+    assert.notEqual(await host().evaluate(el => getComputedStyle(el).userSelect), 'none', 'non-hold effects keep normal text selection');
+
     await update('glitch'); await shot('glitch');
     const name = await frame.locator('h1').boundingBox();
     const nameText = await frame.locator('h1').innerText();

@@ -590,6 +590,43 @@ h3 .business-card-form {
 
 /* Tactile card effects. All overlays sit below the existing dialogs. */
 [data-card-effect] { position: relative; }
+
+/* Mobile Safari can commit to native text selection before a hold-driven
+   effect's pointer handler has time to apply its temporary inline lock. Keep
+   those gesture surfaces non-selectable from the outset on touch-first
+   devices. Links and editable controls remain native so contact details can
+   still be copied and link callouts still work. This does not set
+   `touch-action`, so an early move can continue to become a page scroll. */
+@media (hover: none) and (pointer: coarse) {
+  :is(
+    [data-card-effect="portal"],
+    [data-card-effect="portal-grid"],
+    [data-card-effect="black-hole"],
+    [data-card-effect="glitch"],
+    [data-card-effect="scramble"],
+    [data-card-effect="repel"],
+    [data-card-effect="shatter"]
+  ) {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  :is(
+    [data-card-effect="portal"],
+    [data-card-effect="portal-grid"],
+    [data-card-effect="black-hole"],
+    [data-card-effect="glitch"],
+    [data-card-effect="scramble"],
+    [data-card-effect="repel"],
+    [data-card-effect="shatter"]
+  ) :is(a, input, textarea, select, [contenteditable="true"]) {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+}
+
 .fx-surface-canvas { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
 .fx-motion-off { display: none !important; }
 [data-card-effect="lantern-reveal"]:not([data-fx-revealed="true"]) > [data-fx-content],

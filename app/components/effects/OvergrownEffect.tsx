@@ -17,7 +17,6 @@ const FALL = [
   [214, 168, 52],
 ] as const;
 const STEM = [72, 42, 24] as const;
-const CANOPY = [32, 20, 12] as const;
 const REACH = 120;
 
 export default function OvergrownEffect({ host }: { host: EffectHost }) {
@@ -113,18 +112,6 @@ export default function OvergrownEffect({ host }: { host: EffectHost }) {
           else flying = true;
         }
         ctx.clearRect(0, 0, w, h);
-        if (remaining) {
-          ctx.fillStyle = rgba(CANOPY, 1); ctx.fillRect(0, 0, w, h);
-          ctx.globalCompositeOperation = 'destination-out';
-          for (const leaf of leaves) {
-            if (!leaf.swept) continue;
-            const radius = hole(leaf);
-            const gradient = ctx.createRadialGradient(leaf.x, leaf.y, radius * 0.35, leaf.x, leaf.y, radius);
-            gradient.addColorStop(0, 'rgba(0,0,0,1)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = gradient; ctx.fillRect(leaf.x - radius, leaf.y - radius, radius * 2, radius * 2);
-          }
-          ctx.globalCompositeOperation = 'source-over';
-        }
         for (const leaf of leaves) if (!leaf.gone) drawLeaf(leaf, now);
         if (!remaining && !flying) { raf = 0; return; }
       }
