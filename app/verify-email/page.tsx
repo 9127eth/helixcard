@@ -19,22 +19,41 @@ function VerifyEmailContent() {
     if (hasAppliedCode.current) return;
     hasAppliedCode.current = true;
 
-    if (!auth || !code) {
+    const firebaseAuth = auth;
+    if (!firebaseAuth || !code) {
       setStatus('error');
       return;
     }
 
-    applyActionCode(auth, code)
-      .then(() => {
-        if (auth?.currentUser) {
-          return auth.currentUser.reload();
+    const applyCode = async () => {
+      try {
+        await applyActionCode(firebaseAuth, code);
+
+        if (firebaseAuth.currentUser) {
+          await firebaseAuth.currentUser.reload();
+          const idToken = await firebaseAuth.currentUser.getIdToken(true);
+          const response = await fetch('/api/auth/email', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ type: 'sync' }),
+          });
+
+          if (!response.ok) {
+            console.error('Email changed, but account metadata could not be synchronized');
+          }
         }
-      })
-      .then(() => setStatus('success'))
-      .catch(error => {
+
+        setStatus('success');
+      } catch (error) {
         console.error('Email verification failed:', error);
         setStatus('error');
-      });
+      }
+    };
+
+    void applyCode();
   }, [searchParams]);
 
   return (

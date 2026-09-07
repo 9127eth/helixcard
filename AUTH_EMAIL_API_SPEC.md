@@ -42,6 +42,7 @@ POST https://www.helixcard.app/api/auth/email
 | `welcome`       | Yes           | `Authorization: Bearer <Firebase ID token>` |
 | `verification`  | Yes           | `Authorization: Bearer <Firebase ID token>` |
 | `emailChange`   | Yes           | `Authorization: Bearer <Firebase ID token>` |
+| `sync`          | Yes           | `Authorization: Bearer <Firebase ID token>` |
 | `passwordReset` | No            | none |
 
 The token must belong to the user who just signed up (or the signed-in user
@@ -156,6 +157,11 @@ The user must have signed in (or reauthenticated) within the last **5 minutes**,
 or the API returns **401**. Web reauthenticates with the current password first,
 then sends a **fresh** ID token (`getIdToken(true)`).
 
+After Firebase applies the email-change action code, reload the Firebase user,
+force-refresh its ID token, and send `{ "type": "sync" }`. The server derives the
+new address from Firebase Auth and synchronizes the Firestore user record and any
+linked Stripe customer. This request does not use Resend.
+
 ---
 
 ## Error responses
@@ -164,6 +170,7 @@ then sends a **fresh** ID token (`getIdToken(true)`).
 |--------|------|
 | 400 | Invalid `type`, or invalid `email` / `newEmail` |
 | 401 | Missing/invalid Firebase token, or email-change session is older than 5 minutes |
+| 409 | The requested new email is already attached to another Firebase account |
 | 429 | More than 8 requests from the same IP in 15 minutes |
 | 500 | Send failed (Resend or unexpected server error) |
 | 503 | `RESEND_API_KEY` is not configured in that environment |

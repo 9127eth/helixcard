@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useSyncExternalStore } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X as XIcon } from 'react-feather';
 import type { BusinessCard } from '../types';
+import CardPreviewFrame from './CardPreviewFrame';
 
 const LARGE_SCREEN_QUERY = '(min-width: 1024px)';
 
@@ -35,27 +36,8 @@ interface LiveCardPreviewProps {
 }
 
 export default function LiveCardPreview({ card, isPro, mobileOpen = false, onMobileClose }: LiveCardPreviewProps) {
-  const frame = useRef<HTMLIFrameElement>(null);
-  const [ready, setReady] = useState(0);
   const isLarge = useIsLargeScreen();
   const sheetOpen = !isLarge && mobileOpen;
-
-  useEffect(() => {
-    const receive = (event: MessageEvent) => {
-      if (event.origin === window.location.origin && event.source === frame.current?.contentWindow && event.data?.type === 'helix-preview-ready') {
-        setReady(count => count + 1);
-      }
-    };
-    window.addEventListener('message', receive);
-    return () => window.removeEventListener('message', receive);
-  }, []);
-
-  useEffect(() => {
-    if (ready) {
-      // Send only serializable card data; drafts never go to a card URL or Firestore.
-      frame.current?.contentWindow?.postMessage({ type: 'helix-preview-update', card, isPro }, window.location.origin);
-    }
-  }, [card, isPro, ready]);
 
   // While the sheet is open: lock page scroll and close on Escape.
   useEffect(() => {
@@ -71,19 +53,6 @@ export default function LiveCardPreview({ card, isPro, mobileOpen = false, onMob
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [sheetOpen, onMobileClose]);
-
-  const renderFrame = (className: string) => (
-    <iframe
-      ref={frame}
-      src="/card-preview"
-      title="Unsaved card preview"
-      className={className}
-      onLoad={() => {
-        // A ready/request handshake also covers an iframe reload or cached load.
-        frame.current?.contentWindow?.postMessage({ type: 'helix-preview-request' }, window.location.origin);
-      }}
-    />
-  );
 
   if (isLarge) {
     return (
@@ -103,15 +72,7 @@ export default function LiveCardPreview({ card, isPro, mobileOpen = false, onMob
         </div>
 
         {/* Phone frame */}
-        <div className="relative mx-auto w-full max-w-[380px] rounded-[2.4rem] bg-gray-950 p-[10px] shadow-[0_30px_60px_-24px_rgba(0,0,0,0.5)] ring-1 ring-black/10 dark:bg-black dark:ring-white/10">
-          <span aria-hidden className="absolute -left-[3px] top-24 h-7 w-[3px] rounded-l-full bg-gray-700" />
-          <span aria-hidden className="absolute -left-[3px] top-36 h-12 w-[3px] rounded-l-full bg-gray-700" />
-          <span aria-hidden className="absolute -left-[3px] top-[13rem] h-12 w-[3px] rounded-l-full bg-gray-700" />
-          <span aria-hidden className="absolute -right-[3px] top-32 h-16 w-[3px] rounded-r-full bg-gray-700" />
-          <div className="overflow-hidden rounded-[1.8rem] bg-white">
-            {renderFrame('block h-[min(720px,calc(100vh-10rem))] w-full border-0 bg-white')}
-          </div>
-        </div>
+        <CardPreviewFrame card={card} isPro={isPro} title="Unsaved card preview" screenClassName="h-[min(720px,calc(100vh-10rem))]" />
       </aside>
     );
   }
@@ -159,7 +120,7 @@ export default function LiveCardPreview({ card, isPro, mobileOpen = false, onMob
               </button>
             </div>
             <div className="min-h-0 flex-1 bg-white">
-              {renderFrame('block h-full w-full border-0 bg-white')}
+              <CardPreviewFrame card={card} isPro={isPro} title="Unsaved card preview" frame="none" className="h-full" onEscape={onMobileClose} />
             </div>
           </motion.div>
         </motion.div>

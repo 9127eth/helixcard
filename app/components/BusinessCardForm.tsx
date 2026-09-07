@@ -277,21 +277,25 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         setIsSubmitting(false);
         return;
       }
+      let uploadedImageUrl: string | null = null;
       try {
         const updatedCardData = { ...formData, cv: cvFile || undefined };
         if (imageFile) {
-          if (formData.imageUrl) {
-            await deleteImage(user.uid, formData.imageUrl);
-          }
-          const uploadedImageUrl = await uploadImage(user.uid, imageFile);
+          uploadedImageUrl = await uploadImage(user.uid, imageFile);
           updatedCardData.imageUrl = uploadedImageUrl;
         } else if (imageToDelete) {
-          await deleteImage(user.uid, imageToDelete);
           updatedCardData.imageUrl = '';
         }
+
         await onSuccess(updatedCardData);
+
         setImageToDelete(null); // Reset the imageToDelete state
       } catch (error) {
+        if (uploadedImageUrl) {
+          await deleteImage(user.uid, uploadedImageUrl).catch(cleanupError => {
+            console.error('Unable to clean up failed profile image upload:', cleanupError);
+          });
+        }
         console.error('Error saving business card:', error);
         setError(error instanceof Error ? error.message : 'Failed to save business card. Please try again.');
       } finally {

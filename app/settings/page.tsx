@@ -55,7 +55,8 @@ const EmailVerificationWarning: React.FC<{ user: FirebaseUser | null }> = ({ use
     }
   };
 
-  if (!user || user.emailVerified || user.providerData[0]?.providerId !== 'password') {
+  const usesPassword = user?.providerData.some(provider => provider.providerId === 'password');
+  if (!user || user.emailVerified || !usesPassword) {
     return null;
   }
 
@@ -95,6 +96,7 @@ const SettingsPage: React.FC = () => {
   });
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const usesPassword = user?.providerData.some(provider => provider.providerId === 'password') === true;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -236,7 +238,7 @@ const SettingsPage: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {authProvider.providerId === 'password' && (
+              {usesPassword && (
                 <>
                   <button 
                     onClick={() => setShowEmailForm(true)}

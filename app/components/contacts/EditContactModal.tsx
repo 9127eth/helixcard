@@ -124,6 +124,7 @@ export default function EditContactModal({
     if (!user) return
 
     setIsSubmitting(true)
+    let uploadedImageUrl: string | null = null
     try {
       let formattedPhone = data.phone
       if (data.phone) {
@@ -136,15 +137,12 @@ export default function EditContactModal({
       // Handle image updates
       let newImageUrl = contact.imageUrl
 
-      // Delete old image if marked for deletion
-      if (imageToDelete) {
-        await deleteImage(imageToDelete)
-        newImageUrl = ''
-      }
+      if (imageToDelete) newImageUrl = ''
 
       // Upload new image if provided
       if (imageFile) {
-        newImageUrl = await uploadContactImage(user.uid, contact.id, imageFile)
+        uploadedImageUrl = await uploadContactImage(user.uid, contact.id, imageFile)
+        newImageUrl = uploadedImageUrl
       }
 
       const updates: Partial<Contact> = {
@@ -164,9 +162,24 @@ export default function EditContactModal({
       }
 
       await updateContact(user.uid, contact.id, updates)
+
+      // The contact now points at the replacement (or at no image), so the old
+      // object is safe to remove. Cleanup failure must not undo a successful save.
+      const oldImageUrl = imageToDelete || (imageFile ? contact.imageUrl : null)
+      if (oldImageUrl && oldImageUrl !== newImageUrl) {
+        await deleteImage(oldImageUrl).catch(error => {
+          console.error('Unable to clean up replaced contact image:', error)
+        })
+      }
+
       onSuccess?.({ ...contact, ...updates })
       onClose()
     } catch (error) {
+      if (uploadedImageUrl) {
+        await deleteImage(uploadedImageUrl).catch(cleanupError => {
+          console.error('Unable to clean up failed contact image upload:', cleanupError)
+        })
+      }
       console.error('Error updating contact:', error)
       // TODO: Show error toast
     } finally {

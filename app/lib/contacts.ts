@@ -21,6 +21,39 @@ import { FREE_USER_CONTACT_LIMIT } from './constants';
 import { auth } from './firebase';
 import { refreshUsageAfterDelete, syncUsage } from './usageClient';
 
+function contactImageExtension(file: File): string {
+  const subtype = file.type.split('/')[1]?.toLowerCase();
+  if (subtype === 'jpeg') return 'jpg';
+  return ['png', 'gif', 'webp', 'jpg'].includes(subtype) ? subtype : 'jpg';
+}
+
+async function deleteStorageObjectBestEffort(imageUrl: string, context: string) {
+  if (!storage || !imageUrl) return;
+
+  try {
+    await deleteObject(ref(storage, imageUrl));
+  } catch (error) {
+    // The Firestore write has already succeeded. Leaving an orphan for a later
+    // cleanup is preferable to reporting that the user's save/delete failed.
+    console.error(`Unable to clean up ${context}:`, error);
+  }
+}
+
+async function assertValidTagIds(userId: string, tagIds: string[]) {
+  if (!db || tagIds.length === 0) return;
+
+  const uniqueIds = [...new Set(tagIds)];
+  if (uniqueIds.length !== tagIds.length || uniqueIds.some(id => !id)) {
+    throw new Error('One or more selected tags are invalid');
+  }
+
+  const snapshot = await getDocs(collection(db, 'users', userId, 'tags'));
+  const validIds = new Set(snapshot.docs.map(tag => tag.id));
+  if (uniqueIds.some(id => !validIds.has(id))) {
+    throw new Error('One or more selected tags no longer exist');
+  }
+}
+
 // Create a new contact
 export async function createContact(userId: string, contactData: Partial<Contact>) {
   if (!db) throw new Error('Firestore is not initialized');
@@ -31,6 +64,8 @@ export async function createContact(userId: string, contactData: Partial<Contact
   if (!contactData.name) {
     throw new Error('Name is required');
   }
+
+  await assertValidTagIds(userId, contactData.tags || []);
 
   // Parse name into components
   const nameParts = contactData.name.split(' ');
@@ -44,7 +79,7 @@ export async function createContact(userId: string, contactData: Partial<Contact
     name: contactData.name, // Ensure name is explicitly set
     dateAdded: serverTimestamp(),
     dateModified: serverTimestamp(),
-    contactSource: 'manual' as const,
+    contactSource: contactData.contactSource || 'manual',
     tags: contactData.tags || []
   };
 
@@ -82,7 +117,7 @@ export async function createContact(userId: string, contactData: Partial<Contact
     tags: contactData.tags || [],
     dateAdded: new Date().toISOString(), // Convert timestamp to string for the return value
     dateModified: new Date().toISOString(),
-    contactSource: 'manual',
+    contactSource: contactData.contactSource || 'manual',
     imageUrl: contactData.imageUrl
   };
 
@@ -96,6 +131,10 @@ export async function updateContact(
   updates: Partial<Contact>
 ) {
   if (!db) throw new Error('Firestore is not initialized');
+
+  if (updates.tags) {
+    await assertValidTagIds(userId, updates.tags);
+  }
   
   const contactRef = doc(db, 'users', userId, 'contacts', contactId);
   
@@ -116,18 +155,20 @@ export async function updateContact(
 
 // Delete a contact
 export async function deleteContact(userId: string, contactId: string) {
-  if (!db || !storage) throw new Error('Firebase services are not initialized');
+  if (!db) throw new Error('Firestore is not initialized');
   
   const contactRef = doc(db, 'users', userId, 'contacts', contactId);
   
-  // Delete associated image if it exists
+  // Capture the object URL, remove the database record first, then clean up
+  // Storage. Deleting Storage first could leave a live contact with a broken URL
+  // if the Firestore delete failed.
   const contact = await getDoc(contactRef);
-  if (contact.exists() && contact.data().imageUrl) {
-    const imageRef = ref(storage, contact.data().imageUrl);
-    await deleteObject(imageRef);
-  }
-  
+  const imageUrl = contact.exists() ? contact.data().imageUrl : undefined;
   await deleteDoc(contactRef);
+
+  if (imageUrl) {
+    await deleteStorageObjectBestEffort(imageUrl, 'deleted contact image');
+  }
 
   // Clients can never lower their own counter; the server recount does it.
   refreshUsageAfterDelete();
@@ -165,11 +206,11 @@ export async function uploadContactImage(
   if (!storage) throw new Error('Firebase storage is not initialized');
   
   const imageId = uuidv4();
-  const imagePath = `contacts/${userId}/${imageId}.jpg`;
+  const imagePath = `contacts/${userId}/${imageId}.${contactImageExtension(file)}`;
   const imageRef = ref(storage, imagePath);
   
   await uploadBytes(imageRef, file, {
-    contentType: 'image/jpeg',
+    contentType: file.type || 'image/jpeg',
     customMetadata: {
       compression: '0.8'
     }
@@ -180,7 +221,13 @@ export async function uploadContactImage(
   // Update contact with new image URL
   if (!db) throw new Error('Firestore is not initialized');
   const contactRef = doc(db, 'users', userId, 'contacts', contactId);
-  await updateDoc(contactRef, { imageUrl });
+  try {
+    await updateDoc(contactRef, { imageUrl });
+  } catch (error) {
+    // Do not retain an upload that no contact points at.
+    await deleteStorageObjectBestEffort(imageUrl, 'failed contact image upload');
+    throw error;
+  }
   
   return imageUrl;
 }
@@ -215,13 +262,21 @@ export async function batchDeleteContacts(userId: string, contactIds: string[]) 
   if (!db) throw new Error('Firestore is not initialized');
   
   const batch = writeBatch(db);
+  const imageUrls: string[] = [];
   
   for (const contactId of contactIds) {
     const contactRef = doc(db, 'users', userId, 'contacts', contactId);
+    const contact = await getDoc(contactRef);
+    const imageUrl = contact.exists() ? contact.data().imageUrl : undefined;
+    if (imageUrl) imageUrls.push(imageUrl);
     batch.delete(contactRef);
   }
   
   await batch.commit();
+
+  await Promise.all(
+    imageUrls.map(imageUrl => deleteStorageObjectBestEffort(imageUrl, 'bulk-deleted contact image'))
+  );
 
   refreshUsageAfterDelete();
 }
@@ -232,6 +287,8 @@ export async function batchUpdateContactTags(
   tagIds: string[]
 ) {
   if (!db) throw new Error('Firestore is not initialized');
+
+  await assertValidTagIds(userId, tagIds);
   
   const batch = writeBatch(db);
   

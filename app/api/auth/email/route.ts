@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/app/lib/firebase-admin';
+import Stripe from 'stripe';
+import { auth, db } from '@/app/lib/firebase-admin';
 import {
   emailChangeEmail,
   passwordResetEmail,
@@ -14,7 +15,8 @@ type EmailRequest =
   | { type: 'welcome' }
   | { type: 'verification' }
   | { type: 'passwordReset'; email?: string }
-  | { type: 'emailChange'; newEmail?: string };
+  | { type: 'emailChange'; newEmail?: string }
+  | { type: 'sync' };
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_REQUESTS = 8;
@@ -203,31 +205,97 @@ async function sendEmailChange(request: Request, newEmail: string) {
     );
   }
 
-  const link = await auth.generateVerifyAndChangeEmailLink(
-    user.uid,
-    newEmail,
-    actionCodeSettings()
-  );
+  if (!user.email) {
+    return NextResponse.json(
+      { error: 'This account does not have an email address to change' },
+      { status: 400 }
+    );
+  }
+
+  let link: string;
+  try {
+    // Firebase Admin expects the account's current email, not its UID.
+    link = await auth.generateVerifyAndChangeEmailLink(
+      user.email,
+      newEmail,
+      actionCodeSettings()
+    );
+  } catch (error) {
+    const code = typeof error === 'object' && error && 'code' in error
+      ? String(error.code)
+      : '';
+
+    if (code === 'auth/email-already-exists') {
+      return NextResponse.json(
+        { error: 'This email is already in use by another account.' },
+        { status: 409 }
+      );
+    }
+
+    throw error;
+  }
+
   const email = emailChangeEmail(customActionUrl(link, '/verify-email'));
   await sendEmail({ to: newEmail, ...email });
 
   return NextResponse.json({ success: true });
 }
 
+async function syncAccountEmail(request: Request) {
+  const authenticated = await getAuthenticatedUser(request);
+  const user = authenticated?.user;
+  if (!user?.email) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
+  const userRef = db.collection('users').doc(user.uid);
+  const userSnapshot = await userRef.get();
+  const stripeCustomerId = userSnapshot.data()?.stripeCustomerId;
+
+  await userRef.set({ email: user.email, updatedAt: new Date() }, { merge: true });
+
+  let stripeSynced = true;
+  if (typeof stripeCustomerId === 'string' && stripeCustomerId) {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      stripeSynced = false;
+      console.error('Unable to sync changed email to Stripe: STRIPE_SECRET_KEY is not configured');
+    } else {
+      try {
+        const stripe = new Stripe(stripeSecretKey);
+        await stripe.customers.update(stripeCustomerId, { email: user.email });
+      } catch (error) {
+        stripeSynced = false;
+        // Firebase Auth and Firestore are already correct. The endpoint remains
+        // retryable without telling the user their completed email change failed.
+        console.error('Unable to sync changed email to Stripe:', error);
+      }
+    }
+  }
+
+  return NextResponse.json({ success: true, stripeSynced });
+}
+
 export async function POST(request: Request) {
-  if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({ error: 'Email service is not configured' }, { status: 503 });
-  }
-
-  if (isRateLimited(getClientIp(request))) {
-    return NextResponse.json(
-      { error: 'Too many email requests. Please try again later.' },
-      { status: 429 }
-    );
-  }
-
   try {
     const body = await request.json() as EmailRequest;
+
+    // Synchronizing a completed Firebase action does not send mail and must keep
+    // working during a Resend outage.
+    if (body.type === 'sync') {
+      return await syncAccountEmail(request);
+    }
+
+    if (isRateLimited(getClientIp(request))) {
+      return NextResponse.json(
+        { error: 'Too many email requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json({ error: 'Email service is not configured' }, { status: 503 });
+    }
 
     switch (body.type) {
       case 'welcome':

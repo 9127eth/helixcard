@@ -23,6 +23,8 @@ if (!require.extensions['.ts']) {
 const store = new Map();
 let autoId = 0;
 let usageState = defaultUsage();
+const deletedStoragePaths = [];
+const uploadedStoragePaths = [];
 
 const auth = {
   currentUser: { uid: 'u1', getIdToken: async () => 'token' },
@@ -228,11 +230,15 @@ const storageApi = {
   ref(_storage, storagePath) {
     return { __path: storagePath };
   },
-  async uploadBytes() {},
+  async uploadBytes(fileRef) {
+    uploadedStoragePaths.push(fileRef.__path);
+  },
   async getDownloadURL(fileRef) {
     return `https://cdn.example.com/${fileRef.__path}`;
   },
-  async deleteObject() {},
+  async deleteObject(fileRef) {
+    deletedStoragePaths.push(fileRef.__path);
+  },
 };
 
 const usageClient = {
@@ -288,6 +294,8 @@ function clear() {
   store.clear();
   autoId = 0;
   usageState = defaultUsage();
+  deletedStoragePaths.length = 0;
+  uploadedStoragePaths.length = 0;
   auth.currentUser = { uid: 'u1', getIdToken: async () => 'token' };
 }
 
@@ -334,4 +342,6 @@ module.exports = {
   setAuthUser,
   load,
   store,
+  deletedStoragePaths,
+  uploadedStoragePaths,
 };

@@ -5,6 +5,38 @@ import { createUserDocument } from '../lib/firebaseOperations';
 import { useRouter } from 'next/navigation';
 import { getDeviceInfo } from '../utils/deviceDetection';
 
+async function syncAccountEmail(user: User) {
+  if (!user.email || typeof window === 'undefined') return;
+
+  const syncKey = `helix-email-sync:${user.uid}:${user.email.toLowerCase()}`;
+  if (sessionStorage.getItem(syncKey)) return;
+  sessionStorage.setItem(syncKey, 'pending');
+
+  try {
+    const idToken = await user.getIdToken();
+    const response = await fetch('/api/auth/email', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type: 'sync' }),
+    });
+
+    const result = await response.json().catch(() => null);
+    if (response.ok && result?.stripeSynced !== false) {
+      sessionStorage.setItem(syncKey, 'true');
+    } else {
+      sessionStorage.removeItem(syncKey);
+    }
+  } catch (error) {
+    sessionStorage.removeItem(syncKey);
+    // Authentication should not be blocked by an ancillary metadata sync. A
+    // later auth state or Settings visit can retry it.
+    console.error('Unable to synchronize account email:', error);
+  }
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +53,7 @@ export function useAuth() {
       if (firebaseUser) {
         setUser(firebaseUser);
         setLoading(false);
+        void syncAccountEmail(firebaseUser);
       } else {
         setUser(null);
         setLoading(false);

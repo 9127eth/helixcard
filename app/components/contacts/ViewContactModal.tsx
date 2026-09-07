@@ -45,9 +45,9 @@ export default function ViewContactModal({
   if (!isOpen || !contact) return null
 
   // Get tag names from IDs with null check
-  const tagNames = contact.tags?.map(tagId => {
+  const tagNames = contact.tags?.flatMap(tagId => {
     const tag = tags.find(t => t.id === tagId)
-    return tag?.name || tagId
+    return tag ? [tag.name] : []
   }) || []
 
   const formatPhoneNumber = (phone: string) => {
@@ -246,4 +246,4 @@ export default function ViewContactModal({
       )}
     </div>
   )
-} 
+}

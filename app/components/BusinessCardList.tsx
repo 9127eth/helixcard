@@ -81,9 +81,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
 
   return (
     <div className="flex justify-start">
-      <div className={`grid w-full max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2 ${
-        isPreviewOpen ? 'lg:w-2/3' : 'w-full'
-      } transition-all duration-300`}>
+      <div className="grid w-full max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2">
         {cards.map((card) => (
           <div className="mx-auto w-full max-w-[420px]" key={card.id}>
             <BusinessCardItem

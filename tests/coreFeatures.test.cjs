@@ -8,6 +8,8 @@ const {
   setUsage,
   setAuthUser,
   load,
+  deletedStoragePaths,
+  uploadedStoragePaths,
 } = require('./helpers/loadApp.cjs');
 
 const {
@@ -22,6 +24,7 @@ const {
   createContact,
   updateContact,
   deleteContact,
+  batchDeleteContacts,
   createTag,
   searchContacts,
   canCreateContact,
@@ -29,6 +32,7 @@ const {
 const { sanitizeCustomSlug, isValidSlug, generateCardUrl } = load('app/lib/slugUtils.ts');
 const { normalizeUsername } = load('app/lib/usernames.ts');
 const { cardLimitFor, contactLimitFor } = load('app/lib/entitlements.ts');
+const { uploadCv, uploadImage } = load('app/lib/uploadUtils.ts');
 const {
   FREE_USER_CARD_LIMIT,
   PRO_USER_CARD_LIMIT,
@@ -191,6 +195,18 @@ test('free accounts cannot save Pro colors; CV uploads must be small PDFs', asyn
   );
 });
 
+test('card uploads use immutable generated object names instead of local filenames', async () => {
+  reset();
+
+  await uploadImage('u1', new File(['image'], 'shared-name.png', { type: 'image/png' }));
+  await uploadCv('u1', new File(['pdf'], 'resume.pdf', { type: 'application/pdf' }));
+
+  assert.deepEqual(uploadedStoragePaths, [
+    'images/u1/test-uuid.png',
+    'docs/u1/test-uuid.pdf',
+  ]);
+});
+
 test('editing a card keeps derived primacy and sanitizes new links', async () => {
   reset({ primaryCardPlaceholder: false, primaryCardId: 'alice', cardCount: 1 });
   seed('users/u1/businessCards/alice', {
@@ -213,6 +229,25 @@ test('editing a card keeps derived primacy and sanitizes new links', async () =>
   assert.equal(card.isPrimary, true);
   assert.equal(card.isActive, true);
   assert.equal(card.linkedIn, 'https://linkedin.com/in/augusta');
+});
+
+test('replacing a CV saves the new URL before cleaning up the old object', async () => {
+  reset({ primaryCardPlaceholder: false, primaryCardId: 'alice', cardCount: 1 });
+  seed('users/u1/businessCards/alice', {
+    firstName: 'Ada',
+    isPrimary: true,
+    isActive: true,
+    cardSlug: 'alice',
+    cvUrl: 'https://storage.example/docs/u1/old.pdf',
+  });
+
+  await updateBusinessCard('u1', 'alice', {
+    firstName: 'Ada',
+    cv: new File(['new CV'], 'new.pdf', { type: 'application/pdf' }),
+  });
+
+  assert.equal(get('users/u1/businessCards/alice').cvUrl, 'https://cdn.example.com/docs/cv.pdf');
+  assert.deepEqual(deletedStoragePaths, ['https://storage.example/docs/u1/old.pdf']);
 });
 
 test('clearing company deletes it so the public card URL no longer shows it', async () => {
@@ -246,6 +281,38 @@ test('deleting the primary card reserves the handle as a placeholder', async () 
   assert.equal(get('users/u1/businessCards/alice'), undefined);
   assert.equal(get('users/u1').primaryCardId, null);
   assert.equal(get('users/u1').primaryCardPlaceholder, true);
+});
+
+test('deleting a card cleans up its image and CV after removing the Firestore record', async () => {
+  reset({ primaryCardPlaceholder: false, primaryCardId: 'alice', cardCount: 1 });
+  seed('users/u1/businessCards/alice', {
+    firstName: 'Ada',
+    isPrimary: true,
+    cardSlug: 'alice',
+    imageUrl: 'https://storage.example/images/u1/photo.png',
+    cvUrl: 'https://storage.example/docs/u1/cv.pdf',
+  });
+
+  await deleteBusinessCard(user, 'alice');
+
+  assert.deepEqual(deletedStoragePaths, [
+    'https://storage.example/images/u1/photo.png',
+    'https://storage.example/docs/u1/cv.pdf',
+  ]);
+});
+
+test('legacy Storage objects shared by two cards are kept until the final reference is deleted', async () => {
+  reset({ primaryCardPlaceholder: false, primaryCardId: 'primary', cardCount: 3 });
+  const sharedImage = 'https://storage.example/images/u1/shared.png';
+  seed('users/u1/businessCards/primary', { firstName: 'Ada', isPrimary: true, cardSlug: 'primary' });
+  seed('users/u1/businessCards/work', { firstName: 'Ada', isPrimary: false, cardSlug: 'work', imageUrl: sharedImage });
+  seed('users/u1/businessCards/home', { firstName: 'Ada', isPrimary: false, cardSlug: 'home', imageUrl: sharedImage });
+
+  await deleteBusinessCard(user, 'work');
+  assert.deepEqual(deletedStoragePaths, []);
+
+  await deleteBusinessCard(user, 'home');
+  assert.deepEqual(deletedStoragePaths, [sharedImage]);
 });
 
 test('setPrimaryCard moves primacy and activity onto the chosen card', async () => {
@@ -307,6 +374,26 @@ test('creating a contact requires a name, splits it, and increments the quota co
   assert.equal(get('users/u1').contactCount, 1);
 });
 
+test('creating a scanned contact preserves its source and rejects unknown tag IDs', async () => {
+  reset();
+  const tag = await createTag('u1', { name: 'Conference' });
+
+  const scanned = await createContact('u1', {
+    name: 'Katherine Johnson',
+    contactSource: 'scanned',
+    tags: [tag.id],
+  });
+
+  assert.equal(scanned.contactSource, 'scanned');
+  assert.equal(get(`users/u1/contacts/${scanned.id}`).contactSource, 'scanned');
+  assert.deepEqual(scanned.tags, [tag.id]);
+
+  await assert.rejects(
+    () => createContact('u1', { name: 'Unknown Tag', tags: ['missing-tag'] }),
+    /no longer exist/
+  );
+});
+
 test('a single-word contact name becomes a first name with an empty last name', async () => {
   reset();
 
@@ -360,6 +447,20 @@ test('deleting a contact removes the document', async () => {
 
   await deleteContact('u1', 'c1');
   assert.equal(get('users/u1/contacts/c1'), undefined);
+});
+
+test('single and bulk contact deletion clean up stored images', async () => {
+  reset({ contactCount: 3 });
+  seed('users/u1/contacts/c1', { name: 'One', imageUrl: 'contacts/u1/one.jpg' });
+  seed('users/u1/contacts/c2', { name: 'Two', imageUrl: 'contacts/u1/two.jpg' });
+  seed('users/u1/contacts/c3', { name: 'Three' });
+
+  await deleteContact('u1', 'c1');
+  await batchDeleteContacts('u1', ['c2', 'c3']);
+
+  assert.deepEqual(deletedStoragePaths, ['contacts/u1/one.jpg', 'contacts/u1/two.jpg']);
+  assert.equal(get('users/u1/contacts/c2'), undefined);
+  assert.equal(get('users/u1/contacts/c3'), undefined);
 });
 
 test('tags cannot be duplicated and search matches name or company', async () => {

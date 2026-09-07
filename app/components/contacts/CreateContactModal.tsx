@@ -8,7 +8,7 @@ import { motion } from 'framer-motion'
 import { X, Camera, Edit3, UserPlus, AlertTriangle, CheckCircle, ArrowLeft } from 'react-feather'
 import TagSelector from './TagSelector'
 import { Contact } from '@/app/types'
-import { createContact, uploadContactImage, updateContact, canCreateContact } from '@/app/lib/contacts'
+import { createContact, uploadContactImage, canCreateContact } from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { ContactOCRUpload } from '../ContactOCRUpload'
@@ -67,6 +67,12 @@ export default function CreateContactModal({
   const [scannedData, setScannedData] = useState<ScannedData | null>(null)
   const [showLimitModal, setShowLimitModal] = useState(false)
   const [isPro, setIsPro] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedTags(lastUsedTag ? [lastUsedTag] : [])
+    }
+  }, [isOpen, lastUsedTag])
 
   const {
     register,
@@ -187,7 +193,6 @@ export default function CreateContactModal({
       // Then upload image if exists and update contact
       if (scannedData?.imageFile) {
         const imageUrl = await uploadContactImage(user.uid, createdContact.id, scannedData.imageFile)
-        await updateContact(user.uid, createdContact.id, { imageUrl })
         createdContact.imageUrl = imageUrl
       }
 

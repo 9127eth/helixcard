@@ -32,6 +32,7 @@ import { auth } from './firebase';
 interface UserData {
   isPro: boolean;
   isProType: 'monthly' | 'yearly' | 'lifetime' | 'free';
+  email?: string;
   username: string | null;
   primaryCardId: string | null;
   primaryCardPlaceholder: boolean;
@@ -44,6 +45,58 @@ interface UserRegistrationData extends UserData {
   registeredAt: FirebaseFirestore.Timestamp;
   source?: string;
   group?: string;
+}
+
+function isFile(value: unknown): value is File {
+  return typeof File !== 'undefined' && value instanceof File;
+}
+
+function validateCvFile(file: File) {
+  if (file.type !== 'application/pdf') {
+    throw new Error('Only PDF files are allowed for CV upload');
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('CV file size exceeds the 5MB limit');
+  }
+}
+
+async function deleteStorageObjectBestEffort(url: string | undefined, context: string) {
+  if (!storage || !url) return;
+
+  try {
+    await deleteObject(ref(storage, url));
+  } catch (error) {
+    // Database writes are authoritative. A failed cleanup can be retried later,
+    // while failing the completed save/delete would mislead the user.
+    console.error(`Unable to clean up ${context}:`, error);
+  }
+}
+
+async function deleteCardStorageIfUnreferenced(
+  userId: string,
+  cardId: string,
+  url: string | undefined,
+  context: string
+) {
+  if (!db || !url) return;
+
+  try {
+    // Older uploads used the local filename as the object key, so two cards may
+    // already share one object. Keep it until the last card stops referencing it.
+    const cards = await getDocs(collection(db, 'users', userId, 'businessCards'));
+    const isStillReferenced = cards.docs.some(card => {
+      if (card.id === cardId) return false;
+      const data = card.data() as BusinessCardData;
+      return data.imageUrl === url || data.cvUrl === url;
+    });
+
+    if (!isStillReferenced) {
+      await deleteStorageObjectBestEffort(url, context);
+    }
+  } catch (error) {
+    console.error(`Unable to check references for ${context}:`, error);
+  }
 }
 
 const CLEARABLE_TEXT_FIELDS = [
@@ -89,6 +142,7 @@ interface BusinessCardData {
   cv?: File;
   isPrimary: boolean; 
   cvUrl?: string;
+  imageUrl?: string;
   isActive: boolean;
 }
 
@@ -119,7 +173,8 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
 
   // The server owns the entitlement decision and seeds the counter that the
   // Firestore rule compares against.
-  const isNewCard = !(await getDoc(newCardRef)).exists();
+  const existingCardDoc = await getDoc(newCardRef);
+  const isNewCard = !existingCardDoc.exists();
   if (isNewCard) {
     const usage = await syncUsage();
     if (usage && !usage.canCreateCard) {
@@ -134,31 +189,19 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   const batch = writeBatch(db);
 
   let cvUrl: string | undefined;
+  const pendingCv = cvFile || (isFile(cardData.cv) ? cardData.cv : undefined);
+  const oldCvUrl = existingCardDoc.exists()
+    ? (existingCardDoc.data() as BusinessCardData).cvUrl
+    : undefined;
+  const oldImageUrl = existingCardDoc.exists()
+    ? (existingCardDoc.data() as BusinessCardData).imageUrl
+    : undefined;
 
-  if (cvFile) {
-    // File type validation
-    if (cvFile.type !== 'application/pdf') {
-      throw new Error('Only PDF files are allowed for CV upload');
-    }
-
-    // File size validation (e.g., 5MB limit)
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
-    if (cvFile.size > MAX_FILE_SIZE) {
-      throw new Error('CV file size exceeds the 5MB limit');
-    }
-
-    // Check if there's an existing CV and delete it
-    const existingCardDoc = await getDoc(newCardRef);
-    if (existingCardDoc.exists()) {
-      const existingCardData = existingCardDoc.data() as BusinessCardData;
-      if (existingCardData.cvUrl && storage) {
-        const oldCvRef = ref(storage, existingCardData.cvUrl);
-        await deleteObject(oldCvRef);
-      }
-    }
+  if (pendingCv) {
+    validateCvFile(pendingCv);
 
     try {
-      cvUrl = await uploadCv(user.uid, cvFile);
+      cvUrl = await uploadCv(user.uid, pendingCv);
     } catch (error) {
       console.error('Error uploading CV:', error);
       throw new Error('Failed to upload CV. Please try again.');
@@ -203,7 +246,20 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
     updatedAt: serverTimestamp(),
   });
 
-  await batch.commit();
+  try {
+    await batch.commit();
+  } catch (error) {
+    await deleteStorageObjectBestEffort(cvUrl, 'failed CV upload');
+    throw error;
+  }
+
+  if (cvUrl && oldCvUrl && oldCvUrl !== cvUrl) {
+    await deleteCardStorageIfUnreferenced(user.uid, cardSlug, oldCvUrl, 'replaced CV');
+  }
+
+  if (oldImageUrl && oldImageUrl !== cleanedCardData.imageUrl) {
+    await deleteCardStorageIfUnreferenced(user.uid, cardSlug, oldImageUrl, 'replaced card image');
+  }
 
   const cardUrl = await generateCardUrl(user.uid, cardSlug, isFirstCard);
 
@@ -336,6 +392,7 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
       username,
       primaryCardPlaceholder: true,
       isProType: 'free',
+      email: user.email || '',
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       // Add device info if provided
@@ -396,10 +453,14 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
   cardData = normalizeCardUrls(cardData);
 
   // Handle CV file upload
-  if (cardData.cv instanceof File) {
+  let uploadedCvUrl: string | undefined;
+  const oldCvUrl = (existingCard.data() as BusinessCardData | undefined)?.cvUrl;
+  const oldImageUrl = (existingCard.data() as BusinessCardData | undefined)?.imageUrl;
+  if (isFile(cardData.cv)) {
+    validateCvFile(cardData.cv);
     try {
-      const cvUrl = await uploadCv(userId, cardData.cv);
-      cardData.cvUrl = cvUrl;
+      uploadedCvUrl = await uploadCv(userId, cardData.cv);
+      cardData.cvUrl = uploadedCvUrl;
     } catch (error) {
       console.error('Error uploading CV:', error);
       throw new Error('Failed to upload CV. Please try again.');
@@ -439,7 +500,20 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
   cleanedCardData.isPrimary = isPrimary;
   cleanedCardData.isActive = owner.data()?.isPro === true || isPrimary;
 
-  await updateDoc(cardRef, cleanedCardData);
+  try {
+    await updateDoc(cardRef, cleanedCardData);
+  } catch (error) {
+    await deleteStorageObjectBestEffort(uploadedCvUrl, 'failed CV upload');
+    throw error;
+  }
+
+  if (uploadedCvUrl && oldCvUrl && oldCvUrl !== uploadedCvUrl) {
+    await deleteCardStorageIfUnreferenced(userId, cardId, oldCvUrl, 'replaced CV');
+  }
+
+  if ('imageUrl' in cleanedCardData && oldImageUrl !== cleanedCardData.imageUrl) {
+    await deleteCardStorageIfUnreferenced(userId, cardId, oldImageUrl, 'replaced card image');
+  }
 }
 
 export const deleteBusinessCard = async (user: User, cardSlug: string) => {
@@ -471,6 +545,11 @@ export const deleteBusinessCard = async (user: User, cardSlug: string) => {
 
   await batch.commit();
 
+  await Promise.all([
+    deleteCardStorageIfUnreferenced(user.uid, cardSlug, cardData.imageUrl, 'deleted card image'),
+    deleteCardStorageIfUnreferenced(user.uid, cardSlug, cardData.cvUrl, 'deleted card CV'),
+  ]);
+
   // The client can never lower its own counter; the server recount does it.
   refreshUsageAfterDelete();
 };
@@ -489,15 +568,14 @@ export async function deleteCv(userId: string, cardId: string) {
   const cardData = cardDoc.data() as BusinessCardData;
 
   if (cardData.cvUrl) {
-    // Delete the CV file from storage
-    const cvRef = ref(storage, cardData.cvUrl);
-    await deleteObject(cvRef);
-
-    // Update the business card document to remove the CV URL
+    // Clear the live reference first. Storage cleanup is deliberately second so
+    // a failed Firestore update never leaves the card pointing at a missing file.
     await updateDoc(cardRef, {
       cvUrl: deleteField(),
       updatedAt: serverTimestamp(),
     });
+
+    await deleteCardStorageIfUnreferenced(userId, cardId, cardData.cvUrl, 'deleted CV');
   }
 }
 export async function getUserCardCount(userId: string): Promise<number> {
@@ -592,6 +670,7 @@ export async function createNewUser(
     sourcePlatform: deviceInfo.sourcePlatform,
     registeredAt: Timestamp.fromDate(new Date()),
     isProType: 'free',
+    email: email || '',
     // Add source and group if available
     ...(source && { source }),
     ...(group && { group })
