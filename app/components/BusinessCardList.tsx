@@ -25,20 +25,22 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
         if (!db) {
           throw new Error('Firestore instance is not initialized');
         }
-        // Fetch cards (existing code)
-        const cardsSnapshot = await getDocs(query(collection(db, 'users', userId, 'businessCards')));
+        const [cardsSnapshot, userDoc] = await Promise.all([
+          getDocs(query(collection(db, 'users', userId, 'businessCards'))),
+          getDoc(doc(db, 'users', userId)),
+        ]);
+        const isPro = userDoc.data()?.isPro === true;
         const fetchedCards = cardsSnapshot.docs.map(doc => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
-            isActive: data.isActive === undefined ? true : data.isActive
+            isActive: data.isActive === undefined ? true : data.isActive,
+            isPro,
           } as BusinessCard;
         });
         setCards(fetchedCards);
 
-        // Fetch username
-        const userDoc = await getDoc(doc(db, 'users', userId));
         if (userDoc.exists()) {
           setUsername(userDoc.data().username);
         }

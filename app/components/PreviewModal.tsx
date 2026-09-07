@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { XMarkIcon, ClipboardDocumentIcon, CheckIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
@@ -20,6 +20,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
   const [copied, setCopied] = useState(false);
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const previewFrame = useRef<HTMLIFrameElement>(null);
+  const [previewReady, setPreviewReady] = useState(0);
   
   // Create a URL for the card (in a real app, this would be a shareable link)
   const cardUrl = !card ? '' : (card.isPrimary 
@@ -30,6 +32,31 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (
+        event.origin === window.location.origin
+        && event.source === previewFrame.current?.contentWindow
+        && event.data?.type === 'helix-preview-ready'
+      ) {
+        setPreviewReady(count => count + 1);
+        setIsLoading(false);
+      }
+    };
+
+    window.addEventListener('message', receive);
+    return () => window.removeEventListener('message', receive);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || !card || !previewReady) return;
+
+    previewFrame.current?.contentWindow?.postMessage(
+      { type: 'helix-preview-update', card, isPro: card.isPro === true },
+      window.location.origin,
+    );
+  }, [card, isOpen, previewReady]);
 
   useEffect(() => {
     const checkDimensions = () => {
@@ -44,10 +71,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
     };
   }, []);
 
-  // Reset loading state when QR changes
+  // Reset loading state when the preview changes or is reopened.
   useEffect(() => {
     setIsLoading(true);
-  }, [showQR]);
+  }, [showQR, isOpen, card?.id]);
 
   // Reset copied state after 2 seconds
   useEffect(() => {
@@ -206,16 +233,23 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, card, user
                         </div>
                       )}
                       
-                      {/* Iframe with actual card URL */}
+                      {/* Render through the same-origin preview route. Public card
+                          pages intentionally reject iframe embedding. */}
                       <div className="absolute top-0 left-0 w-full h-full flex items-start justify-center overflow-hidden">
                         <div className={`transform origin-top ${getIframeScale()}`}>
                           <iframe 
-                            src={cardUrl}
+                            ref={previewFrame}
+                            src="/card-preview"
                             width={getIframeWidth()}
                             height={getIframeHeight()}
                             className="border-0"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onLoad={() => setIsLoading(false)}
+                            onLoad={() => {
+                              previewFrame.current?.contentWindow?.postMessage(
+                                { type: 'helix-preview-request' },
+                                window.location.origin,
+                              );
+                            }}
                             title="Card Preview"
                           />
                         </div>
