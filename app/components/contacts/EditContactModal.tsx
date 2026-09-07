@@ -83,10 +83,10 @@ export default function EditContactModal({
       setIsImageDeleted(false);
       setImageFile(null);
       setImageToDelete(null);
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-        setImagePreview(null);
-      }
+      setImagePreview(previousPreview => {
+        if (previousPreview) URL.revokeObjectURL(previousPreview);
+        return null;
+      });
     }
   }, [contact, reset]);
 

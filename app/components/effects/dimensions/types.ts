@@ -1,4 +1,4 @@
-import { ThemeColors } from '../effectUtils';
+import { RGB, ThemeColors } from '../effectUtils';
 
 /**
  * Everything a portal dimension needs to draw one frame.
@@ -44,4 +44,4 @@ export const TAU = Math.PI * 2;
 export const parallax = (eye: number, depth: number, eyeDistance: number) =>
   (eye * depth) / (eyeDistance + depth);
 
-export const luminance = ([r, g, b]: [number, number, number]) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+export const luminance = ([r, g, b]: RGB) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
