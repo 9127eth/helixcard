@@ -215,6 +215,28 @@ test('editing a card keeps derived primacy and sanitizes new links', async () =>
   assert.equal(card.linkedIn, 'https://linkedin.com/in/augusta');
 });
 
+test('clearing company deletes it so the public card URL no longer shows it', async () => {
+  reset({ primaryCardPlaceholder: false, primaryCardId: 'alice', cardCount: 1 });
+  seed('users/u1/businessCards/alice', {
+    firstName: 'Ada',
+    isPrimary: true,
+    isActive: true,
+    cardSlug: 'alice',
+    jobTitle: 'Engineer',
+    company: 'Analytical',
+  });
+
+  await updateBusinessCard('u1', 'alice', {
+    firstName: 'Ada',
+    jobTitle: 'Engineer',
+    company: '',
+  });
+
+  const card = get('users/u1/businessCards/alice');
+  assert.equal(card.company, undefined);
+  assert.equal(card.jobTitle, 'Engineer');
+});
+
 test('deleting the primary card reserves the handle as a placeholder', async () => {
   reset({ primaryCardPlaceholder: false, primaryCardId: 'alice', cardCount: 1 });
   seed('users/u1/businessCards/alice', { firstName: 'Ada', isPrimary: true, cardSlug: 'alice' });

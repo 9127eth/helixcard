@@ -11,7 +11,6 @@ import {
   rgba,
   ThemeColors,
 } from './effectUtils';
-import FxHint from './FxHint';
 import { Dimension, DimensionView } from './dimensions/types';
 import { createSpaceDimension } from './dimensions/spaceDimension';
 import { createGridDimension } from './dimensions/gridDimension';
@@ -549,11 +548,6 @@ const PortalEffect: React.FC<PortalEffectProps> = ({ host, dimension }) => {
           />,
           portalTarget,
         )}
-      <FxHint
-        storageKey="helix-fx-portal-hint"
-        text="Click & hold, then drag to rip the card open"
-        touchText="Press & hold, then drag to rip the card open"
-      />
     </>
   );
 };

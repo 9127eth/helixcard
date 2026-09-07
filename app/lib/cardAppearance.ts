@@ -4,6 +4,7 @@ import { normalizeCardColors } from './cardColors';
 interface AppearanceInput {
   customColors?: unknown;
   effect?: unknown;
+  effectTour?: unknown;
 }
 
 function sameColors(a: unknown, b: unknown): boolean {
@@ -29,6 +30,10 @@ export function prepareCardAppearance<T extends AppearanceInput>(data: T, isPro:
   if (data.effect !== undefined && data.effect !== existing.effect) {
     if (!CARD_EFFECTS.some(option => option.id === data.effect)) throw new Error('Choose a valid card effect.');
     if (!isPro && isProCardEffect(data.effect as string)) throw new Error('This card effect requires Helix Pro.');
+  }
+  if (data.effectTour !== undefined && data.effectTour !== existing.effectTour) {
+    if (typeof data.effectTour !== 'boolean') throw new Error('Choose whether visitors can try other effects.');
+    if (!isPro && data.effectTour === false) throw new Error('Turning off the effects tour requires Helix Pro.');
   }
   return result;
 }

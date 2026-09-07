@@ -9,7 +9,7 @@ require.extensions['.ts'] = (module, filename) => {
 };
 const { normalizeHexColor, normalizeCardColors, getCardColorDefaults, getCardColorStyle } = require('../app/lib/cardColors.ts');
 const { prepareCardAppearance } = require('../app/lib/cardAppearance.ts');
-const { CARD_EFFECTS, getAvailableCardEffect } = require('../app/lib/cardEffects.ts');
+const { CARD_EFFECTS, CARD_EFFECT_TOUR, getAvailableCardEffect, showEffectTour, stepEffectTour } = require('../app/lib/cardEffects.ts');
 const colors = getCardColorDefaults('classic');
 
 test('canonical sRGB hex input and invalid palette rejection', () => {
@@ -34,11 +34,49 @@ test('free users cannot set Pro colors/effects; every Pro effect renders only wi
   assert.throws(() => prepareCardAppearance({ effect: 'unknown' }, true), /valid/);
 });
 
+test('retired effects render plainly and cannot be selected for new writes', () => {
+  for (const effect of ['holo', 'current', 'develop', 'fold']) {
+    assert.equal(getAvailableCardEffect(effect, true), 'none');
+    assert.equal(getAvailableCardEffect(effect, false), 'none');
+    assert.throws(() => prepareCardAppearance({ effect }, true), /valid/);
+  }
+});
+
 test('downgraded users retain settings during edits and may clear them', () => {
   const existing = { customColors: colors, effect: 'holo' };
   assert.deepEqual(prepareCardAppearance({ ...existing, firstName: 'Updated' }, false, existing), { ...existing, firstName: 'Updated' });
   assert.deepEqual(prepareCardAppearance({ customColors: null, effect: 'repel' }, false, existing), { customColors: null, effect: 'repel' });
   assert.throws(() => prepareCardAppearance({ customColors: { ...colors, text: '#AAAAAA' } }, false, existing), /Pro/);
+});
+
+test('the effects tour is on for free cards and only a Pro owner can turn it off', () => {
+  for (const stored of [undefined, true, false, 'false']) assert.equal(showEffectTour(stored, false), true);
+  assert.equal(showEffectTour(undefined, true), true);
+  assert.equal(showEffectTour(true, true), true);
+  assert.equal(showEffectTour(false, true), false);
+  // Saving mirrors the rule: free users may keep or restore the default, never hide it.
+  assert.equal(prepareCardAppearance({ effectTour: true }, false).effectTour, true);
+  assert.throws(() => prepareCardAppearance({ effectTour: false }, false), /Pro/);
+  assert.equal(prepareCardAppearance({ effectTour: false }, true).effectTour, false);
+  assert.throws(() => prepareCardAppearance({ effectTour: 'no' }, true), /visitors/);
+  // A downgraded owner keeps a stored false while editing other fields, and may turn the tour back on.
+  const existing = { effectTour: false };
+  assert.equal(prepareCardAppearance({ effectTour: false, firstName: 'Edit' }, false, existing).effectTour, false);
+  assert.equal(prepareCardAppearance({ effectTour: true }, false, existing).effectTour, true);
+});
+
+test('the tour visits every effect except none, starting after the card’s own', () => {
+  assert.deepEqual(CARD_EFFECT_TOUR, CARD_EFFECTS.map(({ id }) => id).filter(id => id !== 'none'));
+  const first = CARD_EFFECT_TOUR[0], last = CARD_EFFECT_TOUR[CARD_EFFECT_TOUR.length - 1];
+  assert.equal(stepEffectTour('none', 1), first);
+  assert.equal(stepEffectTour('unknown', 1), first);
+  assert.equal(stepEffectTour(first, -1), last);
+  assert.equal(stepEffectTour(last, 1), first);
+  let effect = 'repel';
+  const seen = new Set();
+  for (let i = 0; i < CARD_EFFECT_TOUR.length; i++) { effect = stepEffectTour(effect, 1); seen.add(effect); }
+  assert.equal(seen.size, CARD_EFFECT_TOUR.length);
+  assert.equal(effect, 'repel');
 });
 
 test('custom text, button, icon, and position colors stay independent', () => {
@@ -72,21 +110,28 @@ test('Firestore enforces permissions, canonical hex, and downgrade preservation'
     await denied(setDoc(card, { customColors: colors }));
     await denied(setDoc(card, { effect: 'holo', isPro: true }));
     for (const effect of ['none', 'portal-grid', 'repel']) await setDoc(card, { effect });
+    await denied(updateDoc(card, { effectTour: false }));
+    await updateDoc(card, { effectTour: true });
     await denied(setDoc(doc(client, 'users', uid, 'businessCards', 'pro-portal'), { effect: 'portal' }));
     await denied(updateDoc(card, { customColors: colors }));
     await denied(updateDoc(doc(client, 'users', uid), { isPro: true }));
     await db.doc(`users/${uid}`).update({ isPro: true });
-    for (const effect of ['portal', 'holo', 'stardust', 'scramble', 'shatter']) await updateDoc(card, { effect, customColors: colors });
+    for (const { id: effect } of CARD_EFFECTS.filter(({ id }) => !['none', 'portal-grid', 'repel'].includes(id))) await updateDoc(card, { effect, customColors: colors });
     for (const invalid of [{ ...colors, text: '#abcdef' }, { ...colors, text: '#FFF' }, { background: '#FFFFFF' }, { ...colors, alpha: '#FFFFFF' }]) {
       await denied(updateDoc(card, { customColors: invalid }));
     }
-    await denied(updateDoc(card, { effect: 'unknown' }));
+    for (const effect of ['unknown', 'holo', 'current', 'develop', 'fold']) await denied(updateDoc(card, { effect }));
+    await updateDoc(card, { effectTour: false });
+    await denied(updateDoc(card, { effectTour: 'off' }));
     await db.doc(`users/${uid}`).update({ isPro: false });
     await updateDoc(card, { firstName: 'Allowed edit', customColors: colors, effect: 'shatter' });
     await denied(updateDoc(card, { customColors: { ...colors, text: '#ABCDEF' } }));
-    await denied(updateDoc(card, { effect: 'holo' }));
+    await denied(updateDoc(card, { effect: 'fold' }));
     await denied(setDoc(doc(client, 'users', uid, 'businessCards', 'copy'), { effect: 'shatter', customColors: colors }));
     await updateDoc(card, { customColors: null, effect: 'none' });
+    // The stored false survives the downgrade untouched; the owner may restore the tour but not hide it again.
+    await updateDoc(card, { effectTour: true });
+    await denied(updateDoc(card, { effectTour: false }));
     await denied(updateDoc(doc(client, 'users', 'someone-else', 'businessCards', 'card'), { effect: 'none' }));
   } finally {
     await terminate(client);

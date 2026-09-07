@@ -46,9 +46,25 @@ interface UserRegistrationData extends UserData {
   group?: string;
 }
 
+const CLEARABLE_TEXT_FIELDS = [
+  'middleName',
+  'lastName',
+  'prefix',
+  'credentials',
+  'pronouns',
+  'jobTitle',
+  'company',
+  'phoneNumber',
+  'email',
+  'aboutMe',
+  'customMessage',
+  'customMessageHeader',
+] as const;
+
 interface BusinessCardData {
   customColors?: CardColors | null;
   effect?: CardEffect;
+  effectTour?: boolean;
   id?: string;
   description: string;
   firstName: string;
@@ -62,6 +78,7 @@ interface BusinessCardData {
   linkedIn: string;
   twitter: string;
   customMessage: string;
+  customMessageHeader?: string;
   customSlug?: string; // Optional property
   cardSlug: string;
   prefix: string;
@@ -401,6 +418,18 @@ export async function updateBusinessCard(userId: string, cardId: string, cardDat
     }
     return acc;
   }, {} as Partial<BusinessCardData>);
+
+  // Clearing a field must delete it. `updateDoc` leaves the previous value
+  // in place when the key is omitted, and the public card URL then still
+  // shows the old company / title / etc.
+  for (const field of CLEARABLE_TEXT_FIELDS) {
+    if (!(field in cleanedCardData)) continue;
+    const value = cleanedCardData[field];
+    if (typeof value === 'string' && value.trim() === '') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (cleanedCardData as any)[field] = deleteField();
+    }
+  }
 
   // `isPrimary` and `isActive` are derived, not editable. The card form carries
   // them along with everything else, and a stale value there would be rejected

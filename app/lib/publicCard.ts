@@ -1,4 +1,5 @@
 import { sanitizeEmailAddress, sanitizeExternalUrl, sanitizePhoneNumber } from './urlSafety';
+import { showEffectTour } from './cardEffects';
 import type { BusinessCard } from '@/app/types';
 
 /**
@@ -104,11 +105,15 @@ export function toPublicCard(
     enableTextMessage: data.enableTextMessage !== false,
     webLinks: sanitizeWebLinks(data.webLinks),
     customColors: ownerIsPro ? sanitizeCustomColors(data.customColors) : null,
+    // Only a Pro owner can hide the visitor effects tour; see showEffectTour.
+    effectTour: showEffectTour(data.effectTour, ownerIsPro),
   };
 
   for (const field of TEXT_FIELDS) {
     const value = data[field];
-    if (typeof value === 'string' && value !== '') card[field] = value;
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (trimmed !== '') card[field] = trimmed;
   }
 
   for (const field of URL_FIELDS) {

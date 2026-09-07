@@ -143,6 +143,32 @@ test('a free account cannot forge isActive or isPrimary', async () => {
   await assertSucceeds(card.update({ jobTitle: 'Dev' }));
 });
 
+test('only a Pro owner can hide the visitor effects tour', async () => {
+  await seedFreeUser();
+  const db = as('u1');
+  const create = db.batch();
+  create.set(db.doc('users/u1/businessCards/alice'), { ...CARD, effectTour: false });
+  create.update(db.doc('users/u1'), { cardCount: 1 });
+  await assertFails(create.commit());
+
+  await seedFreeUser({ cardCount: 1 });
+  await seed(admin => admin.doc('users/u1/businessCards/alice').set(CARD));
+  const card = db.doc('users/u1/businessCards/alice');
+  await assertFails(card.update({ effectTour: false }));
+  await assertFails(card.update({ effectTour: 'off' }));
+  await assertSucceeds(card.update({ effectTour: true }));
+
+  await seed(admin => admin.doc('users/u1').update({ isPro: true }));
+  await assertSucceeds(card.update({ effectTour: false }));
+
+  // After a downgrade the stored false stays put during other edits, and the
+  // owner may turn the tour back on but not hide it again.
+  await seed(admin => admin.doc('users/u1').update({ isPro: false }));
+  await assertSucceeds(card.update({ jobTitle: 'Dev' }));
+  await assertSucceeds(card.update({ effectTour: true }));
+  await assertFails(card.update({ effectTour: false }));
+});
+
 test('non-http link schemes are rejected on cards', async () => {
   await seedFreeUser({ cardCount: 1 });
   await seed(admin => admin.doc('users/u1/businessCards/alice').set(CARD));

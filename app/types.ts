@@ -47,6 +47,8 @@ export interface BusinessCard {
   cardDepthColor?: string; // Add this line
   theme?: CardTheme;
   effect?: CardEffect;
+  /** Visitors may browse every effect from the footer. Missing means on; only Pro may store false. */
+  effectTour?: boolean;
   customColors?: CardColors | null;
   enableTextMessage?: boolean;
 }
@@ -91,6 +93,8 @@ export interface BusinessCardData {
   cardDepthColor?: string;
   theme: CardTheme;
   effect?: CardEffect;
+  /** Visitors may browse every effect from the footer. Missing means on; only Pro may store false. */
+  effectTour?: boolean;
   customColors?: CardColors | null;
   enableTextMessage?: boolean;
 }

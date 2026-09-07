@@ -3,15 +3,16 @@
  * finding the pieces of the card a drag can act on.
  */
 
-export const CHUNK_SELECTOR = 'h1, h2, h3, p, a, button, svg, [data-fx="avatar"], [data-fx="chunk"]';
+export const CHUNK_SELECTOR = 'h1, h2, h3, p, a, button, svg, span, [data-fx="avatar"], [data-fx="chunk"]';
 
 const SKIP_INSIDE = 'canvas, [data-fx-ignore], [role="dialog"], script, style';
 
 /**
  * Visible, top-level "chunks" of the card: headings, paragraphs, links,
- * buttons, standalone icons, the avatar, and anything marked data-fx="chunk"
- * (e.g. the job title / company line). A chunk nested inside another chunk
- * (an icon inside a link) is skipped so each piece is only moved once.
+ * buttons, standalone icons, labels, the avatar, and anything marked
+ * data-fx="chunk" (e.g. a social icon + its caption). A chunk nested
+ * inside another chunk (an icon inside a link) is skipped so each
+ * piece is only moved once.
  */
 export function collectChunks(host: HTMLElement): HTMLElement[] {
   const all = Array.from(host.querySelectorAll<HTMLElement>(CHUNK_SELECTOR));

@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react';
 import { attachDragBrush } from './dragBrush';
 import { collectTextNodes, measureTextRects, rectDistance, rectsDistance } from './disruptUtils';
-import FxHint from './FxHint';
 import { prefersReducedMotion } from './effectUtils';
 
 interface ScrambleEffectProps {
@@ -218,13 +217,7 @@ const ScrambleEffect: React.FC<ScrambleEffectProps> = ({ host }) => {
     };
   }, [host]);
 
-  return (
-    <FxHint
-      storageKey="helix-fx-scramble-hint"
-      text="Click & drag across the card"
-      touchText="Press & hold, then drag across the card"
-    />
-  );
+  return null;
 };
 
 export default ScrambleEffect;

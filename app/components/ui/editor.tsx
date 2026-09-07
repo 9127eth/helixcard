@@ -38,8 +38,9 @@ export const addButtonClass =
 export const removeButtonClass =
   'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-400 transition hover:bg-red-50 hover:text-red-500 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-500/20 dark:hover:bg-red-500/10';
 
-export const ProBadge: React.FC = () => (
-  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#7CCEDA] to-[#6BA5FF] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-900">
+/** `muted` is for accounts that already have Pro: the label still marks the feature, but stops selling it. */
+export const ProBadge: React.FC<{ muted?: boolean }> = ({ muted = false }) => (
+  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${muted ? 'bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-gray-400' : 'bg-gradient-to-r from-[#7CCEDA] to-[#6BA5FF] text-gray-900'}`}>
     <Zap size={10} strokeWidth={3} />
     Pro
   </span>

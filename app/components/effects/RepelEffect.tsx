@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react';
 import { attachDragBrush } from './dragBrush';
 import { collectChunks } from './disruptUtils';
-import FxHint from './FxHint';
 import { prefersReducedMotion } from './effectUtils';
 
 interface RepelEffectProps {
@@ -140,13 +139,7 @@ const RepelEffect: React.FC<RepelEffectProps> = ({ host }) => {
     };
   }, [host]);
 
-  return (
-    <FxHint
-      storageKey="helix-fx-repel-hint"
-      text="Click & drag near anything"
-      touchText="Press & hold, then drag near anything"
-    />
-  );
+  return null;
 };
 
 export default RepelEffect;

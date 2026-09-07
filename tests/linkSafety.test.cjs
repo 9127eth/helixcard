@@ -79,6 +79,18 @@ test('the public DTO drops unsafe links and fields it does not know', () => {
   assert.equal(card.isPro, false);
 });
 
+test('the public DTO omits a company that was cleared or is only whitespace', () => {
+  const withCompany = toPublicCard('s', { firstName: 'Ada', company: 'Analytical', jobTitle: 'Engineer' }, false);
+  assert.equal(withCompany.company, 'Analytical');
+
+  const cleared = toPublicCard('s', { firstName: 'Ada', company: '', jobTitle: 'Engineer' }, false);
+  assert.equal(cleared.company, undefined);
+  assert.equal(cleared.jobTitle, 'Engineer');
+
+  const blank = toPublicCard('s', { firstName: 'Ada', company: '   ', jobTitle: 'Engineer' }, false);
+  assert.equal(blank.company, undefined);
+});
+
 test('custom colours only reach the public card for a Pro owner', () => {
   const colors = {
     background: '#FFFFFF', button: '#000000', buttonText: '#FFFFFF',
@@ -88,6 +100,13 @@ test('custom colours only reach the public card for a Pro owner', () => {
   assert.deepEqual(toPublicCard('s', { customColors: colors }, true).customColors, colors);
   assert.equal(toPublicCard('s', { customColors: colors }, false).customColors, null);
   assert.equal(toPublicCard('s', { customColors: { background: 'red' } }, true).customColors, null);
+});
+
+test('the public card shows the effects tour unless a Pro owner turned it off', () => {
+  assert.equal(toPublicCard('s', {}, false).effectTour, true);
+  assert.equal(toPublicCard('s', { effectTour: false }, false).effectTour, true);
+  assert.equal(toPublicCard('s', {}, true).effectTour, true);
+  assert.equal(toPublicCard('s', { effectTour: false }, true).effectTour, false);
 });
 
 test('card writes are normalised before they reach Firestore', () => {

@@ -3,7 +3,13 @@
 import React from 'react';
 import { CardEffect } from '@/app/types';
 import PortalEffect from './PortalEffect';
-import HoloEffect from './HoloEffect';
+import GlitchEffect from './GlitchEffect';
+import LanternEffect from './LanternEffect';
+import RippleEffect from './RippleEffect';
+import BlackHoleEffect from './BlackHoleEffect';
+// import PrintEffect from './PrintEffect';
+import DispenserEffect from './DispenserEffect';
+import OvergrownEffect from './OvergrownEffect';
 import StardustEffect from './StardustEffect';
 import ScrambleEffect from './ScrambleEffect';
 import RepelEffect from './RepelEffect';
@@ -25,8 +31,20 @@ const CardEffectLayer: React.FC<CardEffectLayerProps> = ({ effect, host }) => {
       return <PortalEffect host={host} dimension="space" />;
     case 'portal-grid':
       return <PortalEffect host={host} dimension="grid" />;
-    case 'holo':
-      return <HoloEffect host={host} />;
+    case 'glitch':
+      return <GlitchEffect host={host} />;
+    case 'lantern-reveal':
+      return <LanternEffect host={host} />;
+    case 'ripple':
+      return <RippleEffect host={host} />;
+    case 'black-hole':
+      return <BlackHoleEffect host={host} />;
+    // case 'print':
+    //   return <PrintEffect host={host} />;
+    case 'take-one':
+      return <DispenserEffect host={host} />;
+    case 'overgrown':
+      return <OvergrownEffect host={host} />;
     case 'stardust':
       return <StardustEffect host={host} />;
     case 'scramble':

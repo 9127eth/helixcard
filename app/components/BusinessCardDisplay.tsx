@@ -5,15 +5,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaTiktok, FaYoutube, FaDiscord, FaTwitch, FaSnapchat, FaTelegram, FaWhatsapp, FaLink, FaPhone, FaEnvelope, FaPaperPlane, FaDownload, FaAt, FaFileAlt } from 'react-icons/fa';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Facebook, Instagram, Linkedin, Twitter, Youtube, Twitch, MessageCircle, Link as LinkIcon, Phone, Mail, Send, Download, AtSign, FileText } from 'react-feather';
-import { BusinessCard } from '@/app/types';
+import { BusinessCard, CardEffect } from '@/app/types';
 import Link from 'next/link';
 import Image from 'next/image';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import LoadingSpinner from './LoadingSpinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import CardEffectLayer from './effects/CardEffectLayer';
+import { useReducedMotion } from './effects/surfaceUtils';
+import { EffectTourControls, EffectTourTrigger } from './EffectTour';
 import { getCardColorStyle, normalizeCardColors } from '../lib/cardColors';
-import { getAvailableCardEffect } from '../lib/cardEffects';
+import { getAvailableCardEffect, showEffectTour, stepEffectTour } from '../lib/cardEffects';
 import { sanitizeEmailAddress, sanitizeExternalUrl, sanitizePhoneNumber } from '../lib/urlSafety';
 
 interface BusinessCardDisplayProps {
@@ -165,6 +167,31 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
       setIsLoading(false);
     }
   }, [card]);
+
+  // Effects tour: a visitor-side preview of every effect, started from the
+  // footer. It lives only in component state, so a refresh brings the card
+  // back to the effect its owner chose and nothing is ever written.
+  const reducedMotion = useReducedMotion();
+  const [tourEffect, setTourEffect] = useState<CardEffect | null>(null);
+  const tourDockRef = useRef<HTMLDivElement>(null);
+  const [tourDocked, setTourDocked] = useState(true);
+
+  useEffect(() => {
+    // The editor's live preview swaps the draft's effect under us; the tour yields to it.
+    setTourEffect(null);
+  }, [card.id, card.effect]);
+
+  useEffect(() => {
+    const dock = tourDockRef.current;
+    if (!tourEffect || !dock) {
+      setTourDocked(true);
+      return;
+    }
+    // The floating copy of the controls appears only while the footer's are out of view.
+    const observer = new IntersectionObserver(([entry]) => setTourDocked(entry.isIntersecting), { threshold: 0.5 });
+    observer.observe(dock);
+    return () => observer.disconnect();
+  }, [tourEffect]);
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -338,20 +365,33 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
 
   const customColors = isPro ? normalizeCardColors(card.customColors) : null;
   const themeClasses = getThemeClasses();
+  const cardEffect = getAvailableCardEffect(card.effect, isPro);
+  // Free cards always carry the tour (it is how Helix spreads, like the footer
+  // link); Pro owners can turn it off. Reduced-motion visitors never see it.
+  const tourEnabled = showEffectTour(card.effectTour, isPro) && !reducedMotion;
+  const effect = tourEnabled && tourEffect ? tourEffect : cardEffect;
+  const tourControls = {
+    cardEffect,
+    onPrevious: () => setTourEffect(current => stepEffectTour(current ?? cardEffect, -1)),
+    onNext: () => setTourEffect(current => stepEffectTour(current ?? cardEffect, 1)),
+    onDone: () => setTourEffect(null),
+  };
 
   return (
     <div
       ref={containerRef}
+      data-card-effect={effect}
       className={`${themeClasses.container} w-full min-h-screen flex flex-col`}
       style={customColors ? getCardColorStyle(customColors) : undefined}
       onClickCapture={isPreview ? event => {
-        if ((event.target as Element).closest('a, button')) {
+        if ((event.target as Element).closest('a, button') && !(event.target as Element).closest('[data-fx-control]')) {
           event.preventDefault();
           event.stopPropagation();
         }
       } : undefined}
     >
-      <header data-fx="tilt" className={`bg-card-header py-6 sm:py-8 lg:py-10 ${
+      <div data-fx-content className="flex min-h-screen w-full flex-1 flex-col">
+      <header data-fx-section="identity" className={`bg-card-header py-6 sm:py-8 lg:py-10 ${
         !customColors && card.theme === 'classic' ? 'border-b border-gray-300' : ''
       }`}>
         <div className="container mx-auto px-3 sm:px-4">
@@ -418,7 +458,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
       <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 pt-4">
           {/* Social Links and Contact Info */}
-          <div className="lg:col-span-2">
+          <div data-fx-section="contact" className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-2">
               {/* Contact Information */}
               {(safePhoneNumber || safeEmail) && (
@@ -428,7 +468,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                   }`}>Contact</h2>
                   {safePhoneNumber && (
                     <>
-                      <div className="flex items-center mb-3">
+                      <div data-fx="chunk" className="flex items-center mb-3">
                         <Phone className={`mr-3 ${
                           !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                         }`} size={18} />
@@ -437,7 +477,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                         </a>
                       </div>
                       {(card.enableTextMessage === undefined || card.enableTextMessage) && (
-                        <div className="flex items-center mb-3">
+                        <div data-fx="chunk" className="flex items-center mb-3">
                           <MessageCircle className={`mr-3 ${
                             !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                           }`} size={18} />
@@ -449,7 +489,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                     </>
                   )}
                   {safeEmail && (
-                    <div className="flex items-center mb-2">
+                    <div data-fx="chunk" className="flex items-center mb-2">
                       <Mail className={`mr-3 ${
                         !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                       }`} size={18} />
@@ -469,7 +509,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                   }`}>Social</h2>
                   <div className="flex flex-wrap gap-8 justify-center">
                     {safeLinks.linkedIn && (
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center" data-fx="chunk">
                         <a 
                           href={safeLinks.linkedIn} 
                           target="_blank" 
@@ -484,7 +524,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                       </div>
                     )}
                     {safeLinks.twitter && (
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center" data-fx="chunk">
                         <a 
                           href={safeLinks.twitter} 
                           target="_blank" 
@@ -497,7 +537,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                       </div>
                     )}
                     {safeLinks.facebookUrl && (
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center" data-fx="chunk">
                         <a 
                           href={safeLinks.facebookUrl} 
                           target="_blank" 
@@ -510,7 +550,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                       </div>
                     )}
                     {safeLinks.instagramUrl && (
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center" data-fx="chunk">
                         <a 
                           href={safeLinks.instagramUrl} 
                           target="_blank" 
@@ -523,7 +563,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                       </div>
                     )}
                     {safeLinks.threadsUrl && (
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center" data-fx="chunk">
                         <a 
                           href={safeLinks.threadsUrl} 
                           target="_blank" 
@@ -536,7 +576,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                       </div>
                     )}
                     {safeLinks.blueskyUrl && (
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center" data-fx="chunk">
                         <a 
                           href={safeLinks.blueskyUrl} 
                           target="_blank" 
@@ -580,7 +620,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
           </div>
 
           {/* About Me and Custom Message */}
-          <div className="lg:row-span-2">
+          <div data-fx-section="about" className="lg:row-span-2">
             {card.aboutMe && (
               <div className="mt-8 lg:mt-0">
                 <h2 className={`text-2xl font-bold mb-4 ${
@@ -633,11 +673,17 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
         </div>
       </main>
 
-      <footer className={`${themeClasses.footer} text-white py-4 sm:py-5 lg:py-6 mt-auto`}>
+      <footer data-fx-section="footer" className={`${themeClasses.footer} text-white py-4 sm:py-5 lg:py-6 mt-auto`}>
         <div className="container mx-auto px-4 text-center">
-          <p className="text-xs mb-3 text-[var(--header-footer-secondary-text)]">
-            Create a modern, digital business card like this one for free.
-          </p>
+          {tourEnabled && (
+            <div ref={tourDockRef} data-fx-ignore data-fx-control data-effect-tour className="mb-3 flex justify-center">
+              {tourEffect ? (
+                <EffectTourControls variant="dock" effect={tourEffect} {...tourControls} />
+              ) : (
+                <EffectTourTrigger onClick={() => setTourEffect(stepEffectTour(cardEffect, 1))} />
+              )}
+            </div>
+          )}
           <Link 
             href="/" 
             target="_blank" 
@@ -646,8 +692,22 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
           >
             Get Your Card
           </Link>
+          <p className="mt-3 text-xs text-[var(--header-footer-secondary-text)]">
+            Create a modern, digital business card like this one for free.
+          </p>
         </div>
       </footer>
+      </div>
+      {tourEnabled && tourEffect && (
+        <div
+          className="fx-tour-float rounded-full"
+          data-docked={tourDocked ? 'true' : 'false'}
+          data-fx-ignore
+          data-fx-control
+        >
+          <EffectTourControls variant="float" effect={tourEffect} {...tourControls} />
+        </div>
+      )}
       {!isPreview && card.isActive === false && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md">
@@ -662,7 +722,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
           </div>
         </div>
       )}
-      <CardEffectLayer key={`${card.theme}:${JSON.stringify(customColors)}`} effect={getAvailableCardEffect(card.effect, isPro)} host={containerRef} />
+      <CardEffectLayer key={`${card.id}:${effect}:${card.theme}:${JSON.stringify(customColors)}`} effect={effect} host={containerRef} />
       <EmailModal
         isOpen={showEmailModal}
         onClose={() => setShowEmailModal(false)}

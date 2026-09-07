@@ -3,7 +3,6 @@
 import React, { useEffect, useRef } from 'react';
 import { attachDragBrush } from './dragBrush';
 import { collectChunks, rectDistance } from './disruptUtils';
-import FxHint from './FxHint';
 import { clamp, fitCanvasToViewport, parseColor, prefersReducedMotion, readThemeColors, rgba, RGB } from './effectUtils';
 
 interface ShatterEffectProps {
@@ -94,16 +93,55 @@ const ShatterEffect: React.FC<ShatterEffectProps> = ({ host }) => {
       }
     };
 
-    const chunkColor = (el: HTMLElement): RGB => {
+    const surface = (() => {
+      const cs = getComputedStyle(hostEl);
+      const fromVar = cs.getPropertyValue('--background').trim() || cs.getPropertyValue('--end-card-bg').trim();
+      const fallback: RGB = colors.isDark ? [20, 20, 20] : [255, 255, 255];
+      if (fromVar) return parseColor(fromVar, fallback);
+      if (!isTransparent(cs.backgroundColor)) return parseColor(cs.backgroundColor, fallback);
+      return fallback;
+    })();
+
+    const colorDist = (a: RGB, b: RGB) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+    /** Visible "ink": icon/text color, not a tile that matches the card surface. */
+    const inkOf = (node: Element): RGB => {
+      const fallback: RGB = colors.isDark ? [255, 255, 255] : [30, 30, 30];
+      const cs = getComputedStyle(node);
+      if (!isTransparent(cs.backgroundColor)) {
+        const bg = parseColor(cs.backgroundColor, colors.accent);
+        // Social tiles often reuse the card fill; skip those so the glyph shows.
+        if (colorDist(bg, surface) > 40) return bg;
+      }
+      const svg =
+        node instanceof SVGElement || node.tagName.toLowerCase() === 'svg'
+          ? node
+          : node.querySelector('svg');
+      if (svg) {
+        const scs = svg === node ? cs : getComputedStyle(svg);
+        const fill = scs.fill;
+        if (fill && fill !== 'none' && fill !== 'currentColor' && !isTransparent(fill)) {
+          return parseColor(fill, fallback);
+        }
+        return parseColor(scs.color, fallback);
+      }
+      return parseColor(cs.color, fallback);
+    };
+
+    const chunkColorAt = (el: HTMLElement, x: number, y: number): RGB => {
       if (el.matches('[data-fx="avatar"]')) return colors.accent;
-      const cs = getComputedStyle(el);
-      if (!isTransparent(cs.backgroundColor)) return parseColor(cs.backgroundColor, colors.accent);
-      return parseColor(cs.color, colors.isDark ? [255, 255, 255] : [30, 30, 30]);
+      let best: { area: number; color: RGB } | null = null;
+      for (const node of [el, ...Array.from(el.querySelectorAll('svg, span, a'))]) {
+        const r = node.getBoundingClientRect();
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+        const area = Math.max(r.width * r.height, 1);
+        if (!best || area < best.area) best = { area, color: inkOf(node) };
+      }
+      return best?.color ?? inkOf(el);
     };
 
     const shatter = (c: Chunk, x: number, y: number, dx: number, dy: number) => {
       const { rect, el } = c;
-      const color = chunkColor(el);
       const count = clamp(Math.round((rect.width * rect.height) / 240), 36, 150);
       for (let i = 0; i < count; i++) {
         if (motes.length >= MAX_PARTICLES) motes.shift();
@@ -123,7 +161,7 @@ const ShatterEffect: React.FC<ShatterEffectProps> = ({ host }) => {
           life: 0.7 + Math.random() * 0.6,
           maxLife: 1,
           size: 2.5 + Math.random() * 3,
-          color,
+          color: chunkColorAt(el, mx, my),
         });
       }
       motes.forEach((m) => {
@@ -221,11 +259,6 @@ const ShatterEffect: React.FC<ShatterEffectProps> = ({ host }) => {
   return (
     <>
       <canvas ref={canvasRef} aria-hidden="true" data-fx-ignore="" className="fixed inset-0 z-30 pointer-events-none" />
-      <FxHint
-        storageKey="helix-fx-shatter-hint"
-        text="Click & drag across anything"
-        touchText="Press & hold, then drag across anything"
-      />
     </>
   );
 };

@@ -15,13 +15,14 @@
 
 ## The model
 
-Each card has three independent settings:
+Each card has four independent settings:
 
 | Firestore field | What it is | Example ids |
 |---|---|---|
 | `theme` | **Design** — colors, typography, surface | `classic`, `sunset`, `neon` |
-| `effect` | **Effect** — motion when someone views the card on web | `none`, `portal`, `holo` |
+| `effect` | **Effect** — motion when someone views the card on web | `none`, `portal`, `glitch` |
 | `customColors` | **Pro color overrides** — six opaque sRGB hex colors, or `null` for the preset | See schema below |
+| `effectTour` | **Effects tour** — whether visitors can browse every effect from the card footer | `true` (default), `false` (Pro only) |
 
 All preset designs are free. **None, Portal · The Grid, and Repel are free.**
 Portal · Deep Space, Holographic, Stardust, Scramble, Shatter, and setting custom colors require **Helix Pro**.
@@ -38,6 +39,7 @@ Pro can pair any design, effect, and custom palette.
 | **`theme`** | `string`, optional — lowercase id from the design table below |
 | **`effect`** | `string`, optional — lowercase id from the effect table below |
 | **`customColors`** | map of exactly six hex strings, optional or `null` — see below |
+| **`effectTour`** | `bool`, optional — omit or `true` shows the visitor effects tour; `false` hides it and is accepted only from a Pro owner |
 
 ### Write rules
 
@@ -48,6 +50,8 @@ Pro can pair any design, effect, and custom palette.
 5. Firestore validates **new or changed** effects and custom colors. Free users cannot bypass the
    Pro restriction using the iOS SDK. Hex values must be uppercase `#RRGGBB` when written.
 6. Use merge/update semantics when editing a card. Preserve fields the app does not understand.
+7. `effectTour`: omit it or write `true` for free accounts. Only a Pro owner may write `false`; rules reject
+   `false` from a free account and any non-boolean value.
 
 ### Pro expiry / downgrade
 
@@ -56,6 +60,8 @@ renders `none` for a Pro effect while the owner's `isPro` is false. Re-upgrading
 Free users may edit contact details while retaining unchanged Pro settings, clear custom colors,
 or choose a free effect. They cannot create, change, or copy Pro settings onto another card.
 Show stored Pro selections as locked/paused; do not silently replace them when editing other fields.
+A stored `effectTour: false` is likewise kept but ignored while `isPro` is false (visitors see the tour),
+and applies again after re-upgrading. A free account may set it back to `true` at any time.
 
 ### Reading for the settings screen
 
@@ -96,13 +102,40 @@ Show name + description. Optionally show the **interaction** string as a small b
 | `none` | None | — | Just the design, no motion. |
 | `portal` | Portal · Deep Space | Press & hold, then drag | Press and hold to open a hole in the card and look into deep space behind it, then drag the hole around. |
 | `portal-grid` | Portal · The Grid | Press & hold, then drag | Press and hold to open a hole into a still neon wireframe dimension waiting behind the card. |
-| `holo` | Holographic | Tilt your phone / move the mouse | A foil sheen and subtle 3D tilt that respond to how you hold your phone, or to the mouse on desktop. |
+| `glitch` | Glitch | Drag over content | Drag across the card and whatever you pass over breaks up like a bad signal: copies in split color channels (cyan and magenta) slide apart and tear into shifted slices, icons and the photo flash the wrong colors, then everything snaps back. |
+| `lantern-reveal` | Lantern · First Light | Carry the lantern | Only a lantern is visible. Carrying it (or scrolling the card beneath it) lights everything its flame passes over, permanently; once most of the card is lit, the last of the dark lifts. The lantern stays on screen and can be carried again. |
+| `ripple` | Ripple | Tap or drag | Rings and a wake gently distort the real content, then settle. |
+| `black-hole` | Black Hole | Press & hold | The original content recedes into a central point, preserving its colors; release restores it. |
+<!-- Temporarily disabled; restore with PrintEffect when ready.
+| `print` | Print | Pull the press up | Pull a letterpress bar upward: the arms arc, the platen meets blank stock, and the card stamps into the paper from the contact line. An incomplete stroke returns the handle. |
+-->
+| `take-one` | Take One | Pull the card down | A wall-mounted holder shows a stack of the card behind glass. The card in its slot follows the finger down; once its top clears the slot it grows into the page and the holder lifts away. A short pull slides it back. |
+| `overgrown` | Overgrown | Brush the leaves off | Fall-colored foliage brushes off the screen and stays gone until refresh. |
 | `stardust` | Stardust | Drag or tap | Your finger leaves a glowing trail of sparks in the card's colors. Tap empty space for a burst. |
 | `scramble` | Scramble | Drag over text | Drag across the card and the words you pass over dissolve into cipher characters, then decode themselves back. |
 | `repel` | Repel | Drag near elements | Everything you drag near gets pushed out of the way like a magnet, then springs back into place. |
 | `shatter` | Shatter | Drag over elements | Whatever you drag across crumbles into dust and re-forms a moment later. |
 
 ---
+
+Holographic (`holo`), Current (`current`), Develop (`develop`), and Fold (`fold`) are retired. Existing saved values render as `none`; the editor normalizes them to `none` on its next save. New writes cannot select them.
+
+The remaining new effects are Pro-only, using the same entitlement checks as the other Pro effects. First Light, Take One, and Overgrown start concealed and offer keyboard activation. Reduced-motion viewers see readable content without gesture gates. These interactions are decorative, not authentication.
+
+## Effects tour (`effectTour`)
+
+The public card footer carries a “Try the other effects” control directly above the **Get Your Card**
+button (the “create a card like this one for free” line sits below the button). It lets a visitor step
+through every effect except `none`, in registry order, starting with the one after the card's own
+effect. Each stop names the effect and shows its interaction cue; it never labels tiers, since the
+upsell belongs in the editor. The tour is a visitor-side preview only: it is never written anywhere, the
+card always opens on its saved effect, and a refresh returns to it. While touring, a compact floating
+copy of the controls stays on screen when the footer is scrolled away or a reveal effect (First Light,
+Take One, Overgrown) conceals the card. Reduced-motion visitors never see the tour.
+
+Free cards always show it — like the footer link, it is how Helix spreads. A Pro owner may hide it by
+writing `effectTour: false`. Web renders from `showEffectTour(card.effectTour, ownerIsPro)` in
+`app/lib/cardEffects.ts`; the public API resolves the same value into the card DTO.
 
 ## Custom colors (`customColors`) — Pro only
 
@@ -168,8 +201,11 @@ map to `null`. Re-enabling custom colors starts from the currently selected desi
 1. **Design** — preset swatches, available to everyone.
 2. **Custom colors** — a Pro toggle and only the six controls above. Offer a color picker and
    hex entry per control, plus “Restore design colors”. Free users see an upgrade link.
-3. **Effect** — mark Portal · Deep Space, Holographic, Stardust, Scramble, and Shatter as Pro and disable them for free users.
-4. **Live preview** — updates immediately from the local form draft, before Save. It shows the
+3. **Effect** — list the free effects first, then the Pro ones in registry order. Mark Pro effects with a Pro
+   badge and disable them for free users; show the badge in gray for Pro accounts, where it no longer upsells.
+4. **Effects tour** — a toggle “Let visitors try every effect”, on by default. Free accounts see it on and
+   disabled with an upgrade link; Pro may turn it off. Show a stored `false` as paused on a free account.
+5. **Live preview** — updates immediately from the local form draft, before Save. It shows the
    actual public card renderer, including effects. Users can scroll the preview and try effects;
    contact, email, download, and navigation actions are disabled inside the preview.
 

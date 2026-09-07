@@ -275,12 +275,32 @@ export async function POST(request: Request) {
           to: recipient,
           subject: 'Your Helix Contacts Export',
           html: `
-            <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
-              <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 16px; color: #111827;">Your Data Export</h1>
-              <p style="font-size: 16px; color: #374151; margin-bottom: 24px;"> Your requested contacts export from Helix is attached to this email as a CSV file.</p>
-            </div>
+            <!doctype html>
+            <html lang="en">
+              <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+              <body style="margin:0;background:#F4F4F5;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#18181B;">
+                <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Your Helix contacts export is attached as a CSV file.</div>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F4F4F5;padding:32px 16px;">
+                  <tr><td align="center">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#FFFFFF;border:1px solid #E4E4E7;border-radius:20px;overflow:hidden;">
+                      <tr><td style="height:8px;background:#7CCEDA;font-size:0;line-height:0;">&nbsp;</td></tr>
+                      <tr><td style="padding:34px 36px 36px;">
+                        <p style="margin:0 0 28px;font-size:20px;font-weight:800;letter-spacing:-0.02em;">HelixCard</p>
+                        <h1 style="margin:0 0 14px;font-size:28px;line-height:1.2;letter-spacing:-0.03em;">Your contacts export is ready</h1>
+                        <p style="margin:0 0 24px;color:#52525B;font-size:16px;line-height:1.7;">The contacts you requested from Helix are attached to this email as a CSV file. Open it in Excel, Google Sheets, or any spreadsheet app.</p>
+                        <div style="padding:18px 20px;background:#F4F4F5;border-radius:14px;">
+                          <p style="margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;color:#71717A;">Attached</p>
+                          <p style="margin:0;color:#18181B;font-size:15px;line-height:1.6;">Your Helix contacts as a CSV file</p>
+                        </div>
+                        <p style="margin:32px 0 0;padding-top:22px;border-top:1px solid #E4E4E7;color:#71717A;font-size:12px;line-height:1.6;">Sent by HelixCard · <a href="https://www.helixcard.app" style="color:#3F7F89;">helixcard.app</a></p>
+                      </td></tr>
+                    </table>
+                  </td></tr>
+                </table>
+              </body>
+            </html>
           `,
-          text: 'Your requested contacts export from Helix is attached to this email as a CSV file.',
+          text: 'Your contacts export is ready.\n\nThe contacts you requested from Helix are attached to this email as a CSV file. Open it in Excel, Google Sheets, or any spreadsheet app.',
           attachments: [textAttachment(safeCsvFileName(fileName), csvData)],
         });
         break;

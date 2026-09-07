@@ -74,17 +74,17 @@ export function welcomeEmail({
       </div>
       <div style="margin:0 0 6px;">
         <p style="margin:0 0 6px;font-size:16px;font-weight:750;">Get the Helix app</p>
-        <p style="margin:0 0 16px;color:${MUTED_COLOR};font-size:15px;line-height:1.6;">The mobile app is the best way to share your card, scan paper cards, and set up NFC taps. If you have not installed it yet, grab it here:</p>
+        <p style="margin:0 0 16px;color:${MUTED_COLOR};font-size:15px;line-height:1.6;">The mobile app is the best way to share your card, scan paper cards, and set up NFC cards.</p>
         <table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0 10px;">
           <tr><td>${button('Download on the App Store', IOS_APP_URL)}</td></tr>
-          <tr><td>${button('Get it on Google Play', ANDROID_APP_URL)}</td></tr>
+          <tr><td>${button('Download on Google Play', ANDROID_APP_URL)}</td></tr>
         </table>
         <p style="margin:12px 0 0;color:#71717A;font-size:13px;line-height:1.6;">Already have the app? You are all set. Prefer a bigger screen? You can also <a href="${dashboardUrl}" style="color:#3F7F89;">manage your cards on the web</a>.</p>
       </div>
       ${verificationSection}
-      <p style="margin:28px 0 0;color:${MUTED_COLOR};font-size:14px;line-height:1.65;">Have a question or need support? Just reply to this email—we’re happy to help.</p>
-    `, 'Download the Helix app to share your card, scan paper cards, and set up NFC taps.', 'Helix Digital Business Card'),
-    text: `${greeting}\n\nWelcome to a better way to network.\n\nHelixCard helps you create customizable, interactive cards that feel like you. Turn introductions into memorable networking moments. Add your details, links, colors, and interactive touches, then use the card scanner to capture contact details and keep new connections organized.\n\nGet the Helix app. The mobile app is the best way to share your card, scan paper cards, and set up NFC taps. If you have not installed it yet:\niPhone: ${IOS_APP_URL}\nAndroid: ${ANDROID_APP_URL}\n\nAlready have the app? You are all set. You can also manage your cards on the web: ${dashboardUrl}${verificationUrl ? `\n\nOne quick account check: verify your email address so we can keep account recovery secure.\n${verificationUrl}` : ''}\n\nHave a question or need support? Just reply to this email—we’re happy to help.\n\n— The HelixCard team`,
+      <p style="margin:28px 0 0;color:${MUTED_COLOR};font-size:14px;line-height:1.65;">Have a question or need support? Just reply to this email. We’re happy to help.</p>
+    `, 'Download the Helix app to share your card, scan paper cards, and set up NFC cards.', 'Helix Digital Business Card'),
+    text: `${greeting}\n\nWelcome to a better way to network.\n\nHelixCard helps you create customizable, interactive cards that feel like you. Turn introductions into memorable networking moments. Add your details, links, colors, and interactive touches, then use the card scanner to capture contact details and keep new connections organized.\n\nGet the Helix app. The mobile app is the best way to share your card, scan paper cards, and set up NFC cards.\niPhone: ${IOS_APP_URL}\nAndroid: ${ANDROID_APP_URL}\n\nAlready have the app? You are all set. You can also manage your cards on the web: ${dashboardUrl}${verificationUrl ? `\n\nOne quick account check: verify your email address so we can keep account recovery secure.\n${verificationUrl}` : ''}\n\nHave a question or need support? Just reply to this email. We’re happy to help.\n\n— The HelixCard team`,
   };
 }
 

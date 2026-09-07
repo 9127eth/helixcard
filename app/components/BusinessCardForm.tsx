@@ -94,6 +94,7 @@ export interface BusinessCardData {
   isActive: boolean;
   theme: CardTheme;
   effect?: CardEffect;
+  effectTour?: boolean;
   customColors?: CardColors | null;
   enableTextMessage: boolean;
   blueskyUrl: string;
@@ -147,7 +148,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     imageUrl: initialData?.imageUrl || '',
     isActive: initialData?.isActive ?? true, // Default to true if not provided
     theme: initialData?.theme || 'classic',
-    effect: initialData?.effect || DEFAULT_CARD_EFFECT,
+    effect: CARD_EFFECTS.find(option => option.id === initialData?.effect)?.id ?? DEFAULT_CARD_EFFECT,
+    effectTour: initialData?.effectTour !== false,
     customColors: initialData?.customColors ?? null,
     enableTextMessage: initialData ? (initialData.enableTextMessage ?? true) : false,
   });
@@ -507,7 +509,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     isActive: true,
   };
 
-  const updateAppearance = (changes: Partial<Pick<BusinessCardData, 'theme' | 'effect' | 'customColors'>>) => {
+  const updateAppearance = (changes: Partial<Pick<BusinessCardData, 'theme' | 'effect' | 'effectTour' | 'customColors'>>) => {
     const next = { ...formData, ...changes };
     setFormData(next);
     onChange?.(next);
@@ -973,7 +975,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
         title="Document"
         description="Attach a PDF such as a résumé, menu, or brochure."
         icon={<FileText size={16} />}
-        badge={<ProBadge />}
+        badge={<ProBadge muted={isPro} />}
         isOpen={shouldSectionBeOpen()}
       >
         <div className="space-y-4">
@@ -1178,7 +1180,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                   <span className="block text-xs text-gray-500 dark:text-gray-400">Override the design with your own palette.</span>
                 </span>
               </label>
-              <ProBadge />
+              <ProBadge muted={isPro} />
             </div>
             {!isPro ? (
               <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1212,7 +1214,8 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               </p>
             )}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {CARD_EFFECTS.map(option => {
+              {/* Free effects first (a stable sort keeps the registry order within each group). */}
+              {[...CARD_EFFECTS].sort((a, b) => Number(isProCardEffect(a.id)) - Number(isProCardEffect(b.id))).map(option => {
                 const selected = (formData.effect || DEFAULT_CARD_EFFECT) === option.id;
                 const locked = !isPro && isProCardEffect(option.id);
                 return (
@@ -1230,7 +1233,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                         {option.name}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        {isProCardEffect(option.id) && <ProBadge />}
+                        {isProCardEffect(option.id) && <ProBadge muted={isPro} />}
                         {selected && (
                           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#7CCEDA] text-gray-900">
                             <Check size={12} strokeWidth={3} />
@@ -1250,6 +1253,38 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               })}
             </div>
           </fieldset>
+
+          {/* Effects tour */}
+          <div className="space-y-3 rounded-2xl border border-black/[0.06] bg-gray-50/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex cursor-pointer items-center gap-3">
+                <span className="relative inline-flex shrink-0 items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.effectTour !== false}
+                    disabled={!isPro}
+                    onChange={event => updateAppearance({ effectTour: event.target.checked })}
+                    className="peer sr-only"
+                  />
+                  <span className="h-6 w-11 rounded-full bg-gray-300 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition after:content-[''] peer-checked:bg-[#3B8A99] peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-[#7CCEDA]/40 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 dark:bg-white/20" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">Let visitors try every effect</span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">
+                    Adds a “Try the other effects” control above the Get Your Card button. Your card always opens with the effect you chose.
+                  </span>
+                </span>
+              </label>
+              <ProBadge muted={isPro} />
+            </div>
+            {!isPro && (
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Always on for free cards.{' '}
+                <Link href="/get-helix-pro" className="font-semibold text-[#2E7C89] underline decoration-[#7CCEDA]/60 underline-offset-2 dark:text-[#7CCEDA]">Upgrade to Pro</Link> to turn it off.
+                {formData.effectTour === false && ' Your saved setting is paused, so visitors see the tour until you upgrade.'}
+              </p>
+            )}
+          </div>
         </div>
       </CollapsibleSection>
 

@@ -118,7 +118,15 @@ service cloud.firestore {
         function validEffect() {
           let effect = request.resource.data.get('effect', 'none');
           return effect in ['none', 'portal-grid', 'repel']
-            || (ownerIsPro() && effect in ['portal', 'holo', 'stardust', 'scramble', 'shatter']);
+            // print is temporarily disabled in the picker; leave it out of new writes.
+            || (ownerIsPro() && effect in ['portal', 'stardust', 'scramble', 'shatter', 'glitch', 'lantern-reveal', 'ripple', 'black-hole', 'take-one', 'overgrown']);
+        }
+
+        // Visitors can browse every effect from the card footer. Free cards
+        // always show it; only a Pro owner may turn it off (`effectTour: false`).
+        function validEffectTour() {
+          let tour = request.resource.data.get('effectTour', true);
+          return tour == true || (tour == false && ownerIsPro());
         }
 
         // Every field that is rendered into an href on the public card.
@@ -229,6 +237,7 @@ service cloud.firestore {
         allow create: if isOwner()
           && validCustomColors()
           && validEffect()
+          && validEffectTour()
           && validLinkFields()
           && validPrimaryFlag()
           && validActiveFlag()
@@ -239,6 +248,7 @@ service cloud.firestore {
         allow update: if isOwner()
           && (!touches(['customColors']) || validCustomColors())
           && (!touches(['effect']) || validEffect())
+          && (!touches(['effectTour']) || validEffectTour())
           && (!touches(['isPrimary']) || validPrimaryFlag())
           && (!touches(['isActive']) || validActiveFlag())
           && (!touchesAnyLinkField() || validLinkFields());
