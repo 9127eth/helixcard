@@ -31,6 +31,11 @@ export default function CardPreviewFrame({
       }
     };
     window.addEventListener('message', receive);
+    // On a server-rendered page the iframe can finish loading, and announce
+    // itself, before this listener exists; its load event has also already
+    // fired by then, so the onLoad request below never happens. Asking again
+    // now covers that ordering, and is harmless when the frame is still loading.
+    iframe.current?.contentWindow?.postMessage({ type: 'helix-preview-request' }, window.location.origin);
     return () => window.removeEventListener('message', receive);
   }, []);
 
