@@ -468,7 +468,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                   }`}>Contact</h2>
                   {safePhoneNumber && (
                     <>
-                      <div data-fx="chunk" className="flex items-center mb-3">
+                      <div data-fx="chunk" className="flex w-fit max-w-full items-center mb-3">
                         <Phone className={`mr-3 ${
                           !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                         }`} size={18} />
@@ -477,7 +477,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                         </a>
                       </div>
                       {(card.enableTextMessage === undefined || card.enableTextMessage) && (
-                        <div data-fx="chunk" className="flex items-center mb-3">
+                        <div data-fx="chunk" className="flex w-fit max-w-full items-center mb-3">
                           <MessageCircle className={`mr-3 ${
                             !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                           }`} size={18} />
@@ -489,7 +489,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                     </>
                   )}
                   {safeEmail && (
-                    <div data-fx="chunk" className="flex items-center mb-2">
+                    <div data-fx="chunk" className="flex w-fit max-w-full items-center mb-2">
                       <Mail className={`mr-3 ${
                         !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
                       }`} size={18} />
@@ -606,7 +606,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center hover:opacity-80"
+                      className="inline-flex w-fit max-w-full items-center self-start hover:opacity-80"
                     >
                       <LinkIcon className={`mr-3 ${
                         !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
@@ -660,7 +660,7 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
                   href={safeLinks.cvUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 flex items-center hover:opacity-80"
+                  className="mt-4 inline-flex w-fit max-w-full items-center hover:opacity-80"
                 >
                   <FileText className={`mr-3 ${
                     !customColors && card.theme === 'classic' ? 'text-gray-600' : 'text-[var(--link-icon-color)]'
