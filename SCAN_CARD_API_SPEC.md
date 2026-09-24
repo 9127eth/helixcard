@@ -19,7 +19,7 @@ Add the following to `.env.local` (both are already present):
 ```
 CLAUDE_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
-INTERNAL_API_KEY=mAac0+ehh2UKYKqz4a5s9toOgxC6luZqnRngkZffTXQ=
+INTERNAL_API_KEY=<shared secret — never commit the real value>
 ```
 
 `INTERNAL_API_KEY` is the shared secret the iOS app sends in the `x-api-key` header to
@@ -205,7 +205,7 @@ A quick `curl` to verify it's working before the iOS app is updated:
 ```bash
 curl -X POST https://helixcard.app/api/scan-card \
   -H "Content-Type: application/json" \
-  -H "x-api-key: mAac0+ehh2UKYKqz4a5s9toOgxC6luZqnRngkZffTXQ=" \
+  -H "x-api-key: $INTERNAL_API_KEY" \
   -d '{
     "text": "John Smith\nVP of Sales\nAcme Corp\njohn@acme.com\n(555) 123-4567\nacme.com",
     "provider": "openai"

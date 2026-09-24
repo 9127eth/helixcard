@@ -10,14 +10,14 @@ Allow: /support
 Allow: /presskit
 Allow: /privacy-policy
 Allow: /terms-of-service
-Allow: /nhma
-Allow: /VMCRX
-Allow: /emprx
-Allow: /uttyler
-Allow: /lipscomb
-Allow: /uconn
-Allow: /cucop
-Allow: /discount
+
+# Partner/fundraiser pages and the discount page publish coupon codes and are
+# shared directly with the group they belong to, so they must stay out of
+# search results. They are served with `X-Robots-Tag: noindex` (see
+# next.config.mjs) and are intentionally left crawlable here -- adding a
+# Disallow would stop Google from ever reading that header, which would leave
+# already-indexed URLs sitting in the results.
+# Do not re-add these to sitemap.xml.
 
 # Block private user areas
 Disallow: /dashboard

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test tests/cardAppearance.test.cjs tests/linkSafety.test.cjs tests/coreFeatures.test.cjs tests/authEmail.test.cjs tests/config.test.cjs"
+    "test": "node --test tests/cardAppearance.test.cjs tests/linkSafety.test.cjs tests/coreFeatures.test.cjs tests/authEmail.test.cjs tests/config.test.cjs tests/couponSafety.test.cjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
@@ -30,7 +30,7 @@
     "googleapis": "^144.0.0",
     "libphonenumber-js": "^1.11.9",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.16",
+    "next": "^15.5.25",
     "next-themes": "^0.3.0",
     "openai": "^4.77.0",
     "qrcode.react": "^4.2.0",
@@ -40,8 +40,6 @@
     "react-feather": "^2.0.10",
     "react-hook-form": "^7.54.1",
     "react-icons": "^5.3.0",
-    "react-pdf": "^9.1.1",
-    "react-pdf-js": "^5.1.0",
     "react-phone-number-input": "^3.4.8",
     "stripe": "^16.12.0",
     "tailwind-merge": "^2.5.4",

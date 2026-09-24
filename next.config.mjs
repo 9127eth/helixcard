@@ -107,10 +107,6 @@ const nextConfig = {
             value: contentSecurityPolicy,
           },
           {
-            key: 'X-Robots-Tag',
-            value: 'index, follow',
-          },
-          {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
@@ -134,6 +130,18 @@ const nextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
           },
+        ],
+      },
+      {
+        // Partner / fundraiser landing pages and the discount redemption page.
+        // These publish coupon codes and are handed out directly to the group
+        // they belong to, so they must stay out of search results. Note they are
+        // deliberately still crawlable in robots.txt -- a Disallow would stop
+        // Google from ever reading this header and the pages would linger in the
+        // index.
+        source: '/:path(nhma|VMCRX|emprx|uttyler|lipscomb|uconn|cucop|discount)',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
         ],
       },
       {

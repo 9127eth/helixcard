@@ -594,9 +594,15 @@ h3 .business-card-form {
 /* Mobile Safari can commit to native text selection before a hold-driven
    effect's pointer handler has time to apply its temporary inline lock. Keep
    those gesture surfaces non-selectable from the outset on touch-first
-   devices. Links and editable controls remain native so contact details can
-   still be copied and link callouts still work. This does not set
-   `touch-action`, so an early move can continue to become a page scroll. */
+   devices. Links keep their long-press callout (Call, Copy…), which is how
+   contact details are copied on a phone, and editable controls stay native.
+   This does not set `touch-action`, so an early move can continue to become a
+   page scroll.
+
+   Links are deliberately NOT selectable text. When a long-press lands on a
+   selectable node that has no text of its own, Safari snaps the selection to
+   the nearest selectable text in the document, however far away — with links
+   as the card's only selectable text that was the phone number's "(". */
 @media (hover: none) and (pointer: coarse) {
   :is(
     [data-card-effect="portal"],
@@ -620,10 +626,21 @@ h3 .business-card-form {
     [data-card-effect="scramble"],
     [data-card-effect="repel"],
     [data-card-effect="shatter"]
-  ) :is(a, input, textarea, select, [contenteditable="true"]) {
+  ) :is(input, textarea, select, [contenteditable="true"]) {
     -webkit-user-select: text;
     user-select: text;
     -webkit-touch-callout: default;
+  }
+
+  /* `default` is the initial value, so this only undoes the inherited `none`. */
+  [data-card-effect] a { -webkit-touch-callout: default; }
+
+  /* The Portal rip is a real clip-path hole through the card, so a held finger
+     ends up over <body>, which would otherwise be that selectable, textless
+     node. Keep the backdrop behind the card non-selectable as well. */
+  :is(html, body):has([data-card-effect="portal"], [data-card-effect="portal-grid"]) {
+    -webkit-user-select: none;
+    user-select: none;
   }
 }
 

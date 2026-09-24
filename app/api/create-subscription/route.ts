@@ -134,6 +134,22 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 });
         }
 
+        // The promotion has to still be live in Stripe. /api/verify-coupon
+        // already requires this before the checkout form offers the free path,
+        // but this grant only compared the code against the list above — so
+        // ending a promotion in Stripe hid it from the form while a direct
+        // request here kept handing out lifetime Pro.
+        const freePromotion = await stripe.promotionCodes.list({
+          code: couponCode,
+          active: true,
+          limit: 1,
+        });
+        const freeCoupon = freePromotion.data[0]?.coupon;
+
+        if (!freeCoupon || !freeCoupon.valid) {
+          return NextResponse.json({ error: 'Invalid promotion code' }, { status: 400 });
+        }
+
         // Check if this coupon has been used by this user or email before
         const [userUsed, emailUsed] = await Promise.all([
           hasUserUsedCoupon(couponCode, uid),
@@ -229,8 +245,11 @@ export async function POST(req: Request) {
           const promoCode = promotionCodes.data[0];
           const couponId = promoCode.coupon.id;
 
-          // Then retrieve the coupon using the coupon ID
-          const coupon = await stripe.coupons.retrieve(couponId);
+          // Then retrieve the coupon using the coupon ID. Stripe only returns
+          // `applies_to` when it is expanded; without this the product
+          // restriction check below never ran, so a code limited to one product
+          // still discounted the lifetime charge computed further down.
+          const coupon = await stripe.coupons.retrieve(couponId, { expand: ['applies_to'] });
 
           if (!coupon.valid) {
             return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 });
