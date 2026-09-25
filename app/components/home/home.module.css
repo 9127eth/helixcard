@@ -1,0 +1,310 @@
+/*
+ * Home page tokens. Every color comes from the Helix logo: black ink, the mint
+ * card face, the teal card behind it, and the orange selection handles.
+ * `.tokens` is also applied to the sign-up dialog, which portals outside the page.
+ */
+.tokens {
+  --hx-ink: #000000;
+  --hx-paper: #ffffff;
+  --hx-face: #f5fdfd;
+  --hx-tide: #93dbd6;
+  --hx-handle: #ff6a42;
+  --hx-muted: #4f5b5a;
+  --hx-line: rgb(0 0 0 / 0.14);
+  --hx-select-line: #8b9090;
+  color: var(--hx-ink);
+  font-family: var(--font-schibsted), Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+:global(.dark) .tokens {
+  --hx-ink: #f5fdfd;
+  --hx-paper: #000000;
+  --hx-face: #0b1616;
+  --hx-muted: #a3b2b1;
+  --hx-line: rgb(245 253 253 / 0.16);
+  --hx-select-line: #7d8a89;
+}
+
+.page {
+  background: var(--hx-paper);
+  min-height: 100vh;
+}
+
+/* The sign-up dialog keeps the auth form's own focus styles. */
+.page :where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--hx-handle);
+  outline-offset: 3px;
+}
+
+/*
+ * Type: one family, Schibsted Grotesk, with weight and size carrying the hierarchy.
+ *
+ * The headline scales with the viewport so it breaks in the same places at
+ * every size: "Make your next / connection / memorable." on phones and
+ * tablets, and "Make your next / connection memorable." from 1024px up. The
+ * divisors come from the face's measured widths at 100px (7.24 and 11.08 em).
+ */
+.display {
+  font-weight: 800;
+  font-size: clamp(2rem, calc((100vw - 2rem) / 7.6), 4rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+@media (min-width: 640px) {
+  .display {
+    font-size: min(calc((100vw - 3rem) / 7.6), 5.5rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .display {
+    font-size: min(calc((100vw - 4rem) / 11.3), 6rem);
+    line-height: 0.92;
+  }
+}
+
+.heading {
+  font-weight: 800;
+  font-size: 2.25rem;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.subheading {
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.price {
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+/* The first name printed large on a conference badge. */
+.badgeName {
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* The name on the blank card at the end of the page. */
+.cardName {
+  font-weight: 800;
+  font-size: 2.25rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+@media (min-width: 640px) {
+  .cardName { font-size: 3.5rem; }
+}
+
+@media (min-width: 768px) {
+  .heading { font-size: 3rem; }
+  .price { font-size: 3rem; }
+}
+
+/* The logo's card: ink outline, mint face, and the teal card showing behind it. */
+.frame {
+  border: 3px solid var(--hx-ink);
+  border-radius: 26px;
+  background: var(--hx-face);
+  box-shadow: 10px 10px 0 var(--hx-tide);
+}
+
+/* The primary action sits on the teal card and presses down into it. */
+.button {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  border: 2px solid var(--hx-ink);
+  border-radius: 14px;
+  background: var(--hx-ink);
+  color: var(--hx-paper);
+  font-size: 1.0625rem;
+  font-weight: 650;
+  box-shadow: 4px 4px 0 var(--hx-tide);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--hx-tide);
+}
+
+.button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--hx-tide);
+}
+
+/* The logo's selection box: a hairline frame with handles on two corners. */
+.selectBox {
+  position: absolute;
+  inset: -6px;
+  border: 1px solid var(--hx-select-line);
+  pointer-events: none;
+  animation: select-in 160ms ease-out;
+}
+
+.selectBox::before,
+.selectBox::after {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: var(--hx-handle);
+}
+
+.selectBox::before { top: -4px; left: -4px; }
+.selectBox::after { right: -4px; bottom: -4px; }
+
+@keyframes select-in {
+  from { opacity: 0; transform: scale(1.06); }
+  to { opacity: 1; transform: none; }
+}
+
+/*
+ * The live card renders at phone width (390px) and tall enough for the whole
+ * card in every design, with room for its effects tour controls (912px), then
+ * is scaled to fit. It looks exactly like the published card, with nothing to
+ * scroll inside the frame.
+ */
+.screen {
+  --w: 272px;
+  --s: 0.69744;
+  position: relative;
+  width: var(--w);
+  height: calc(912px * var(--s));
+  overflow: hidden;
+  border-radius: 23px;
+  /* Its own layer, so the rounded clip also applies to the scaled iframe. */
+  isolation: isolate;
+  transform: translateZ(0);
+}
+
+.screenInner {
+  width: 390px;
+  height: 912px;
+  transform: scale(var(--s));
+  transform-origin: 0 0;
+}
+
+@media (min-width: 375px) {
+  .screen { --w: 300px; --s: 0.76923; }
+}
+
+@media (min-width: 1024px) {
+  .screen { --w: 320px; --s: 0.82051; }
+}
+
+/*
+ * The sign-up and log-in forms are shared with other pages, so inside the
+ * dialog they are restyled from here rather than changed at the source. Each
+ * selector is one step more specific than the utility classes it replaces.
+ */
+.auth input[type='email'],
+.auth input[type='password'],
+.auth input[type='text'] {
+  border: 1.5px solid var(--hx-select-line);
+  border-radius: 12px;
+  padding: 0.75rem 0.875rem;
+  background: var(--hx-paper);
+  color: var(--hx-ink);
+  box-shadow: none;
+}
+
+/* Room for the show/hide password button. */
+.auth input[type='password'],
+.auth input[type='text'] {
+  padding-right: 2.75rem;
+}
+
+.auth input[type='email']:focus,
+.auth input[type='password']:focus,
+.auth input[type='text']:focus {
+  border-color: var(--hx-ink);
+  outline: 2px solid var(--hx-handle);
+  outline-offset: 1px;
+}
+
+.auth input[type='checkbox'] {
+  accent-color: var(--hx-ink);
+}
+
+.auth a[href] {
+  color: var(--hx-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth button[type='submit'] {
+  min-height: 3.25rem;
+  border: 2px solid var(--hx-ink);
+  border-radius: 14px;
+  background: var(--hx-ink);
+  color: var(--hx-paper);
+  font-size: 1rem;
+  font-weight: 650;
+  box-shadow: 4px 4px 0 var(--hx-tide);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.auth button[type='submit']:hover {
+  background: var(--hx-ink);
+}
+
+.auth button[type='submit']:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--hx-tide);
+}
+
+.auth button[type='submit']:focus-visible {
+  outline: 2px solid var(--hx-handle);
+  outline-offset: 3px;
+}
+
+.sheet {
+  animation: sheet-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.overlay {
+  animation: fade-in 220ms ease-out;
+}
+
+@keyframes sheet-in {
+  from { opacity: 0; translate: 0 24px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button:hover,
+  .button:active,
+  .auth button[type='submit'],
+  .auth button[type='submit']:active {
+    transition: none;
+    transform: none;
+  }
+
+  .selectBox,
+  .sheet,
+  .overlay {
+    animation: none;
+  }
+}

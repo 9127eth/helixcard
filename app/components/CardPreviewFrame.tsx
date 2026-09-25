@@ -12,11 +12,13 @@ interface CardPreviewFrameProps {
   screenClassName?: string;
   frame?: 'always' | 'desktop' | 'none';
   onEscape?: () => void;
+  /** -1 keeps the card's own links out of the tab order when the host page offers its own controls. */
+  tabIndex?: number;
 }
 
-/** Shared, unscaled phone preview for the editor and saved-card dialog. */
+/** Shared phone preview for the editor, the saved-card dialog, and the home page demo (which scales it). */
 export default function CardPreviewFrame({
-  card, isPro, title, className, screenClassName, frame = 'always', onEscape,
+  card, isPro, title, className, screenClassName, frame = 'always', onEscape, tabIndex,
 }: CardPreviewFrameProps) {
   const iframe = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(0);
@@ -88,6 +90,7 @@ export default function CardPreviewFrame({
           ref={iframe}
           src="/card-preview"
           title={title}
+          tabIndex={tabIndex}
           className={cn('block h-full w-full border-0 bg-white', screenClassName)}
           onLoad={() => {
             // Request/ready also handles cached loads and iframe reloads.

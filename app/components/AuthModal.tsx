@@ -14,8 +14,18 @@ import { getDeviceInfo } from '../utils/deviceDetection';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
-export const AuthModal: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(false);
+const plainLinkClass = 'font-medium text-gray-900 underline underline-offset-2 hover:no-underline dark:text-white';
+
+interface AuthModalProps {
+  /** Which form opens first. */
+  initialMode?: 'signup' | 'login';
+  /** `card` draws its own box; `plain` leaves the framing to the host, such as a dialog. */
+  variant?: 'card' | 'plain';
+}
+
+export const AuthModal: React.FC<AuthModalProps> = ({ initialMode = 'signup', variant = 'card' }) => {
+  const plain = variant === 'plain';
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
@@ -120,29 +130,34 @@ export const AuthModal: React.FC = () => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 p-8 pt-10 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 w-full max-w-md min-h-[500px] relative overflow-hidden animate-fadeIn">
+    <div className={plain ? 'w-full' : 'bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 p-8 pt-10 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 w-full max-w-md min-h-[500px] relative overflow-hidden animate-fadeIn'}>
       {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700/30 dark:to-gray-800/20 rounded-bl-full -z-10 opacity-70 animate-pulse-slow"></div>
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-gray-100 to-gray-50 dark:from-gray-700/30 dark:to-gray-800/20 rounded-tr-full -z-10 opacity-70 animate-pulse-slow"></div>
-      <div className="absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/10 dark:to-transparent rounded-full -z-10"></div>
-      
+      {!plain && (
+        <>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700/30 dark:to-gray-800/20 rounded-bl-full -z-10 opacity-70 animate-pulse-slow"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-gray-100 to-gray-50 dark:from-gray-700/30 dark:to-gray-800/20 rounded-tr-full -z-10 opacity-70 animate-pulse-slow"></div>
+          <div className="absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/10 dark:to-transparent rounded-full -z-10"></div>
+        </>
+      )}
+
       {/* Login/Signup toggle button at top right - only show on signup page */}
-      {!isLogin && !isForgotPassword && (
+      {!plain && !isLogin && !isForgotPassword && (
         <div className="absolute top-4 right-4">
           <button
             onClick={toggleAuthMode}
-            className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 border border-gray-200 rounded-xl shadow-sm transition-all duration-200"
+            className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 border border-gray-200 rounded-xl shadow-sm transition-all duration-200"
           >
             Log in
           </button>
         </div>
       )}
       
-      <h4 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
-        {isForgotPassword ? 'Reset Password' : isLogin ? 'Log in' : 'Sign up'}
+      <h4 className={plain ? 'text-2xl font-bold mb-6' : 'text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white'}>
+        {/* In the plain variant the heading repeats the button that opened it. */}
+        {isForgotPassword ? 'Reset Password' : isLogin ? 'Log in' : plain ? 'Make your free card' : 'Sign up'}
       </h4>
 
-      {isLogin && !isForgotPassword && (
+      {!plain && isLogin && !isForgotPassword && (
         <p className="text-sm text-center text-gray-600 dark:text-gray-300 mb-6">
           Welcome back! 👋
         </p>
@@ -153,7 +168,7 @@ export const AuthModal: React.FC = () => {
           <>
             <button
               onClick={handleGoogleSignIn}
-              className="w-full py-3 px-4 mb-4 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 flex items-center justify-center transition-all duration-200 group"
+              className="w-full py-3 px-4 mb-4 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 flex items-center justify-center transition-all duration-200 group"
             >
               <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -166,14 +181,21 @@ export const AuthModal: React.FC = () => {
             </button>
             <button
               onClick={handleAppleSignIn}
-              className="w-full py-3 px-4 mb-4 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 flex items-center justify-center transition-all duration-200 group"
+              className="w-full py-3 px-4 mb-4 border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 flex items-center justify-center transition-all duration-200 group"
             >
               <FaApple className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
               Continue with Apple
             </button>
           </>
         )}
-        {!isForgotPassword && (
+        {!isForgotPassword && plain && (
+          <div className="my-6 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-600" />
+            Or
+            <span className="h-px flex-1 bg-gray-200 dark:bg-gray-600" />
+          </div>
+        )}
+        {!isForgotPassword && !plain && (
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200 dark:border-gray-600"></div>
@@ -194,8 +216,27 @@ export const AuthModal: React.FC = () => {
         </div>
       </div>
 
+      {/* The plain variant has no corner toggle, so its links sit under the form */}
+      {plain && !isForgotPassword && (
+        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+          {isLogin && (
+            <p>
+              <button onClick={handleForgotPassword} className={plainLinkClass}>
+                Forgot password?
+              </button>
+            </p>
+          )}
+          <p>
+            {isLogin ? 'Don’t have an account?' : 'Already have an account?'}{' '}
+            <button onClick={toggleAuthMode} className={plainLinkClass}>
+              {isLogin ? 'Sign up' : 'Log in'}
+            </button>
+          </p>
+        </div>
+      )}
+
       {/* "Don't have an account? Sign up" section - only show on login page */}
-      {isLogin && !isForgotPassword && (
+      {!plain && isLogin && !isForgotPassword && (
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Don&apos;t have an account?
@@ -209,7 +250,7 @@ export const AuthModal: React.FC = () => {
         </div>
       )}
 
-      {isLogin && !isForgotPassword && (
+      {!plain && isLogin && !isForgotPassword && (
         <div className="mt-4 text-right">
           <button
             onClick={handleForgotPassword}
