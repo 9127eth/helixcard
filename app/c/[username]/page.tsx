@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import BusinessCardDisplay from '@/app/components/BusinessCardDisplay';
 import { BusinessCard } from '@/app/types';
 
@@ -19,6 +20,13 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
   const { username } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
   const res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
+
+  if (res.status === 404) {
+    return {
+      title: `Card Not Found - HelixCard`,
+      description: `The requested business card does not exist.`,
+    };
+  }
 
   if (!res.ok) {
     return {
@@ -51,9 +59,19 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
   const { username } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
 
+  let res: Response;
   try {
-    const res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
+    res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
+  } catch (error) {
+    console.error('Error fetching card data:', error);
+    return <div>Error loading card data. Please try again later.</div>;
+  }
 
+  // Unknown usernames, and accounts whose primary card is gone or switched off,
+  // answer 404 so search engines drop the URL. notFound() throws, so it stays out of the try.
+  if (res.status === 404) notFound();
+
+  try {
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`Fetch error: ${res.status} ${res.statusText}`, errorText);

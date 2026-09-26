@@ -7,6 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import CardDemo from './CardDemo';
 import AuthDialog, { type AuthMode } from './AuthDialog';
 import { DEMO_CARD_URL } from './demoCard';
+import { FAQ } from './faq';
 import { schibsted } from './fonts';
 import type { BusinessCard } from '../../types';
 import styles from './home.module.css';
@@ -321,6 +322,31 @@ export default function MarketingHome({ demoCard }: { demoCard: BusinessCard }) 
                 </tbody>
               </table>
             </div>
+          </div>
+        </section>
+
+        <section id="questions">
+          <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <h2 className={styles.heading}>Questions</h2>
+            {/* Native disclosure: answers are in the page for search engines, and open without JavaScript. */}
+            <div className="mt-10 max-w-[52rem] border-b border-[var(--hx-line)]">
+              {FAQ.map(item => (
+                <details key={item.question} className={`${styles.faq} border-t border-[var(--hx-line)]`}>
+                  <summary className="flex cursor-pointer items-center justify-between gap-6 py-5 text-lg font-semibold leading-snug">
+                    {item.question}
+                    <span aria-hidden className={styles.faqToggle} />
+                  </summary>
+                  <p className="-mt-1 max-w-[40rem] pb-6 leading-[1.55] text-[var(--hx-muted)]">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+            <p className="mt-8 text-[var(--hx-muted)]">
+              Another question? Email{' '}
+              <a href="mailto:support@helixcard.app" className="font-medium text-[var(--hx-ink)] underline underline-offset-4 hover:no-underline">
+                support@helixcard.app
+              </a>
+              .
+            </p>
           </div>
         </section>
 

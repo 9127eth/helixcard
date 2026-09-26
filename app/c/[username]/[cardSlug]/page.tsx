@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import BusinessCardDisplay from '@/app/components/BusinessCardDisplay';
 import { BusinessCard } from '@/app/types';
 
@@ -14,6 +15,10 @@ export async function generateMetadata({ params }: BusinessCardProps): Promise<M
   const { username, cardSlug } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
   const res = await fetch(`${baseUrl}/api/c/${username}/${cardSlug}`, { cache: 'no-store' });
+
+  if (res.status === 404) {
+    return { title: 'Card Not Found - HelixCard' };
+  }
 
   if (!res.ok) {
     return {};
@@ -43,9 +48,19 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
   const { username, cardSlug } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.helixcard.app';
 
+  let res: Response;
   try {
-    const res = await fetch(`${baseUrl}/api/c/${username}/${cardSlug}`, { cache: 'no-store' });
+    res = await fetch(`${baseUrl}/api/c/${username}/${cardSlug}`, { cache: 'no-store' });
+  } catch (error) {
+    console.error('Error fetching card data:', error);
+    return <div>Error loading card data. Please try again later.</div>;
+  }
 
+  // Missing and switched-off cards answer 404, so search engines drop the URL
+  // rather than index an error message. notFound() throws, so it stays out of the try.
+  if (res.status === 404) notFound();
+
+  try {
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`Fetch error: ${res.status} ${res.statusText}`, errorText);

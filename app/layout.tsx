@@ -10,17 +10,15 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+// Defaults for pages without their own metadata. No canonical URL or og:url
+// here: every page inherits these, so each page sets its own (see lib/seo.ts).
 export const metadata: Metadata = {
   title: "Helix - A Digital Business Card",
   description: "Create a memorable connection with a digital business card",
   metadataBase: new URL('https://www.helixcard.app'),
-  alternates: {
-    canonical: 'https://www.helixcard.app',
-  },
   openGraph: {
     title: "Helix - A Digital Business Card",
     description: "Create a memorable connection with a digital business card",
-    url: 'https://www.helixcard.app',
     siteName: 'HelixCard',
     type: 'website',
     images: [{

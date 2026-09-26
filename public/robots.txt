@@ -31,12 +31,16 @@ Disallow: /reset-password
 Disallow: /admin/
 Disallow: /api/
 
-# Block Firebase and build files
-Disallow: /_next/
+# Do not block /_next/: it serves the scripts, styles, fonts, and optimized
+# images every page is built from, and search engines that cannot load them
+# cannot render the pages.
 Disallow: /firebase-debug.log
 Disallow: /.git/
 
-# Allow business card URLs (these are meant to be public)
+# Business cards open for anyone with the link but are kept out of search
+# results (X-Robots-Tag: noindex, see next.config.mjs). They stay crawlable so
+# search engines can read that; a Disallow would hide it and could leave
+# already-found card URLs in the results.
 Allow: /c/
 
 # Crawl delay (optional - helps prevent overwhelming your server)

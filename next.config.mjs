@@ -145,6 +145,16 @@ const nextConfig = {
         ],
       },
       {
+        // Public cards are for the people their owners share them with, not
+        // for search results: they carry names, phone numbers, emails, and
+        // photos. nofollow also makes a card worthless for link spam. Like the
+        // pages above, they stay crawlable in robots.txt so this can be read.
+        source: '/c/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, noimageindex' },
+        ],
+      },
+      {
         source: '/card-preview',
         headers: [
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
