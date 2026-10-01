@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FiShare, FiEdit, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiShare, FiEdit, FiEye, FiTrash2, FiStar } from 'react-icons/fi';
 import { BiPalette } from 'react-icons/bi';
 import { BusinessCard } from '@/app/types';
 import { ShareModal } from './ShareModal';
 import DropdownMenu from './DropdownMenu';
-import { handleCardDelete } from '../lib/cardOperations';
+import { handleCardDelete, handleMakeMainCard } from '../lib/cardOperations';
 import { useAuth } from '../hooks/useAuth';
 import { updateCardDepthColor } from '../lib/firebaseOperations';
 import ColorPickerDialog from './ColorPickerDialog';
@@ -19,9 +19,12 @@ interface BusinessCardItemProps {
   username: string | null;
   onUpdate?: (updatedCard: BusinessCard) => void;
   onDelete?: (cardId: string) => void;
+  /** Whether another of the account's cards is currently the main card. */
+  hasMainCard?: boolean;
+  onMainCardChange?: () => void;
 }
 
-export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username, onUpdate, onDelete }) => {
+export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView, username, onUpdate, onDelete, hasMainCard = false, onMainCardChange }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { user } = useAuth();
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -40,6 +43,20 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
         const deleted = await handleCardDelete(user, card);
         if (deleted) {
           onDelete?.(card.id);
+        }
+      } finally {
+        setIsActionLoading(false);
+      }
+    }
+  };
+
+  const handleMakeMain = async () => {
+    if (user) {
+      setIsActionLoading(true);
+      try {
+        const changed = await handleMakeMainCard(user, card, hasMainCard);
+        if (changed) {
+          onMainCardChange?.();
         }
       } finally {
         setIsActionLoading(false);
@@ -101,6 +118,7 @@ export const BusinessCardItem: React.FC<BusinessCardItemProps> = ({ card, onView
               { label: 'Share', icon: FiShare, onClick: handleShareClick, disabled: !card.isActive },
               { label: 'Edit', icon: FiEdit, href: `/edit-card/${card.id}` },
               { label: 'Change Color', icon: BiPalette, onClick: () => setIsColorPickerOpen(true) },
+              ...(card.isPrimary ? [] : [{ label: 'Make Main Card', icon: FiStar, onClick: handleMakeMain }]),
               { label: 'Delete', icon: FiTrash2, onClick: handleDelete, danger: true },
             ]}
           />

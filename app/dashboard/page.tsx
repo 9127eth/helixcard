@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Layout from '../components/Layout';
 import { BusinessCardList } from '../components/BusinessCardList';
 import CardLimitModal from '../components/CardLimitModal';
-import { useAuth } from '../hooks/useAuth';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 import { canCreateCard } from '../lib/firebaseOperations';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -38,7 +38,7 @@ const SubscriptionSuccessHandler: React.FC = () => {
 };
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useRequireAuth();
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [isPro, setIsPro] = useState(false);
   const [limit, setLimit] = useState(FREE_USER_CARD_LIMIT);

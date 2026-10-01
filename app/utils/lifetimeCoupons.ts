@@ -1,4 +1,6 @@
 import { createHash } from 'crypto';
+import { FieldValue } from 'firebase-admin/firestore';
+import type { DocumentData } from 'firebase-admin/firestore';
 import { db } from '../lib/firebase-admin';
 
 export interface LifetimeCouponUsage {
@@ -51,6 +53,10 @@ export async function hasUserUsedCoupon(couponCode: string, uid: string): Promis
  * Check if a coupon has been used by a specific email
  */
 export async function hasEmailUsedCoupon(couponCode: string, email: string): Promise<boolean> {
+  // With no address there is nothing to compare: '' matches every redacted
+  // record, and accounts (Apple sign-in among them) can lack an email.
+  if (!email) return false;
+
   try {
     const customers = db.collection('lifetimesubs')
       .doc(couponCode)
@@ -70,49 +76,68 @@ export async function hasEmailUsedCoupon(couponCode: string, email: string): Pro
 }
 
 /**
- * Record a coupon redemption
+ * Number of redemption records for a code.
+ */
+export async function countCouponRedemptions(couponCode: string): Promise<number> {
+  const snapshot = await db.collection('lifetimesubs')
+    .doc(couponCode)
+    .collection('customers')
+    .count()
+    .get();
+
+  return snapshot.data().count;
+}
+
+/**
+ * Record a coupon redemption, at most once per account.
+ *
+ * The record and the stats commit together, and nothing is written when the
+ * account already has a record: Stripe redelivers webhooks, and each delivery
+ * used to add another use and rewrite `claimedAt`. `userUpdate` is applied to
+ * users/{uid} in the same transaction, so a grant that fails cannot leave the
+ * code spent.
+ *
+ * Returns false (having written nothing) when the account already redeemed it.
  */
 export async function recordCouponRedemption(
   couponCode: string,
   uid: string,
   email: string,
   name: string,
-  priceId: string
-): Promise<void> {
+  priceId: string,
+  userUpdate?: DocumentData
+): Promise<boolean> {
   try {
-    // Record the individual usage
-    await db.collection('lifetimesubs')
-      .doc(couponCode)
-      .collection('customers')
-      .doc(uid)
-      .set({
+    const couponDocRef = db.collection('lifetimesubs').doc(couponCode);
+    const recordRef = couponDocRef.collection('customers').doc(uid);
+
+    return await db.runTransaction(async transaction => {
+      const [record, couponDoc] = await transaction.getAll(recordRef, couponDocRef);
+      if (record.exists) return false;
+
+      const now = new Date();
+      transaction.set(recordRef, {
         uid: uid,
         email: email,
-        emailHash: hashCouponEmail(email),
+        emailHash: email ? hashCouponEmail(email) : '',
         name: name || '',
-        claimedAt: new Date(),
+        claimedAt: now,
         couponCode: couponCode,
         priceId: priceId,
         subscriptionType: 'lifetime'
       });
-
-    // Update the coupon stats
-    const couponDocRef = db.collection('lifetimesubs').doc(couponCode);
-    const couponDoc = await couponDocRef.get();
-    
-    if (!couponDoc.exists) {
-      await couponDocRef.set({
+      transaction.set(couponDocRef, {
         couponCode: couponCode,
-        totalUses: 1,
-        createdAt: new Date(),
-        lastUsedAt: new Date()
-      });
-    } else {
-      await couponDocRef.update({
-        totalUses: (couponDoc.data()?.totalUses || 0) + 1,
-        lastUsedAt: new Date()
-      });
-    }
+        totalUses: FieldValue.increment(1),
+        lastUsedAt: now,
+        ...(couponDoc.exists ? {} : { createdAt: now }),
+      }, { merge: true });
+
+      if (userUpdate) {
+        transaction.update(db.collection('users').doc(uid), userUpdate);
+      }
+      return true;
+    });
   } catch (error) {
     console.error('Error recording coupon redemption:', error);
     throw error;
@@ -203,11 +228,22 @@ export async function redactCouponRedemptions(uid: string, email: string): Promi
   await Promise.all(
     coupons.docs.map(async coupon => {
       const record = coupon.ref.collection('customers').doc(uid);
-      if (!(await record.get()).exists) return;
+      const snapshot = await record.get();
+      if (!snapshot.exists) return;
+
+      // Keep the fingerprint of the address the code was redeemed with. The
+      // account's email can have changed since, and hashing the current one
+      // instead let the redeeming address claim the code again. (Records made
+      // without an address hold the hash of '', which identifies no one.)
+      const data = snapshot.data() ?? {};
+      const redeemedWith = data.email || email;
+      const keptHash = data.emailHash && data.emailHash !== hashCouponEmail('')
+        ? data.emailHash
+        : '';
 
       await record.update({
         email: '',
-        emailHash: email ? hashCouponEmail(email) : '',
+        emailHash: keptHash || (redeemedWith ? hashCouponEmail(redeemedWith) : ''),
         name: '',
         redactedAt: new Date(),
       });

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Tags, CheckSquare, Save, Download, Lock, Users } from 'lucide-react'
+import { Plus, Search, Tags, CheckSquare, Save, Download, Lock, Users, X } from 'lucide-react'
 import { FaMagic } from 'react-icons/fa'
 import Layout from '../components/Layout'
 import ContactList from '../components/contacts/ContactList'
@@ -14,8 +14,8 @@ import EditContactModal from '../components/contacts/EditContactModal'
 import ExportContactsModal from '../components/contacts/ExportContactsModal'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { Contact } from '../types'
-import { batchDeleteContacts, getContacts } from '../lib/contacts'
-import { useAuth } from '../hooks/useAuth'
+import { batchDeleteContacts, deleteContact, getContacts } from '../lib/contacts'
+import { useRequireAuth } from '../hooks/useRequireAuth'
 import SortButton from '../components/contacts/SortButton'
 
 export default function ContactsPage() {
@@ -25,16 +25,22 @@ export default function ContactsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  // The page is the only owner of the contact list and the bulk selection;
+  // ContactList just renders them.
   const [selectedContacts, setSelectedContacts] = useState<string[]>([])
   const [isBulkTagModalOpen, setIsBulkTagModalOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
-  const { user } = useAuth()
+  // Exporting from the View modal sends one contact without touching the
+  // bulk selection.
+  const [exportTarget, setExportTarget] = useState<{ contacts: Contact[]; isBulk: boolean } | null>(null)
+  const { user } = useRequireAuth()
   const [contacts, setContacts] = useState<Contact[]>([])
   const [sortOption, setSortOption] = useState<'firstName' | 'dateAdded'>('dateAdded')
   const [showProTip, setShowProTip] = useState(true)
   const [isContactsLoaded, setIsContactsLoaded] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   // Add a useEffect to log contacts changes for debugging
@@ -44,53 +50,35 @@ export default function ContactsPage() {
 
   // Direct approach to load contacts when user becomes available
   useEffect(() => {
+    if (!user) return;
+    // A slower, older load must not overwrite a newer one.
+    let isCurrent = true;
+
     const loadUserContacts = async () => {
-      if (!user) {
-        console.log('No user available, cannot load contacts');
-        return;
-      }
-      
       try {
-        console.log('Directly loading contacts for user ID: [redacted]');
         // Add a small delay to ensure Firebase is fully initialized
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const userContacts = await getContacts(user.uid);
-        console.log('Directly loaded contacts:', userContacts.length);
+        if (!isCurrent) return;
         
-        if (Array.isArray(userContacts)) {
-          setContacts(userContacts);
-          console.log('Contacts state updated directly');
-        } else {
-          console.error('Expected array of contacts but got:', typeof userContacts);
-          setContacts([]);
-        }
-        
+        setContacts(userContacts);
+        // Deleted contacts must not linger in the selection.
+        setSelectedContacts(prev => prev.filter(id => userContacts.some(contact => contact.id === id)));
         setIsContactsLoaded(true);
+        setLoadError(null);
       } catch (error) {
         console.error('Error directly loading contacts:', error);
-        // Set empty contacts array on error
-        setContacts([]);
-        setIsContactsLoaded(true); // Set to true even on error to avoid infinite loading
+        // Never report a failed load as an empty contact list.
+        if (isCurrent) setLoadError('We couldn’t load your contacts. Check your connection and try again.');
       }
     };
     
     loadUserContacts();
+    return () => {
+      isCurrent = false;
+    };
   }, [user, refreshTrigger]);
-
-  // Add a useEffect to initialize contacts
-  useEffect(() => {
-    // If we have a user but contacts haven't been loaded yet, set a timeout to mark contacts as loaded
-    // This ensures we don't show the loading spinner indefinitely
-    if (user && !isContactsLoaded) {
-      const timer = setTimeout(() => {
-        console.log('Forcing contacts loaded state after timeout');
-        setIsContactsLoaded(true);
-      }, 2000); // 2 second timeout
-      
-      return () => clearTimeout(timer);
-    }
-  }, [user, isContactsLoaded]);
 
   // Function to force refresh contacts
   const refreshContacts = () => {
@@ -100,21 +88,33 @@ export default function ContactsPage() {
 
   // Function to handle successful contact creation
   const handleContactCreated = (newContact: Contact) => {
-    console.log('New contact created:', newContact);
-    
     // Update the contacts array with the new contact
     setContacts(prevContacts => [newContact, ...prevContacts]);
-    
-    // Mark contacts as loaded
-    setIsContactsLoaded(true);
     
     // Close the modal
     setIsCreateModalOpen(false);
   };
 
-  const handleSelectionChange = (selectedIds: string[]) => {
-    setSelectedContacts(selectedIds)
-  }
+  const handleDeleteContact = async (contact: Contact) => {
+    if (!user) return;
+
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this contact? This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    setActionError(null);
+    try {
+      await deleteContact(user.uid, contact.id);
+      setContacts(prev => prev.filter(c => c.id !== contact.id));
+      setSelectedContacts(prev => prev.filter(id => id !== contact.id));
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      setActionError(`Couldn’t delete ${contact.name}. Please try again.`);
+    }
+  };
+
   const handleBulkDelete = async () => {
     if (!user || !selectedContacts.length) return;
     
@@ -124,19 +124,25 @@ export default function ContactsPage() {
     
     if (!confirmed) return;
 
+    const contactsToDelete = contacts.filter(c => selectedContacts.includes(c.id));
+    setActionError(null);
     try {
-      await batchDeleteContacts(user.uid, selectedContacts);
-      // Force refresh the contact list
-      refreshContacts();
+      await batchDeleteContacts(user.uid, contactsToDelete);
+      setContacts(prev => prev.filter(c => !selectedContacts.includes(c.id)));
       setSelectedContacts([]);
     } catch (error) {
       console.error('Error deleting contacts:', error);
-      // TODO: Show error toast
+      setActionError('Some contacts couldn’t be deleted. Please try again.');
+      // Part of the delete may have gone through; show what is actually left.
+      refreshContacts();
     }
   };
 
   const handleBulkExport = () => {
-    setIsExportModalOpen(true)
+    setExportTarget({
+      contacts: contacts.filter(c => selectedContacts.includes(c.id)),
+      isBulk: true,
+    })
   }
 
   const handleBulkAddTag = () => {
@@ -152,6 +158,8 @@ export default function ContactsPage() {
     setSelectedContact(contact)
     setIsEditModalOpen(true)
   }
+
+  const bannerError = actionError ?? (isContactsLoaded ? loadError : null)
 
   return (
     <Layout title="Contacts - HelixCard" showSidebar={true}>
@@ -172,6 +180,24 @@ export default function ContactsPage() {
                   </button>
                 )}
               </div>
+              
+              {bannerError && (
+                <div role="alert" className="mb-6 bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border-l-4 border-red-500 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-red-700 dark:text-red-300">{bannerError}</p>
+                    <button
+                      onClick={() => {
+                        setActionError(null)
+                        setLoadError(null)
+                      }}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                      aria-label="Dismiss error"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
               
               {/* Welcome Hero Section - Only show when no contacts and contacts are loaded */}
               {contacts.length === 0 && isContactsLoaded && (
@@ -295,22 +321,19 @@ export default function ContactsPage() {
               <>
                 <div className="contact-list-empty-check" style={{ display: 'none' }}></div>
                 <ContactList 
+                  contacts={contacts}
                   searchQuery={searchQuery} 
                   tagFilter={selectedTags}
                   sortOption={sortOption}
                   isSelectionMode={isSelectionMode}
-                  onSelectionChange={handleSelectionChange}
-                  onContactsChange={(newContacts) => {
-                    // No longer setting contacts here since we're handling it directly
-                    console.log('ContactList onContactsChange called with', newContacts.length, 'contacts');
-                  }}
+                  selectedIds={selectedContacts}
+                  onSelectionChange={setSelectedContacts}
                   onBulkAddTag={handleBulkAddTag}
                   onBulkExport={handleBulkExport}
                   onBulkDelete={handleBulkDelete}
                   onView={handleViewContact}
                   onEdit={handleEditContact}
-                  refreshTrigger={refreshTrigger}
-                  initialContacts={contacts} // Pass the contacts as a prop
+                  onDelete={handleDeleteContact}
                 />
               </>
             ) : (
@@ -375,6 +398,22 @@ export default function ContactsPage() {
                     </div>
                   </div>
                 </div>
+              ) : loadError ? (
+                <div className="mt-4 mb-24">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+                    <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">Your contacts didn’t load</h3>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">{loadError}</p>
+                    <button
+                      onClick={() => {
+                        setLoadError(null)
+                        refreshContacts()
+                      }}
+                      className="px-5 py-2 bg-[#7CCEDA] hover:bg-[#6bb9c7] text-gray-800 font-medium rounded-lg transition-colors duration-300"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="flex justify-center items-center h-64">
                   <LoadingSpinner fullScreen={false} />
@@ -420,9 +459,8 @@ export default function ContactsPage() {
               setIsViewModalOpen(false)
               setIsEditModalOpen(true)
             }}
-            onExport={(contactId) => {
-              setSelectedContacts([contactId])
-              setIsExportModalOpen(true)
+            onExport={() => {
+              setExportTarget({ contacts: [selectedContact], isBulk: false })
             }}
           />
 
@@ -438,17 +476,19 @@ export default function ContactsPage() {
               setIsEditModalOpen(false)
               setIsViewModalOpen(true)
               setSelectedContact(updatedContact)
-              // Force refresh the contact list in background
-              refreshContacts();
+              setContacts(prev => prev.map(c => c.id === updatedContact.id ? updatedContact : c))
             }}
           />
         </>
       )}
 
       <ExportContactsModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        selectedContacts={contacts.filter((c: Contact) => selectedContacts.includes(c.id))}
+        isOpen={exportTarget !== null}
+        onClose={() => setExportTarget(null)}
+        selectedContacts={exportTarget?.contacts ?? []}
+        onSuccess={() => {
+          if (exportTarget?.isBulk) setSelectedContacts([])
+        }}
       />
     </Layout>
   )

@@ -57,7 +57,7 @@ export default function UConnPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center">
               <a 
-                href="/#auth"
+                href="/?source=uconn#auth"
                 className="px-6 py-3 bg-[#000E2F] hover:bg-[#000a1f] text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
               >
                 Get Started
@@ -432,7 +432,7 @@ export default function UConnPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="/#auth"
+                href="/?source=uconn#auth"
                 className="px-6 py-3 bg-white text-[#000E2F] hover:bg-gray-100 font-medium rounded-lg flex items-center justify-center transition-colors duration-300 sm:w-auto"
               >
                 Get Started

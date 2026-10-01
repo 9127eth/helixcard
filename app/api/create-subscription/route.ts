@@ -2,25 +2,26 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createHash } from 'crypto';
 import { auth, db } from '../../lib/firebase-admin';
-import { hasUserUsedCoupon, hasEmailUsedCoupon, recordCouponRedemption } from '../../utils/lifetimeCoupons';
-import { getGroupFromCoupon, isTrackingOnlyCoupon } from '../../utils/groupMapping';
-import { LIFETIME_PRICE_CENTS, PRICE_IDS, planForPriceId } from '../../lib/stripePrices';
+import { syncCardActiveStatus } from '../../lib/adminCards';
+import {
+  canonicalCouponCode,
+  couponAllowsPrice,
+  findTrackingOnlyCoupon,
+  isFreeLifetimeCoupon,
+} from '../../lib/coupons';
+import { setProClaim } from '../../lib/proClaims';
+import {
+  countCouponRedemptions,
+  hasUserUsedCoupon,
+  hasEmailUsedCoupon,
+  recordCouponRedemption,
+} from '../../utils/lifetimeCoupons';
+import { getGroupFromCoupon } from '../../utils/groupMapping';
+import { LIFETIME_PRICE_CENTS, planForPriceId } from '../../lib/stripePrices';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
-
-// Define restricted coupon code mappings
-const COUPON_RESTRICTIONS: Record<string, string[]> = {
-  'LIPSCOMB25': [PRICE_IDS.lifetime],
-  'UTTYLER25': [PRICE_IDS.lifetime],
-  'VMCRX': [PRICE_IDS.lifetime],
-  'NHMA25': [PRICE_IDS.lifetime],
-  'MCKiS25': [PRICE_IDS.lifetime],
-  'NCPA25': [PRICE_IDS.lifetime],
-  'EMPRX25': [PRICE_IDS.monthly, PRICE_IDS.yearly], // Monthly & Yearly
-  'CUCOP@%': [PRICE_IDS.lifetime],
-}
 
 /** Stripe subscription statuses that mean the user is already paying us. */
 const LIVE_SUBSCRIPTION_STATUSES = new Set<Stripe.Subscription.Status>([
@@ -28,7 +29,6 @@ const LIVE_SUBSCRIPTION_STATUSES = new Set<Stripe.Subscription.Status>([
   'trialing',
   'past_due',
   'unpaid',
-  'incomplete',
 ]);
 
 /**
@@ -51,8 +51,7 @@ function idempotencyKey(...parts: string[]): string {
  */
 async function getOrCreateCustomer(
   uid: string,
-  email: string | undefined,
-  couponCode: string | undefined
+  email: string | undefined
 ): Promise<Stripe.Customer> {
   const userRef = db.collection('users').doc(uid);
   const existingId = (await userRef.get()).data()?.stripeCustomerId;
@@ -66,12 +65,13 @@ async function getOrCreateCustomer(
     }
   }
 
+  // No coupon in the metadata: the customer outlives this attempt, and the
+  // webhook credited later purchases to a code typed here and then abandoned.
   const customer = await stripe.customers.create(
     {
       ...(email && { email }),
       metadata: {
         firebaseUID: uid,
-        ...(couponCode && { couponCode }),
       },
     },
     { idempotencyKey: idempotencyKey('customer', uid) }
@@ -105,9 +105,54 @@ async function hasLiveEntitlement(uid: string, customerId?: string): Promise<boo
   );
 }
 
+/**
+ * Cancel checkouts that never completed.
+ *
+ * A declined card or an abandoned 3-D Secure challenge leaves the
+ * `default_incomplete` subscription `incomplete` for about 23 hours. Counting
+ * it as live refused every retry as "already subscribed"; leaving it alone
+ * would let it complete on top of the new purchase.
+ */
+async function cancelIncompleteSubscriptions(customerId: string): Promise<void> {
+  const incomplete = await stripe.subscriptions.list({
+    customer: customerId,
+    status: 'incomplete',
+    limit: 100,
+  });
+
+  for (const subscription of incomplete.data) {
+    await stripe.subscriptions.cancel(subscription.id);
+  }
+}
+
+/**
+ * Stripe enforces a code's expiry and redemption caps only when it redeems the
+ * code, and the lifetime and free paths never do: a PaymentIntent takes no
+ * promotion code, and the free grant creates nothing in Stripe. Check them
+ * against our own redemption records instead.
+ */
+async function lifetimeCodeLimitError(
+  promotionCode: Stripe.PromotionCode,
+  coupon: Stripe.Coupon,
+  couponCode: string
+): Promise<string | null> {
+  if (promotionCode.expires_at && promotionCode.expires_at * 1000 <= Date.now()) {
+    return 'This code has expired';
+  }
+
+  const caps = [promotionCode.max_redemptions, coupon.max_redemptions].filter(
+    (cap: unknown): cap is number => typeof cap === 'number'
+  );
+  if (caps.length > 0 && (await countCouponRedemptions(couponCode)) >= Math.min(...caps)) {
+    return 'This code has reached its redemption limit';
+  }
+
+  return null;
+}
+
 export async function POST(req: Request) {
   try {
-    const { priceId, idToken, couponCode, paymentMethodId, isFreeSubscription } = await req.json();
+    const { priceId, idToken, couponCode: rawCouponCode, paymentMethodId, isFreeSubscription } = await req.json();
 
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
@@ -123,37 +168,59 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
     }
 
-    // Handle free VMCRX subscription
-    if (isFreeSubscription && (couponCode === 'VMCRX' || couponCode === 'MCKiS25' || couponCode === 'NCPA25') && plan === 'lifetime') {
+    const typedCode = typeof rawCouponCode === 'string' ? rawCouponCode.trim() : '';
+
+    // Handle free partner lifetime access, claimed without a card
+    if (isFreeSubscription && typedCode) {
       try {
-        // Check if user already has an active subscription
-        const userDoc = await db.collection('users').doc(uid).get();
-        const userData = userDoc.data();
-
-        if (userData?.isPro) {
-          return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 });
-        }
-
         // The promotion has to still be live in Stripe. /api/verify-coupon
         // already requires this before the checkout form offers the free path,
-        // but this grant only compared the code against the list above — so
-        // ending a promotion in Stripe hid it from the form while a direct
-        // request here kept handing out lifetime Pro.
+        // but this grant only compared the code against a list — so ending a
+        // promotion in Stripe hid it from the form while a direct request here
+        // kept handing out lifetime Pro.
         const freePromotion = await stripe.promotionCodes.list({
-          code: couponCode,
+          code: typedCode,
           active: true,
           limit: 1,
         });
-        const freeCoupon = freePromotion.data[0]?.coupon;
+        const freePromotionCode = freePromotion.data[0];
+        const freeCoupon = freePromotionCode?.coupon;
 
         if (!freeCoupon || !freeCoupon.valid) {
           return NextResponse.json({ error: 'Invalid promotion code' }, { status: 400 });
         }
 
+        // Stripe matched the code ignoring case; everything below needs the
+        // canonical spelling.
+        const couponCode = canonicalCouponCode(freePromotionCode.code);
+        if (!isFreeLifetimeCoupon(couponCode) || plan !== 'lifetime') {
+          return NextResponse.json(
+            { error: 'This code does not include free lifetime access' },
+            { status: 400 }
+          );
+        }
+
+        // Check if user already has an active subscription
+        const userDoc = await db.collection('users').doc(uid).get();
+        const storedCustomerId = userDoc.data()?.stripeCustomerId;
+        const customerId = typeof storedCustomerId === 'string' && storedCustomerId
+          ? storedCustomerId
+          : undefined;
+
+        if (await hasLiveEntitlement(uid, customerId)) {
+          return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 });
+        }
+
+        const limitError = await lifetimeCodeLimitError(freePromotionCode, freeCoupon, couponCode);
+        if (limitError) {
+          return NextResponse.json({ error: limitError }, { status: 400 });
+        }
+
         // Check if this coupon has been used by this user or email before
+        const email = decodedToken.email || '';
         const [userUsed, emailUsed] = await Promise.all([
           hasUserUsedCoupon(couponCode, uid),
-          hasEmailUsedCoupon(couponCode, decodedToken.email || '')
+          hasEmailUsedCoupon(couponCode, email)
         ]);
 
         if (userUsed) {
@@ -164,14 +231,9 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'This email has already been used with this coupon code' }, { status: 400 });
         }
 
-        // Record the coupon redemption
-        await recordCouponRedemption(
-          couponCode,
-          uid,
-          decodedToken.email || '',
-          decodedToken.name || '',
-          priceId
-        );
+        if (customerId) {
+          await cancelIncompleteSubscriptions(customerId);
+        }
 
         // Get group assignment from coupon
         const group = getGroupFromCoupon(couponCode);
@@ -201,10 +263,28 @@ export async function POST(req: Request) {
           updateData.group = group;
         }
 
-        await db.collection('users').doc(uid).update(updateData as unknown as { [key: string]: unknown });
+        // Record the redemption and grant Pro in one transaction. Recording
+        // first spent the code even when the grant then failed, and every
+        // retry was told the code was already used.
+        const recorded = await recordCouponRedemption(
+          couponCode,
+          uid,
+          email,
+          decodedToken.name || '',
+          priceId,
+          updateData as unknown as { [key: string]: unknown }
+        );
+
+        if (!recorded) {
+          return NextResponse.json({ error: 'You have already used this coupon code' }, { status: 400 });
+        }
 
         // Update Firebase Auth custom claims
-        await auth.setCustomUserClaims(uid, { isPro: true });
+        await setProClaim(uid, true);
+
+        // Nothing is created in Stripe here, so no webhook follows to
+        // reactivate the account's other cards.
+        await syncCardActiveStatus(uid);
 
         return NextResponse.json({
           success: true,
@@ -223,18 +303,26 @@ export async function POST(req: Request) {
     }
 
     try {
+      // The code in its canonical spelling and, for Stripe codes, the
+      // validated promotion code and coupon.
+      let couponCode: string | undefined;
+      let promoCode: Stripe.PromotionCode | undefined;
+      let coupon: Stripe.Coupon | undefined;
+
       // Check coupon code validity if provided
-      if (couponCode && isTrackingOnlyCoupon(couponCode)) {
-        if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
+      const trackingOnlyCode = typedCode ? findTrackingOnlyCoupon(typedCode) : null;
+      if (trackingOnlyCode) {
+        couponCode = trackingOnlyCode;
+        if (!couponAllowsPrice(couponCode, priceId)) {
           return NextResponse.json({
             error: 'This coupon code is not valid for the selected product type'
           }, { status: 400 });
         }
-      } else if (couponCode) {
+      } else if (typedCode) {
         try {
           // First, retrieve the promotion code
           const promotionCodes = await stripe.promotionCodes.list({
-            code: couponCode,
+            code: typedCode,
             active: true,
           });
 
@@ -242,21 +330,23 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid promotion code' }, { status: 400 });
           }
 
-          const promoCode = promotionCodes.data[0];
-          const couponId = promoCode.coupon.id;
+          promoCode = promotionCodes.data[0];
+          // Stripe matched the code ignoring case; the restrictions, partner
+          // credit and redemption records need its canonical spelling.
+          couponCode = canonicalCouponCode(promoCode.code);
 
           // Then retrieve the coupon using the coupon ID. Stripe only returns
           // `applies_to` when it is expanded; without this the product
           // restriction check below never ran, so a code limited to one product
           // still discounted the lifetime charge computed further down.
-          const coupon = await stripe.coupons.retrieve(couponId, { expand: ['applies_to'] });
+          coupon = await stripe.coupons.retrieve(promoCode.coupon.id, { expand: ['applies_to'] });
 
           if (!coupon.valid) {
             return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 });
           }
 
           // Check custom coupon restrictions first
-          if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
+          if (!couponAllowsPrice(couponCode, priceId)) {
             return NextResponse.json({
               error: 'This coupon code is not valid for the selected product type'
             }, { status: 400 });
@@ -274,13 +364,20 @@ export async function POST(req: Request) {
               }, { status: 400 });
             }
           }
+
+          if (plan === 'lifetime') {
+            const limitError = await lifetimeCodeLimitError(promoCode, coupon, couponCode);
+            if (limitError) {
+              return NextResponse.json({ error: limitError }, { status: 400 });
+            }
+          }
         } catch (error) {
           console.error('Error validating coupon code:', error);
           return NextResponse.json({ error: 'Error validating coupon code' }, { status: 400 });
         }
       }
 
-      const customer = await getOrCreateCustomer(uid, decodedToken.email, couponCode);
+      const customer = await getOrCreateCustomer(uid, decodedToken.email);
 
       // One paid entitlement per account. Without this an existing subscriber
       // could start a second subscription and be charged twice, while only the
@@ -291,6 +388,8 @@ export async function POST(req: Request) {
           { status: 409 }
         );
       }
+
+      await cancelIncompleteSubscriptions(customer.id);
 
       // Attach the payment method to the customer
       await stripe.paymentMethods.attach(paymentMethodId, {
@@ -306,30 +405,13 @@ export async function POST(req: Request) {
 
       // Check if it's a lifetime subscription (one-time payment)
       if (plan === 'lifetime') {
-        // Calculate the payment amount, applying coupon discount if applicable
+        // Calculate the payment amount, applying the validated coupon's discount
         let paymentAmount = LIFETIME_PRICE_CENTS;
 
-        if (couponCode) {
-          try {
-            const promotionCodes = await stripe.promotionCodes.list({
-              code: couponCode,
-              active: true,
-            });
-
-            if (promotionCodes.data.length > 0) {
-              const promoCode = promotionCodes.data[0];
-              const coupon = await stripe.coupons.retrieve(promoCode.coupon.id);
-
-              if (coupon.percent_off) {
-                paymentAmount = Math.round(paymentAmount * (1 - coupon.percent_off / 100));
-              } else if (coupon.amount_off) {
-                paymentAmount = Math.max(0, paymentAmount - coupon.amount_off);
-              }
-            }
-          } catch (error) {
-            console.error('Error applying coupon discount:', error);
-            // Continue with original amount if coupon application fails
-          }
+        if (coupon?.percent_off) {
+          paymentAmount = Math.round(paymentAmount * (1 - coupon.percent_off / 100));
+        } else if (coupon?.amount_off) {
+          paymentAmount = Math.max(0, paymentAmount - coupon.amount_off);
         }
 
         // Create a payment intent for one-time payment instead of subscription
@@ -339,8 +421,10 @@ export async function POST(req: Request) {
             currency: 'usd',
             customer: customer.id,
             payment_method: paymentMethodId,
-            confirmation_method: 'manual',
             confirm: true,
+            // A card that needs 3-D Secure comes back `requires_action`; this
+            // lets the browser finish it with stripe.handleNextAction.
+            use_stripe_sdk: true,
             payment_method_types: ['card'],
             metadata: {
               firebaseUID: uid,
@@ -378,20 +462,8 @@ export async function POST(req: Request) {
         expand: ['latest_invoice.payment_intent'],
       };
 
-      if (couponCode) {
-        try {
-          const promotionCodes = await stripe.promotionCodes.list({
-            code: couponCode,
-            active: true,
-          });
-
-          if (promotionCodes.data.length > 0) {
-            const promoCode = promotionCodes.data[0];
-            subscriptionData.promotion_code = promoCode.id;
-          }
-        } catch (error) {
-          console.error('Error applying promotion code:', error);
-        }
+      if (promoCode) {
+        subscriptionData.promotion_code = promoCode.id;
       }
 
       const subscription = await stripe.subscriptions.create(subscriptionData, {
@@ -411,7 +483,7 @@ export async function POST(req: Request) {
           stripeCustomerId: customer.id,
         });
 
-        await auth.setCustomUserClaims(uid, { isPro: true });
+        await setProClaim(uid, true);
 
         return NextResponse.json({
           subscriptionId: subscription.id,
@@ -441,6 +513,13 @@ export async function POST(req: Request) {
 
     } catch (stripeError) {
       console.error('Stripe operation failed:', stripeError);
+
+      // A declined card is for the customer to fix, and Stripe's message
+      // says how ("Your card has insufficient funds.").
+      if ((stripeError as { type?: string } | null)?.type === 'StripeCardError') {
+        return NextResponse.json({ error: (stripeError as Error).message }, { status: 400 });
+      }
+
       return NextResponse.json({
         error: 'Payment processing failed. Please try again.'
       }, { status: 400 });

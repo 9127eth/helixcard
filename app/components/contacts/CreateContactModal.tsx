@@ -1,30 +1,31 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { motion } from 'framer-motion'
 import { X, Camera, Edit3, UserPlus, AlertTriangle, CheckCircle, ArrowLeft } from 'react-feather'
 import TagSelector from './TagSelector'
-import { Contact } from '@/app/types'
-import { createContact, uploadContactImage, canCreateContact } from '@/app/lib/contacts'
+import { Contact, Tag } from '@/app/types'
+import {
+  createContact, canCreateContact, normalizeContactPhone, formatContactPhone,
+} from '@/app/lib/contacts'
 import { useAuth } from '@/app/hooks/useAuth'
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { ContactOCRUpload } from '../ContactOCRUpload'
-import { FREE_USER_CONTACT_LIMIT } from '@/app/lib/constants'
+import { FREE_USER_CONTACT_LIMIT, PRO_USER_CONTACT_LIMIT } from '@/app/lib/constants'
 import CardLimitModal from '../CardLimitModal'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/app/lib/firebase'
 import { cn } from '@/app/lib/utils'
 import {
-  inputClass, textareaClass, labelClass, btnPrimary, btnSecondary, btnGhost, btnDanger,
+  inputClass, textareaClass, labelClass, errorTextClass, btnPrimary, btnSecondary, btnGhost, btnDanger,
   iconButtonClass, sectionIconClass, Field,
 } from '../ui/editor'
 
 // Validation schema
 const contactSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().trim().min(1, 'Name is required'),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   position: z.string().optional().or(z.literal('')),
@@ -67,12 +68,7 @@ export default function CreateContactModal({
   const [scannedData, setScannedData] = useState<ScannedData | null>(null)
   const [showLimitModal, setShowLimitModal] = useState(false)
   const [isPro, setIsPro] = useState(false)
-
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedTags(lastUsedTag ? [lastUsedTag] : [])
-    }
-  }, [isOpen, lastUsedTag])
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const {
     register,
@@ -84,6 +80,24 @@ export default function CreateContactModal({
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema)
   })
+
+  // The modal stays mounted between opens, so anything left from the last
+  // contact (a scan's image and source especially) must not reach the next one.
+  const resetModal = useCallback(() => {
+    reset()
+    setSelectedTags(lastUsedTag ? [lastUsedTag] : [])
+    setScannedData(null)
+    setEntryMethod(null)
+    setAutoFilledFields(new Set())
+    setShowConfirmation(false)
+    setSubmitError(null)
+  }, [reset, lastUsedTag])
+
+  useEffect(() => {
+    if (isOpen) {
+      resetModal()
+    }
+  }, [isOpen, resetModal])
 
   useEffect(() => {
     const checkCanCreate = async () => {
@@ -120,9 +134,7 @@ export default function CreateContactModal({
       fields.add('email')
     }
     if (contactData.phone) {
-      // Parse and format the phone number
-      const phoneNumber = parsePhoneNumberFromString(String(contactData.phone), 'US')
-      setValue('phone', phoneNumber ? phoneNumber.format('NATIONAL') : String(contactData.phone))
+      setValue('phone', formatContactPhone(String(contactData.phone)))
       fields.add('phone')
     }
     if (contactData.position) {
@@ -142,9 +154,15 @@ export default function CreateContactModal({
     setEntryMethod('scan')
   }
 
+  // ContactOCRUpload shows the error itself; just drop the previous scan.
   const handleOCRError = (error: string) => {
-    // TODO: Show error toast
     console.error('OCR Error:', error)
+    setScannedData(null)
+  }
+
+  // A deleted tag (e.g. the list's filter tag) cannot be shown, so drop it.
+  const pruneUnknownTags = (tags: Tag[]) => {
+    setSelectedTags(current => current.filter(id => tags.some(tag => tag.id === id)))
   }
 
   // Auto-filled fields get a teal tint so scanned values are easy to double-check
@@ -158,51 +176,30 @@ export default function CreateContactModal({
     }
 
     setIsSubmitting(true)
+    setSubmitError(null)
     try {
-      // Format phone number if provided
-      let formattedPhone = data.phone
-      if (data.phone) {
-        const phoneNumber = parsePhoneNumberFromString(data.phone, 'US')
-        if (phoneNumber) {
-          formattedPhone = phoneNumber.format('E.164')
-        }
-      }
-
-      // Parse name into first and last name
-      const nameParts = data.name.trim().split(' ')
-      const firstName = nameParts[0]
-      const lastName = nameParts.slice(1).join(' ')
-
       const newContact: Partial<Contact> = {
-        name: data.name.trim(),
-        firstName,
-        lastName: lastName || '',
+        name: data.name,
         email: data.email || '',
-        phone: formattedPhone || '',
+        phone: data.phone ? normalizeContactPhone(data.phone) : '',
         position: data.position || '',
         company: data.company || '',
         address: data.address || '',
         note: data.note || '',
         tags: selectedTags,
-        contactSource: entryMethod === 'scan' ? 'scanned' : 'manual'
+        contactSource: scannedData ? 'scanned' : 'manual'
       }
 
-      // First create the contact
-      const createdContact = await createContact(user.uid, newContact)
-
-      // Then upload image if exists and update contact
-      if (scannedData?.imageFile) {
-        const imageUrl = await uploadContactImage(user.uid, createdContact.id, scannedData.imageFile)
-        createdContact.imageUrl = imageUrl
-      }
+      // Uploads the scanned image first and saves it with the contact in one
+      // write, removing the upload again if that write fails.
+      const createdContact = await createContact(user.uid, newContact, scannedData?.imageFile)
 
       onSuccess?.(createdContact)
-      reset()
-      setSelectedTags(lastUsedTag ? [lastUsedTag] : [])
+      resetModal()
       onClose()
     } catch (error) {
       console.error('Error creating contact:', error)
-      alert('Failed to create contact. Please try again.')
+      setSubmitError(error instanceof Error ? error.message : 'Failed to create contact. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -217,11 +214,7 @@ export default function CreateContactModal({
   }
 
   const handleConfirmedCancel = () => {
-    reset() // Clear form data
-    setSelectedTags(lastUsedTag ? [lastUsedTag] : [])
-    setAutoFilledFields(new Set())
-    setEntryMethod(null)
-    setShowConfirmation(false)
+    resetModal()
     onClose()
   }
 
@@ -239,6 +232,15 @@ export default function CreateContactModal({
   }
 
   if (!isOpen) return null
+
+  const limitModal = showLimitModal && (
+    <CardLimitModal
+      isPro={isPro}
+      limit={isPro ? PRO_USER_CONTACT_LIMIT : FREE_USER_CONTACT_LIMIT}
+      onClose={handleLimitModalClose}
+      type="contact"
+    />
+  )
 
   const panelMotion = {
     initial: { opacity: 0, y: 24, scale: 0.98 },
@@ -325,6 +327,8 @@ export default function CreateContactModal({
             </div>
           </motion.div>
         </div>
+
+        {limitModal}
       </div>
     )
   }
@@ -347,6 +351,7 @@ export default function CreateContactModal({
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
               {entryMethod === 'scan' && (
                 <ContactOCRUpload
+                  onScanStart={() => setScannedData(null)}
                   onScanComplete={handleOCRComplete}
                   onError={handleOCRError}
                 />
@@ -427,6 +432,7 @@ export default function CreateContactModal({
                 <TagSelector
                   selectedTags={selectedTags}
                   onChange={setSelectedTags}
+                  onTagsLoaded={pruneUnknownTags}
                 />
               </div>
 
@@ -440,6 +446,10 @@ export default function CreateContactModal({
                 />
               </Field>
             </div>
+
+            {submitError && (
+              <p role="alert" className={`${errorTextClass} px-5 pb-3`}>{submitError}</p>
+            )}
 
             <div className="flex items-center justify-end gap-2 border-t border-black/[0.06] bg-gray-50/70 px-5 py-3 dark:border-white/10 dark:bg-white/[0.03]">
               <button
@@ -514,14 +524,7 @@ export default function CreateContactModal({
         </div>
       )}
 
-      {showLimitModal && (
-        <CardLimitModal
-          isPro={isPro}
-          limit={FREE_USER_CONTACT_LIMIT}
-          onClose={handleLimitModalClose}
-          type="contact"
-        />
-      )}
+      {limitModal}
     </div>
   )
 }

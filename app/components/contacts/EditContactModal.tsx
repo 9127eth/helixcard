@@ -8,19 +8,20 @@ import { motion } from 'framer-motion'
 import { X, Trash2, Edit3, Upload, Check } from 'react-feather'
 import Image from 'next/image'
 import TagSelector from './TagSelector'
-import { Contact } from '@/app/types'
-import { updateContact } from '@/app/lib/contacts'
-import { useAuth } from '@/app/hooks/useAuth'
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
-import { deleteImage, uploadContactImage } from '@/app/lib/storage'
+import { Contact, Tag } from '@/app/types'
 import {
-  inputClass, textareaClass, labelClass, btnPrimary, btnSecondary,
+  updateContact, uploadContactImageFile, contactImageError, normalizeContactPhone,
+} from '@/app/lib/contacts'
+import { useAuth } from '@/app/hooks/useAuth'
+import { deleteImage } from '@/app/lib/storage'
+import {
+  inputClass, textareaClass, labelClass, errorTextClass, btnPrimary, btnSecondary,
   iconButtonClass, sectionIconClass, Field,
 } from '../ui/editor'
 
 // Reuse the same validation schema from CreateContactModal
 const contactSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().trim().min(1, 'Name is required'),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   position: z.string().optional().or(z.literal('')),
@@ -52,6 +53,8 @@ export default function EditContactModal({
   const [isImageDeleted, setIsImageDeleted] = useState(false)
   const [imageToDelete, setImageToDelete] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageError, setImageError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -78,11 +81,13 @@ export default function EditContactModal({
         address: contact.address || '',
         note: contact.note || '',
       });
-      setSelectedTags(contact.tags);
+      setSelectedTags(contact.tags ?? []);
       setShowImageUpload(!contact.imageUrl);
       setIsImageDeleted(false);
       setImageFile(null);
       setImageToDelete(null);
+      setImageError(null);
+      setSaveError(null);
       setImagePreview(previousPreview => {
         if (previousPreview) URL.revokeObjectURL(previousPreview);
         return null;
@@ -99,9 +104,23 @@ export default function EditContactModal({
     }
   }
 
+  // TagSelector can only show tags that exist, so an id it cannot display
+  // would otherwise be impossible to remove.
+  const pruneUnknownTags = (tags: Tag[]) => {
+    setSelectedTags(current => current.filter(id => tags.some(tag => tag.id === id)))
+  }
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0]
+      // Storage rules would refuse it, and that failure only surfaces on save.
+      const problem = contactImageError(file)
+      setImageError(problem)
+      if (problem) {
+        e.target.value = ''
+        return
+      }
+
       setImageFile(file)
       setIsImageDeleted(false)
       setShowImageUpload(false)
@@ -124,15 +143,12 @@ export default function EditContactModal({
     if (!user) return
 
     setIsSubmitting(true)
+    setSaveError(null)
     let uploadedImageUrl: string | null = null
     try {
-      let formattedPhone = data.phone
-      if (data.phone) {
-        const phoneNumber = parsePhoneNumberFromString(data.phone, 'US')
-        if (phoneNumber) {
-          formattedPhone = phoneNumber.format('E.164')
-        }
-      }
+      // An untouched number is saved exactly as stored, whatever its format.
+      const phone = data.phone || ''
+      const formattedPhone = phone === (contact.phone || '') ? phone : normalizeContactPhone(phone)
 
       // Handle image updates
       let newImageUrl = contact.imageUrl
@@ -141,14 +157,14 @@ export default function EditContactModal({
 
       // Upload new image if provided
       if (imageFile) {
-        uploadedImageUrl = await uploadContactImage(user.uid, contact.id, imageFile)
+        uploadedImageUrl = await uploadContactImageFile(user.uid, imageFile)
         newImageUrl = uploadedImageUrl
       }
 
       const updates: Partial<Contact> = {
-        name: data.name.trim(),
+        name: data.name,
         email: data.email || '',
-        phone: formattedPhone || '',
+        phone: formattedPhone,
         position: data.position || '',
         company: data.company || '',
         address: data.address || '',
@@ -161,7 +177,7 @@ export default function EditContactModal({
         updates.imageUrl = newImageUrl
       }
 
-      await updateContact(user.uid, contact.id, updates)
+      const saved = await updateContact(user.uid, contact.id, updates)
 
       // The contact now points at the replacement (or at no image), so the old
       // object is safe to remove. Cleanup failure must not undo a successful save.
@@ -172,7 +188,7 @@ export default function EditContactModal({
         })
       }
 
-      onSuccess?.({ ...contact, ...updates })
+      onSuccess?.({ ...contact, ...saved })
       onClose()
     } catch (error) {
       if (uploadedImageUrl) {
@@ -181,7 +197,7 @@ export default function EditContactModal({
         })
       }
       console.error('Error updating contact:', error)
-      // TODO: Show error toast
+      setSaveError(error instanceof Error ? error.message : 'Could not save your changes. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -312,6 +328,7 @@ export default function EditContactModal({
                 <TagSelector
                   selectedTags={selectedTags}
                   onChange={setSelectedTags}
+                  onTagsLoaded={pruneUnknownTags}
                   isFilter={false}
                   allowCreate={true}
                 />
@@ -357,8 +374,13 @@ export default function EditContactModal({
                     />
                   </label>
                 )}
+                {imageError && <p role="alert" className={errorTextClass}>{imageError}</p>}
               </div>
             </div>
+
+            {saveError && (
+              <p role="alert" className={`${errorTextClass} px-5 pb-3`}>{saveError}</p>
+            )}
 
             <div className="flex items-center justify-end gap-2 border-t border-black/[0.06] bg-gray-50/70 px-5 py-3 dark:border-white/10 dark:bg-white/[0.03]">
               <button

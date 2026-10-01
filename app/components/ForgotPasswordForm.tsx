@@ -10,11 +10,13 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onCancel
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setError(null);
+    setIsSending(true);
     try {
       const response = await fetch('/api/auth/email', {
         method: 'POST',
@@ -34,6 +36,8 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onCancel
     } catch (err) {
       setError('We could not send the reset email right now. Please try again in a moment.');
       console.error(err);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -69,9 +73,10 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onCancel
       <div className="flex justify-between">
         <button
           type="submit"
+          disabled={isSending}
           className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-600"
         >
-          Reset Password
+          {isSending ? 'Sending...' : 'Reset Password'}
         </button>
         <button
           type="button"

@@ -12,7 +12,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 const GetHelixProPage: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime'>('lifetime');
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -214,8 +214,30 @@ const GetHelixProPage: React.FC = () => {
                         </li>
                       </ul>
                     </div>
-                    {isLoading ? (
+                    {isLoading || authLoading ? (
                       <LoadingSpinner fullScreen={false} />
+                    ) : !user ? (
+                      // Partner pages send people here before they have an
+                      // account; the form can do nothing for them yet.
+                      <div>
+                        <p className="text-center text-gray-600 dark:text-gray-300 mb-4">
+                          Log in or create a free account to upgrade.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <a
+                            href="/#login"
+                            className="flex-1 text-center bg-[#7CCEDA] text-gray-800 font-bold py-3 px-4 rounded-xl transition duration-200 hover:opacity-90"
+                          >
+                            Log in
+                          </a>
+                          <a
+                            href="/#signup"
+                            className="flex-1 text-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-xl transition duration-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                          >
+                            Create account
+                          </a>
+                        </div>
+                      </div>
                     ) : isSubscribed ? (
                       <button 
                         className="w-full bg-[#7CCEDA] text-white font-bold py-3 px-4 rounded-xl cursor-not-allowed opacity-70"

@@ -8,18 +8,37 @@ import {
   increment,
   updateDoc,
   deleteDoc,
+  deleteField,
+  arrayUnion,
+  arrayRemove,
   query,
   where,
   orderBy,
   serverTimestamp,
   writeBatch,
+  type DocumentData,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { Contact, Tag } from '@/app/types';
 import { FREE_USER_CONTACT_LIMIT } from './constants';
 import { auth } from './firebase';
 import { refreshUsageAfterDelete, syncUsage } from './usageClient';
+
+// A Firestore batch holds at most 500 writes; stay comfortably below that.
+const MAX_BATCH_WRITES = 400;
+
+// Mirrors storage.rules for contacts/{uid}/: images only, under 10 MiB.
+export const MAX_CONTACT_IMAGE_BYTES = 10 * 1024 * 1024;
+
+function chunked<T>(items: T[]): T[][] {
+  const chunks: T[][] = [];
+  for (let start = 0; start < items.length; start += MAX_BATCH_WRITES) {
+    chunks.push(items.slice(start, start + MAX_BATCH_WRITES));
+  }
+  return chunks;
+}
 
 function contactImageExtension(file: File): string {
   const subtype = file.type.split('/')[1]?.toLowerCase();
@@ -33,55 +52,102 @@ async function deleteStorageObjectBestEffort(imageUrl: string, context: string) 
   try {
     await deleteObject(ref(storage, imageUrl));
   } catch (error) {
-    // The Firestore write has already succeeded. Leaving an orphan for a later
-    // cleanup is preferable to reporting that the user's save/delete failed.
+    // Leaving an orphan for a later cleanup is preferable to failing (or
+    // masking the real error of) the save/delete that triggered this.
     console.error(`Unable to clean up ${context}:`, error);
   }
 }
 
-async function assertValidTagIds(userId: string, tagIds: string[]) {
-  if (!db || tagIds.length === 0) return;
-
-  const uniqueIds = [...new Set(tagIds)];
-  if (uniqueIds.length !== tagIds.length || uniqueIds.some(id => !id)) {
-    throw new Error('One or more selected tags are invalid');
-  }
+/**
+ * Dedupe tag ids and drop any that no longer exist. A contact can still hold
+ * the id of a tag deleted elsewhere; refusing the whole save for that made the
+ * contact impossible to edit.
+ */
+async function existingTagIds(userId: string, tagIds: string[]): Promise<string[]> {
+  const uniqueIds = [...new Set(tagIds.filter(id => typeof id === 'string' && id))];
+  if (!db || uniqueIds.length === 0) return uniqueIds;
 
   const snapshot = await getDocs(collection(db, 'users', userId, 'tags'));
-  const validIds = new Set(snapshot.docs.map(tag => tag.id));
-  if (uniqueIds.some(id => !validIds.has(id))) {
-    throw new Error('One or more selected tags no longer exist');
+  const knownIds = new Set(snapshot.docs.map(tag => tag.id));
+  return uniqueIds.filter(id => knownIds.has(id));
+}
+
+function splitName(name: string) {
+  const nameParts = name.split(' ');
+  return { firstName: nameParts[0], lastName: nameParts.slice(1).join(' ') };
+}
+
+/**
+ * Milliseconds since the epoch for any shape a contact date arrives in:
+ * Firestore Timestamps (web and iOS writes), ISO strings (a few legacy web rows
+ * and freshly created contacts), Dates, numbers or a plain `{ seconds }`.
+ * Anything else counts as 0.
+ */
+export function toMillis(value: unknown): number {
+  let millis = NaN;
+  if (typeof value === 'number') {
+    millis = value;
+  } else if (typeof value === 'string') {
+    millis = Date.parse(value);
+  } else if (value instanceof Date) {
+    millis = value.getTime();
+  } else if (value && typeof value === 'object') {
+    const timestamp = value as { toMillis?: () => number; seconds?: unknown; nanoseconds?: unknown };
+    if (typeof timestamp.toMillis === 'function') {
+      millis = timestamp.toMillis();
+    } else if (typeof timestamp.seconds === 'number') {
+      const nanoseconds = typeof timestamp.nanoseconds === 'number' ? timestamp.nanoseconds : 0;
+      millis = timestamp.seconds * 1000 + nanoseconds / 1e6;
+    }
   }
+  return Number.isFinite(millis) ? millis : 0;
+}
+
+/**
+ * E.164 only when that loses nothing. A number that does not parse as valid
+ * (often a non-US number typed without its country code) or that carries an
+ * extension is kept as typed rather than rewritten as a US number.
+ */
+export function normalizeContactPhone(phone: string): string {
+  const typed = phone.trim();
+  const parsed = parsePhoneNumberFromString(typed, 'US');
+  return parsed?.isValid() && !parsed.ext ? parsed.format('E.164') : typed;
+}
+
+/** National format for North American numbers, international otherwise. */
+export function formatContactPhone(phone: string): string {
+  const parsed = parsePhoneNumberFromString(phone, 'US');
+  if (!parsed?.isValid()) return phone;
+  return parsed.countryCallingCode === '1' ? parsed.formatNational() : parsed.formatInternational();
+}
+
+/** Why storage.rules would refuse this contact image, or null if it is fine. */
+export function contactImageError(file: Pick<File, 'type' | 'size'>): string | null {
+  if (!file.type.startsWith('image/')) return 'Please choose an image file.';
+  if (file.size >= MAX_CONTACT_IMAGE_BYTES) return 'Please choose an image under 10 MB.';
+  return null;
 }
 
 // Create a new contact
-export async function createContact(userId: string, contactData: Partial<Contact>) {
+export async function createContact(
+  userId: string,
+  contactData: Partial<Contact>,
+  imageFile?: File | null
+) {
   if (!db) throw new Error('Firestore is not initialized');
   
   const contactsRef = collection(db, 'users', userId, 'contacts');
   
   // Ensure name is always present
-  if (!contactData.name) {
+  const name = contactData.name?.trim();
+  if (!name) {
     throw new Error('Name is required');
   }
 
-  await assertValidTagIds(userId, contactData.tags || []);
+  const tags = await existingTagIds(userId, contactData.tags || []);
 
   // Parse name into components
-  const nameParts = contactData.name.split(' ');
-  const firstName = nameParts[0];
-  const lastName = nameParts.slice(1).join(' ');
-
-  const newContact = {
-    ...contactData,
-    firstName,
-    lastName,
-    name: contactData.name, // Ensure name is explicitly set
-    dateAdded: serverTimestamp(),
-    dateModified: serverTimestamp(),
-    contactSource: contactData.contactSource || 'manual',
-    tags: contactData.tags || []
-  };
+  const { firstName, lastName } = splitName(name);
 
   // The server owns the entitlement decision and seeds the counter that the
   // Firestore rule checks this create against.
@@ -94,18 +160,49 @@ export async function createContact(userId: string, contactData: Partial<Contact
     );
   }
 
+  // Upload first so the contact is written once, image included. Creating it
+  // first spent a contact slot before an upload that could still fail, and
+  // retrying then saved a duplicate.
+  const imageUrl = imageFile
+    ? await uploadContactImageFile(userId, imageFile)
+    : contactData.imageUrl;
+
+  const newContact = {
+    ...contactData,
+    firstName,
+    lastName,
+    name, // Ensure name is explicitly set
+    dateAdded: serverTimestamp(),
+    dateModified: serverTimestamp(),
+    contactSource: contactData.contactSource || 'manual',
+    tags
+  };
+  // Firestore rejects undefined values, so the field is only written with a URL.
+  if (imageUrl) {
+    newContact.imageUrl = imageUrl;
+  } else {
+    delete newContact.imageUrl;
+  }
+
   // The rule requires the +1 on the owner document to be part of the same batch
   // as the contact itself, so a create always pays for its quota.
   const docRef = doc(contactsRef);
   const batch = writeBatch(db);
   batch.set(docRef, newContact);
   batch.update(doc(db, 'users', userId), { contactCount: increment(1) });
-  await batch.commit();
+  try {
+    await batch.commit();
+  } catch (error) {
+    if (imageFile && imageUrl) {
+      await deleteStorageObjectBestEffort(imageUrl, 'image of a contact that failed to save');
+    }
+    throw error;
+  }
 
   // Create a properly typed contact object for return
   const createdContact: Contact = {
     id: docRef.id,
-    name: contactData.name,
+    name,
     firstName,
     lastName,
     phone: contactData.phone || '',
@@ -114,43 +211,58 @@ export async function createContact(userId: string, contactData: Partial<Contact
     company: contactData.company || '',
     address: contactData.address || '',
     note: contactData.note || '',
-    tags: contactData.tags || [],
+    tags,
     dateAdded: new Date().toISOString(), // Convert timestamp to string for the return value
     dateModified: new Date().toISOString(),
     contactSource: contactData.contactSource || 'manual',
-    imageUrl: contactData.imageUrl
+    imageUrl: imageUrl || undefined
   };
 
   return createdContact;
 }
 
-// Update an existing contact
+/**
+ * Update an existing contact. Returns the fields as saved (trimmed name and its
+ * parts, known tags only, `imageUrl` undefined when the image was removed).
+ */
 export async function updateContact(
   userId: string, 
   contactId: string, 
   updates: Partial<Contact>
-) {
+): Promise<Partial<Contact>> {
   if (!db) throw new Error('Firestore is not initialized');
 
+  const saved: Partial<Contact> = { ...updates };
+
+  if (updates.name !== undefined) {
+    const name = updates.name.trim();
+    if (!name) {
+      throw new Error('Name is required');
+    }
+    Object.assign(saved, { name, ...splitName(name) });
+  }
+
   if (updates.tags) {
-    await assertValidTagIds(userId, updates.tags);
+    saved.tags = await existingTagIds(userId, updates.tags);
   }
   
   const contactRef = doc(db, 'users', userId, 'contacts', contactId);
   
-  if (updates.name) {
-    const nameParts = updates.name.split(' ');
-    updates.firstName = nameParts[0];
-    updates.lastName = nameParts.slice(1).join(' ');
-  }
-
   // Use serverTimestamp for consistent formatting with dateAdded
-  const updatesWithTimestamp = {
-    ...updates,
+  const updatesWithTimestamp: DocumentData = {
+    ...saved,
     dateModified: serverTimestamp()
   };
 
+  // iOS shows an image slot for any imageUrl value, so a removed image has to
+  // be a missing field rather than an empty string.
+  if ('imageUrl' in saved && !saved.imageUrl) {
+    updatesWithTimestamp.imageUrl = deleteField();
+    saved.imageUrl = undefined;
+  }
+
   await updateDoc(contactRef, updatesWithTimestamp);
+  return saved;
 }
 
 // Delete a contact
@@ -197,13 +309,12 @@ export async function getContacts(userId: string) {
   }
 }
 
-// Upload contact image
-export async function uploadContactImage(
-  userId: string, 
-  contactId: string, 
-  file: File
-): Promise<string> {
+/** Upload a contact image without touching Firestore; returns its download URL. */
+export async function uploadContactImageFile(userId: string, file: File): Promise<string> {
   if (!storage) throw new Error('Firebase storage is not initialized');
+
+  const problem = contactImageError(file);
+  if (problem) throw new Error(problem);
   
   const imageId = uuidv4();
   const imagePath = `contacts/${userId}/${imageId}.${contactImageExtension(file)}`;
@@ -216,10 +327,20 @@ export async function uploadContactImage(
     }
   });
   
-  const imageUrl = await getDownloadURL(imageRef);
+  return await getDownloadURL(imageRef);
+}
+
+// Upload contact image and attach it to an existing contact
+export async function uploadContactImage(
+  userId: string,
+  contactId: string,
+  file: File
+): Promise<string> {
+  if (!db) throw new Error('Firestore is not initialized');
+
+  const imageUrl = await uploadContactImageFile(userId, file);
   
   // Update contact with new image URL
-  if (!db) throw new Error('Firestore is not initialized');
   const contactRef = doc(db, 'users', userId, 'contacts', contactId);
   try {
     await updateDoc(contactRef, { imageUrl });
@@ -253,54 +374,81 @@ export async function createTag(userId: string, tagData: Partial<Tag>) {
     color: tagData.color || '#808080' // Default gray color
   };
   
-  const docRef = await addDoc(tagsRef, newTag);
+  const docRef = await addDoc(tagsRef, {
+    ...newTag,
+    // iOS decodes a tag only when it has `userId` and a `createdAt` timestamp.
+    // Without them the tag is invisible there, and iOS creates a duplicate.
+    userId,
+    createdAt: serverTimestamp(),
+  });
   return { id: docRef.id, ...newTag };
 }
 
 // Batch Operations
-export async function batchDeleteContacts(userId: string, contactIds: string[]) {
+
+/**
+ * Delete contacts the caller already holds in memory; their `imageUrl`s say
+ * which Storage objects to clean up, so no per-contact read is needed.
+ */
+export async function batchDeleteContacts(
+  userId: string,
+  contacts: Array<Pick<Contact, 'id' | 'imageUrl'>>
+) {
   if (!db) throw new Error('Firestore is not initialized');
+  const firestore = db;
   
-  const batch = writeBatch(db);
-  const imageUrls: string[] = [];
+  try {
+    for (const chunk of chunked(contacts)) {
+      const batch = writeBatch(firestore);
+      chunk.forEach(contact => {
+        batch.delete(doc(firestore, 'users', userId, 'contacts', contact.id));
+      });
+      await batch.commit();
   
-  for (const contactId of contactIds) {
-    const contactRef = doc(db, 'users', userId, 'contacts', contactId);
-    const contact = await getDoc(contactRef);
-    const imageUrl = contact.exists() ? contact.data().imageUrl : undefined;
-    if (imageUrl) imageUrls.push(imageUrl);
-    batch.delete(contactRef);
+      // Only objects whose records are gone are safe to remove.
+      await Promise.all(
+        chunk
+          .filter(contact => contact.imageUrl)
+          .map(contact => deleteStorageObjectBestEffort(contact.imageUrl!, 'bulk-deleted contact image'))
+      );
+    }
+  } finally {
+    // Even a partly applied delete frees quota.
+    refreshUsageAfterDelete();
   }
-  
-  await batch.commit();
-
-  await Promise.all(
-    imageUrls.map(imageUrl => deleteStorageObjectBestEffort(imageUrl, 'bulk-deleted contact image'))
-  );
-
-  refreshUsageAfterDelete();
 }
 
+/**
+ * Add tags to, or remove them from, every listed contact without touching the
+ * contacts' other tags (iOS adds the same way). Both writes are idempotent, so
+ * a partly applied run is safe to repeat.
+ */
 export async function batchUpdateContactTags(
   userId: string, 
   contactIds: string[], 
-  tagIds: string[]
+  tagIds: string[],
+  action: 'add' | 'remove'
 ) {
   if (!db) throw new Error('Firestore is not initialized');
+  const firestore = db;
 
-  await assertValidTagIds(userId, tagIds);
+  // Removing the id of a tag that no longer exists is still useful cleanup.
+  const ids = action === 'add'
+    ? await existingTagIds(userId, tagIds)
+    : [...new Set(tagIds.filter(Boolean))];
+  if (ids.length === 0) return;
   
-  const batch = writeBatch(db);
-  
-  for (const contactId of contactIds) {
-    const contactRef = doc(db, 'users', userId, 'contacts', contactId);
-    batch.update(contactRef, { 
-      tags: tagIds,
-      dateModified: serverTimestamp()
+  const tagsChange = action === 'add' ? arrayUnion(...ids) : arrayRemove(...ids);
+  for (const chunk of chunked([...new Set(contactIds)])) {
+    const batch = writeBatch(firestore);
+    chunk.forEach(contactId => {
+      batch.update(doc(firestore, 'users', userId, 'contacts', contactId), {
+        tags: tagsChange,
+        dateModified: serverTimestamp()
+      });
     });
+    await batch.commit();
   }
-  
-  await batch.commit();
 }
 
 // Search contacts
@@ -340,6 +488,20 @@ export const getTags = async (userId: string): Promise<Tag[]> => {
     const tagsRef = collection(db, `users/${userId}/tags`);
     const snapshot = await getDocs(tagsRef);
     
+    // Tags from older web builds lack the fields iOS needs to decode them.
+    // Best effort: a failed backfill is simply retried on the next load.
+    snapshot.docs.forEach(tagDoc => {
+      const data = tagDoc.data();
+      const missing: DocumentData = {};
+      if (typeof data.userId !== 'string') missing.userId = userId;
+      if (!data.createdAt) missing.createdAt = serverTimestamp();
+      if (Object.keys(missing).length > 0) {
+        updateDoc(tagDoc.ref, missing).catch(error => {
+          console.error('Unable to backfill tag fields:', error);
+        });
+      }
+    });
+
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data() as Omit<Tag, 'id'>
@@ -350,29 +512,30 @@ export const getTags = async (userId: string): Promise<Tag[]> => {
   }
 }
 
+/**
+ * Delete a tag after removing it from every contact. The tag document goes
+ * last: if the cleanup fails the tag is still listed, so deleting it again
+ * retries the cleanup instead of leaving contacts with an id nothing can remove.
+ */
 export async function deleteTag(userId: string, tagId: string) {
   if (!db) throw new Error('Firestore is not initialized');
-  
-  const tagRef = doc(db, `users/${userId}/tags/${tagId}`);
-  
-  // Delete the tag
-  await deleteDoc(tagRef);
+  const firestore = db;
   
   // Get all contacts that have this tag
-  const contactsRef = collection(db, `users/${userId}/contacts`);
+  const contactsRef = collection(firestore, `users/${userId}/contacts`);
   const contactsWithTag = await getDocs(
     query(contactsRef, where('tags', 'array-contains', tagId))
   );
   
-  // Remove the tag from all contacts that have it
-  const batch = writeBatch(db);
-  contactsWithTag.forEach(doc => {
-    const contact = doc.data();
-    const updatedTags = contact.tags.filter((t: string) => t !== tagId);
-    batch.update(doc.ref, { tags: updatedTags });
-  });
+  for (const chunk of chunked(contactsWithTag.docs)) {
+    const batch = writeBatch(firestore);
+    chunk.forEach(contact => {
+      batch.update(contact.ref, { tags: arrayRemove(tagId) });
+    });
+    await batch.commit();
+  }
   
-  await batch.commit();
+  await deleteDoc(doc(firestore, `users/${userId}/tags/${tagId}`));
 }
 export async function updateTag(userId: string, tagId: string, updates: Partial<Tag>) {
   if (!db) throw new Error('Firestore is not initialized');

@@ -45,6 +45,9 @@ const BlueSkyIcon: React.FC<{ size?: number, className?: string }> = ({ size = 2
   </svg>
 );
 
+// Saves keep only this many (the Firestore rules allow no more).
+const MAX_WEB_LINKS = 25;
+
 interface BusinessCardFormProps {
   onSuccess: (cardData: BusinessCardData) => Promise<void>;
   initialData?: Partial<BusinessCardData>;
@@ -147,7 +150,9 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     cvDisplayText: initialData?.cvDisplayText || '',
     imageUrl: initialData?.imageUrl || '',
     isActive: initialData?.isActive ?? true, // Default to true if not provided
-    theme: initialData?.theme || 'classic',
+    // A saved card without a theme renders as Modern on the public page (the
+    // display's fallback), so editing it must not quietly switch it to Classic.
+    theme: initialData ? initialData.theme || 'modern' : 'classic',
     effect: CARD_EFFECTS.find(option => option.id === initialData?.effect)?.id ?? DEFAULT_CARD_EFFECT,
     effectTour: initialData?.effectTour !== false,
     customColors: initialData?.customColors ?? null,
@@ -159,6 +164,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [showSocialLinkDropdown, setShowSocialLinkDropdown] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const cvInputRef = useRef<HTMLInputElement>(null);
   const [showCopyTooltip, setShowCopyTooltip] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -221,8 +227,10 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     const { name, value } = e.target;
     let updatedValue = value;
 
-    // Add protocol to URL fields if necessary
-    if (name.toLowerCase().includes('url') || name === 'linkedIn' || name === 'twitter') {
+    // Add protocol to URL fields if necessary. The X field asks for a handle and
+    // is left as typed: rewriting it per keystroke turned "x.com/…" into
+    // "https://x.com/x". Saving turns a handle into its x.com profile URL.
+    if (name.toLowerCase().includes('url') || name === 'linkedIn') {
       updatedValue = addProtocolToUrl(value);
     }
 
@@ -383,6 +391,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
 
   const addWebLink = () => {
     setFormData(prev => {
+      if (prev.webLinks.length >= MAX_WEB_LINKS) return prev;
       const newData = {
         ...prev,
         webLinks: [...prev.webLinks, { url: '', displayText: '' }],
@@ -431,17 +440,31 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
     }
   };
 
+  const clearPendingCv = () => {
+    setCvFile(null);
+    setFormData(prevData => ({ ...prevData, cv: undefined }));
+    // Lets the same file be picked again.
+    if (cvInputRef.current) cvInputRef.current.value = '';
+  };
+
+  // Deleting stays available without Pro: a lapsed subscriber must still be
+  // able to take down a document that remains publicly readable.
   const handleCvDelete = async () => {
-    if (!user || !formData.id) return;
+    if (!user) return;
+
+    // Nothing saved yet: dropping the chosen file is all there is to do.
+    if (!formData.cvUrl || !formData.id) {
+      clearPendingCv();
+      return;
+    }
 
     try {
       await deleteCv(user.uid, formData.id);
-      setCvFile(null);
+      clearPendingCv();
       setFormData(prevData => ({ ...prevData, cvUrl: '' }));
-      // Show success message to user
     } catch (error) {
       console.error('Error deleting CV:', error);
-      // Show error message to user
+      setError(error instanceof Error ? error.message : 'Failed to delete the document. Please try again.');
     }
   };
 
@@ -858,14 +881,18 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={addWebLink}
-            className={addButtonClass}
-          >
-            <Plus size={16} />
-            Add web link
-          </button>
+          {formData.webLinks.length < MAX_WEB_LINKS ? (
+            <button
+              type="button"
+              onClick={addWebLink}
+              className={addButtonClass}
+            >
+              <Plus size={16} />
+              Add web link
+            </button>
+          ) : (
+            <p className={hintClass}>You can add up to {MAX_WEB_LINKS} web links.</p>
+          )}
         </div>
       </CollapsibleSection>
 
@@ -1007,6 +1034,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 <Upload size={15} />
                 {cvFile ? 'Replace PDF' : 'Upload PDF'}
                 <input
+                  ref={cvInputRef}
                   type="file"
                   id="cv"
                   name="cv"
@@ -1059,8 +1087,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
                 <button
                   type="button"
                   onClick={handleCvDelete}
-                  className={`${btnDangerGhost} ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-                  disabled={!isPro}
+                  className={btnDangerGhost}
                 >
                   <Trash2 size={15} /> Delete
                 </button>
@@ -1074,8 +1101,7 @@ export const BusinessCardForm: React.FC<BusinessCardFormProps> = ({
               <button
                 type="button"
                 onClick={handleCvDelete}
-                className={`${btnDangerGhost} ${!isPro && 'opacity-50 cursor-not-allowed'}`}
-                disabled={!isPro}
+                className={btnDangerGhost}
               >
                 <Trash2 size={15} /> Delete Document
               </button>

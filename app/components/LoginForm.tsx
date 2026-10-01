@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import { ensureUserDocument } from '../hooks/useAuth';
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -18,7 +19,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     setError(null);
     try {
       if (auth) {
-        await signInWithEmailAndPassword(auth, email, password);
+        const { user } = await signInWithEmailAndPassword(auth, email, password);
+        await ensureUserDocument(user);
         onSuccess();
       } else {
         throw new Error('Auth is not initialized');

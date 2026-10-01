@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { useAuth } from '../hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -27,6 +27,26 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
   const { user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
+
+  // Partner codes that include lifetime access are claimed without a card. Any
+  // other free code still goes through the card flow.
+  const isFreePartnerClaim = isFreeWithCoupon && (isVMCRXCoupon || isMCKiS25Coupon || isNCPA25Coupon);
+
+  const clearAppliedCoupon = useCallback(() => {
+    setCouponMessage(null);
+    setDiscountedAmount(null);
+    setIsFreeWithCoupon(false);
+    setIsVMCRXCoupon(false);
+    setIsMCKiS25Coupon(false);
+    setIsNCPA25Coupon(false);
+  }, []);
+
+  // A code is verified against one price. Carried over to another plan it
+  // showed the wrong total, or offered a free claim the plan doesn't qualify for.
+  useEffect(() => {
+    setCouponCode('');
+    clearAppliedCoupon();
+  }, [selectedPlan, clearAppliedCoupon]);
 
   const getPriceId = () => {
     switch (selectedPlan) {
@@ -70,8 +90,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       const idToken = await user.getIdToken();
       const priceId = getPriceId();
 
-      // Handle free VMCRX subscription without payment method
-      if (isFreeWithCoupon && (isVMCRXCoupon || isMCKiS25Coupon || isNCPA25Coupon)) {
+      // Handle free partner lifetime access without payment method
+      if (isFreePartnerClaim) {
         const response = await fetch('/api/create-subscription', {
           method: 'POST',
           headers: {
@@ -88,7 +108,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to create subscription');
+          setErrorMessage(data.error || 'Failed to activate your free lifetime access. Please try again.');
+          return;
         }
 
         // Refresh user token to get updated claims
@@ -162,10 +183,30 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         throw new Error('No client secret returned');
       }
 
-      // For lifetime plan, payment is already confirmed on the server
+      // For lifetime plan, payment is confirmed on the server
       if (selectedPlan === 'lifetime') {
-        // Just check the payment status
-        const { paymentIntent } = await stripe.retrievePaymentIntent(data.clientSecret);
+        let { paymentIntent } = await stripe.retrievePaymentIntent(data.clientSecret);
+
+        // Cards that need 3-D Secure come back waiting for the customer.
+        if (paymentIntent?.status === 'requires_action') {
+          const result = await stripe.handleNextAction({ clientSecret: data.clientSecret });
+          if (result.error) {
+            throw handlePaymentError(result.error);
+          }
+          paymentIntent = result.paymentIntent;
+        }
+
+        if (paymentIntent?.status === 'processing') {
+          // The webhook grants Pro once the payment clears.
+          showToast('Your payment is processing. Helix Pro will activate as soon as it completes.', 'success');
+          router.push('/dashboard');
+          return;
+        }
+
+        if (paymentIntent?.status === 'requires_payment_method') {
+          throw new Error('Your card was declined. Please try another card.');
+        }
+
         if (paymentIntent?.status !== 'succeeded') {
           throw new Error('Payment failed. Please try again.');
         }
@@ -203,6 +244,10 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
           ((error as StripeError).type === 'card_error' ||
            (error as StripeError).type === 'validation_error')) {
         setErrorMessage((error as StripeError).message);
+      } else if (error instanceof Error && error.name === 'Error') {
+        // Errors raised above carry a message written for the customer;
+        // network (TypeError) and parse (SyntaxError) failures do not.
+        setErrorMessage(error.message);
       } else {
         setErrorMessage('An unexpected error occurred. Please try again.');
       }
@@ -235,12 +280,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       const data = await response.json();
 
       if (!response.ok) {
+        clearAppliedCoupon();
         setCouponMessage(data.error || 'Invalid coupon code');
-        setDiscountedAmount(null);
-        setIsFreeWithCoupon(false);
-        setIsVMCRXCoupon(false);
-        setIsMCKiS25Coupon(false);
-        setIsNCPA25Coupon(false);
       } else {
         setCouponMessage(
           data.isTrackingOnly
@@ -254,12 +295,8 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         setIsNCPA25Coupon(data.isNCPA25);
       }
     } catch (error) {
+      clearAppliedCoupon();
       setCouponMessage('Error applying coupon');
-      setDiscountedAmount(null);
-      setIsFreeWithCoupon(false);
-      setIsVMCRXCoupon(false);
-      setIsMCKiS25Coupon(false);
-      setIsNCPA25Coupon(false);
     } finally {
       setIsApplyingCoupon(false);
     }
@@ -287,7 +324,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
 
   return (
     <form onSubmit={handleSubmit}>
-      {!isFreeWithCoupon && (
+      {!isFreePartnerClaim && (
         <div className="mb-4">
           <CardElement className="p-3 border rounded-md" />
         </div>
@@ -306,12 +343,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
               setCouponCode(e.target.value);
               // Reset free coupon state when input is cleared
               if (!e.target.value.trim()) {
-                setIsFreeWithCoupon(false);
-                setIsVMCRXCoupon(false);
-                setIsMCKiS25Coupon(false);
-                setIsNCPA25Coupon(false);
-                setDiscountedAmount(null);
-                setCouponMessage(null);
+                clearAppliedCoupon();
               }
             }}
             className="flex-1 w-full p-2 border rounded-md"
@@ -337,7 +369,7 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
         )}
       </div>
 
-      {isFreeWithCoupon && (isVMCRXCoupon || isMCKiS25Coupon || isNCPA25Coupon) && (
+      {isFreePartnerClaim && (
         <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
           <p className="text-green-800 dark:text-green-200 font-medium">
             🎉 Congratulations! Your coupon code gives you free lifetime access to Helix Pro. No credit card required!
@@ -349,12 +381,12 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ selectedPlan, isS
       
       <button
         type="submit"
-        disabled={(!stripe && !isFreeWithCoupon) || isLoading}
+        disabled={(!stripe && !isFreePartnerClaim) || isLoading}
         className="w-full bg-blue-500 text-white dark:text-[#323338] font-bold py-2 px-4 rounded-[20px] mt-4 transition duration-200"
       >
         {isLoading
           ? 'Processing...'
-          : isFreeWithCoupon && (isVMCRXCoupon || isMCKiS25Coupon || isNCPA25Coupon)
+          : isFreePartnerClaim
           ? 'Claim Free Lifetime Access'
           : `Upgrade for $${((discountedAmount !== null ? discountedAmount : getPriceInCents()) / 100).toFixed(2)}`}
       </button>

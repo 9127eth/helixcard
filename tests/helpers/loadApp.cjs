@@ -25,6 +25,9 @@ let autoId = 0;
 let usageState = defaultUsage();
 const deletedStoragePaths = [];
 const uploadedStoragePaths = [];
+// Number of writes in each committed batch, in commit order.
+const batchCommits = [];
+const pendingFailures = [];
 
 const auth = {
   currentUser: { uid: 'u1', getIdToken: async () => 'token' },
@@ -49,6 +52,8 @@ function applySentinels(value) {
   if (value.__op === 'increment') return value.n;
   if (value.__op === 'serverTimestamp') return new Date();
   if (value.__op === 'deleteField') return undefined;
+  if (value.__op === 'arrayUnion') return [...new Set(value.values)];
+  if (value.__op === 'arrayRemove') return [];
   if (Array.isArray(value)) return value.map(applySentinels);
   const result = {};
   for (const [key, entry] of Object.entries(value)) {
@@ -67,11 +72,28 @@ function applyUpdate(current, updates) {
       next[key] = new Date();
     } else if (value && value.__op === 'deleteField') {
       delete next[key];
+    } else if (value && value.__op === 'arrayUnion') {
+      const existing = Array.isArray(next[key]) ? next[key] : [];
+      next[key] = [...existing, ...value.values.filter(item => !existing.includes(item))];
+    } else if (value && value.__op === 'arrayRemove') {
+      const existing = Array.isArray(next[key]) ? next[key] : [];
+      next[key] = existing.filter(item => !value.values.includes(item));
     } else {
       next[key] = applySentinels(value);
     }
   }
   return next;
+}
+
+function takeFailure(operation) {
+  const index = pendingFailures.findIndex(failure => failure.operation === operation);
+  if (index === -1) return null;
+  return pendingFailures.splice(index, 1)[0].error;
+}
+
+/** Make the next `commit` or `updateDoc` reject, as a dropped connection would. */
+function failNext(operation, error = new Error(`${operation} failed`)) {
+  pendingFailures.push({ operation, error });
 }
 
 function isRef(value) {
@@ -181,6 +203,12 @@ const firestore = {
   deleteField() {
     return { __op: 'deleteField' };
   },
+  arrayUnion(...values) {
+    return { __op: 'arrayUnion', values };
+  },
+  arrayRemove(...values) {
+    return { __op: 'arrayRemove', values };
+  },
   writeBatch() {
     const ops = [];
     return {
@@ -194,6 +222,9 @@ const firestore = {
         ops.push({ type: 'delete', path: docRef.__path });
       },
       async commit() {
+        const failure = takeFailure('commit');
+        if (failure) throw failure;
+        batchCommits.push(ops.length);
         for (const op of ops) {
           if (op.type === 'set') store.set(op.path, applySentinels(op.data));
           if (op.type === 'update') store.set(op.path, applyUpdate(store.get(op.path), op.data));
@@ -206,6 +237,8 @@ const firestore = {
     store.set(docRef.__path, applySentinels(data));
   },
   async updateDoc(docRef, data) {
+    const failure = takeFailure('updateDoc');
+    if (failure) throw failure;
     if (!store.has(docRef.__path)) throw new Error('No document to update');
     store.set(docRef.__path, applyUpdate(store.get(docRef.__path), data));
   },
@@ -296,6 +329,8 @@ function clear() {
   usageState = defaultUsage();
   deletedStoragePaths.length = 0;
   uploadedStoragePaths.length = 0;
+  batchCommits.length = 0;
+  pendingFailures.length = 0;
   auth.currentUser = { uid: 'u1', getIdToken: async () => 'token' };
 }
 
@@ -344,4 +379,6 @@ module.exports = {
   store,
   deletedStoragePaths,
   uploadedStoragePaths,
+  batchCommits,
+  failNext,
 };

@@ -10,6 +10,7 @@ import { auth } from '../lib/firebase';
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const hasAppliedCode = useRef(false);
   const isEmailChange = searchParams.get('mode') === 'verifyAndChangeEmail';
 
@@ -28,28 +29,37 @@ function VerifyEmailContent() {
     const applyCode = async () => {
       try {
         await applyActionCode(firebaseAuth, code);
-
-        if (firebaseAuth.currentUser) {
-          await firebaseAuth.currentUser.reload();
-          const idToken = await firebaseAuth.currentUser.getIdToken(true);
-          const response = await fetch('/api/auth/email', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${idToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ type: 'sync' }),
-          });
-
-          if (!response.ok) {
-            console.error('Email changed, but account metadata could not be synchronized');
-          }
-        }
-
-        setStatus('success');
       } catch (error) {
         console.error('Email verification failed:', error);
         setStatus('error');
+        return;
+      }
+
+      setStatus('success');
+
+      const currentUser = firebaseAuth.currentUser;
+      if (!currentUser) return;
+
+      // An email change revokes this browser's session, so this can fail after
+      // the change itself succeeded. The next sign-in repeats the sync.
+      try {
+        await currentUser.reload();
+        const idToken = await currentUser.getIdToken(true);
+        const response = await fetch('/api/auth/email', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ type: 'sync' }),
+        });
+
+        if (!response.ok) {
+          console.error('Email changed, but account metadata could not be synchronized');
+        }
+      } catch (error) {
+        console.error('Unable to refresh the session after confirming the email:', error);
+        setRefreshFailed(true);
       }
     };
 
@@ -75,6 +85,11 @@ function VerifyEmailContent() {
               ? 'Your new email address is now connected to your HelixCard account.'
               : 'Thanks for confirming your address. Your HelixCard account is all set.'}
           </p>
+          {isEmailChange && refreshFailed && (
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Please sign in again with your new email address.
+            </p>
+          )}
           <Link
             href="/dashboard"
             className="inline-block rounded-full bg-[#7CCEDA] px-5 py-3 font-semibold text-gray-900 hover:bg-[#6bb9c7]"

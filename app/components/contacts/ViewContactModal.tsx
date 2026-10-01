@@ -2,12 +2,11 @@
 
 import { Contact, Tag } from '@/app/types'
 import { X, Phone, Mail, MessageCircle, Copy, MapPin } from 'react-feather'
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import ImageViewerModal from './ImageViewerModal'
 import { useAuth } from '@/app/hooks/useAuth'
-import { getTags } from '@/app/lib/contacts'
+import { getTags, formatContactPhone } from '@/app/lib/contacts'
 
 interface ViewContactModalProps {
   isOpen: boolean
@@ -49,11 +48,6 @@ export default function ViewContactModal({
     const tag = tags.find(t => t.id === tagId)
     return tag ? [tag.name] : []
   }) || []
-
-  const formatPhoneNumber = (phone: string) => {
-    const parsed = parsePhoneNumberFromString(phone, 'US')
-    return parsed ? parsed.formatNational() : phone
-  }
 
   const copyToClipboard = async (text: string, type: 'phone' | 'email' | 'address') => {
     await navigator.clipboard.writeText(text)
@@ -122,7 +116,7 @@ export default function ViewContactModal({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Phone className="text-gray-400" size={16} />
-                  <span>{formatPhoneNumber(contact.phone)}</span>
+                  <span>{formatContactPhone(contact.phone)}</span>
                 </div>
                 <button
                   onClick={() => copyToClipboard(contact.phone!, 'phone')}

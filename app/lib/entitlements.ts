@@ -44,36 +44,38 @@ export function contactLimitFor(isPro: boolean): number {
 export async function syncUsage(uid: string): Promise<UsageSummary> {
   const userRef = db.collection('users').doc(uid);
 
-  const [userDoc, cards, contacts] = await Promise.all([
-    userRef.get(),
-    userRef.collection('businessCards').count().get(),
-    userRef.collection('contacts').count().get(),
-  ]);
+  // Counted inside a transaction, like the mobile apps' Cloud Function, so a
+  // card or contact created while we count cannot be overwritten by a stale total.
+  return db.runTransaction(async transaction => {
+    const [userDoc, cards, contacts] = await Promise.all([
+      transaction.get(userRef),
+      transaction.get(userRef.collection('businessCards').count()),
+      transaction.get(userRef.collection('contacts').count()),
+    ]);
 
-  if (!userDoc.exists) {
-    throw new Error('User document does not exist');
-  }
+    if (!userDoc.exists) {
+      throw new Error('User document does not exist');
+    }
 
-  const isPro = userDoc.data()?.isPro === true;
-  const cardCount = cards.data().count;
-  const contactCount = contacts.data().count;
+    const isPro = userDoc.data()?.isPro === true;
+    const cardCount = cards.data().count;
+    const contactCount = contacts.data().count;
 
-  await userRef.update({ cardCount, contactCount });
+    transaction.update(userRef, { cardCount, contactCount });
 
-  const cardLimit = cardLimitFor(isPro);
-  const contactLimit = contactLimitFor(isPro);
+    const cardLimit = cardLimitFor(isPro);
+    const contactLimit = contactLimitFor(isPro);
 
-  // A placeholder means the primary card was deleted; the user is always allowed
-  // to recreate it regardless of the count.
-  const hasPlaceholder = userDoc.data()?.primaryCardPlaceholder === true;
-
-  return {
-    isPro,
-    cardCount,
-    contactCount,
-    cardLimit,
-    contactLimit,
-    canCreateCard: hasPlaceholder || cardCount < cardLimit,
-    canCreateContact: contactCount < contactLimit,
-  };
+    return {
+      isPro,
+      cardCount,
+      contactCount,
+      cardLimit,
+      contactLimit,
+      // Exactly the Firestore rule, which has no exception for a deleted main
+      // card: a downgraded account holding other cards is over the limit.
+      canCreateCard: cardCount < cardLimit,
+      canCreateContact: contactCount < contactLimit,
+    };
+  });
 }

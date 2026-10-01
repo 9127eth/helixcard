@@ -62,6 +62,19 @@ export async function reserveUsername(uid: string, username: string): Promise<st
       throw new UsernameUnavailableError();
     }
 
+    // Handles from before the registry have no reservation until someone
+    // visits their card, so check the accounts themselves too; otherwise any
+    // account could take over a live legacy card's URL. At most one of two
+    // matches can be this account.
+    if (!reservation.exists) {
+      const holders = await transaction.get(
+        db.collection('users').where('username', '==', normalized).limit(2)
+      );
+      if (holders.docs.some(holder => holder.id !== uid)) {
+        throw new UsernameUnavailableError();
+      }
+    }
+
     const previous = userDoc.data()?.username;
     if (typeof previous === 'string' && previous && previous !== normalized) {
       const previousRef = db.collection(RESERVATIONS).doc(previous.toLowerCase());
@@ -107,12 +120,17 @@ export async function resolveUsername(username: unknown): Promise<string | null>
 
   if (legacy.empty) return null;
 
+  // Every sign-up path writes createdAt; registeredAt only ever came from a
+  // helper nothing called. The uid breaks ties so the choice is stable.
   const oldest = legacy.docs
-    .map(doc => ({
-      uid: doc.id,
-      registeredAt: doc.data().registeredAt?.toMillis?.() ?? Number.MAX_SAFE_INTEGER,
-    }))
-    .sort((a, b) => a.registeredAt - b.registeredAt)[0];
+    .map(doc => {
+      const data = doc.data();
+      return {
+        uid: doc.id,
+        createdAt: data.createdAt?.toMillis?.() ?? data.registeredAt?.toMillis?.() ?? Number.MAX_SAFE_INTEGER,
+      };
+    })
+    .sort((a, b) => a.createdAt - b.createdAt || (a.uid < b.uid ? -1 : a.uid > b.uid ? 1 : 0))[0];
 
   // Backfill so the next lookup is a single document read and the handle is
   // locked to this account.

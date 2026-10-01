@@ -1,67 +1,49 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import BusinessCardDisplay from '@/app/components/BusinessCardDisplay';
-import { BusinessCard } from '@/app/types';
+import { lookupPrimaryCard } from '@/app/lib/publicCardLookup';
+
+// Owners expect an edit to show up straight away. The no-store fetch these
+// pages used to make implied this; a direct Firestore read does not.
+export const dynamic = 'force-dynamic';
 
 interface BusinessCardProps {
   params: Promise<{ username: string; cardSlug?: string }>;
 }
 
-interface ApiResponse {
-  user: {
-    primaryCardId: string | null;
-    primaryCardPlaceholder: boolean;
-    isPro: boolean;
-  };
-  card: BusinessCard | null;
-}
-
 export async function generateMetadata({ params }: BusinessCardProps): Promise<Metadata> {
   const { username } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
-  const res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
 
-  if (res.status === 404) {
-    return {
-      title: `Card Not Found - HelixCard`,
-      description: `The requested business card does not exist.`,
-    };
-  }
-
-  if (!res.ok) {
+  let result: Awaited<ReturnType<typeof lookupPrimaryCard>>;
+  try {
+    result = await lookupPrimaryCard(username);
+  } catch (error) {
+    console.error('Error fetching card metadata:', error);
     return {
       title: `Error - HelixCard`,
       description: `Error loading ${username}'s digital business card`,
     };
   }
 
-  const data = await res.json() as ApiResponse;
-
-  if (data.card) {
-    return {
-      title: `${data.card.firstName}'s Business Card - HelixCard`,
-      description: `View ${data.card.firstName}'s digital business card`,
-    };
-  } else if (data.user.primaryCardId === null && data.user.primaryCardPlaceholder) {
-    return {
-      title: `Business Card Placeholder - HelixCard`,
-      description: `This business card is currently unavailable.`,
-    };
-  } else {
+  if (!result.found) {
     return {
       title: `Card Not Found - HelixCard`,
       description: `The requested business card does not exist.`,
     };
   }
+
+  return {
+    title: `${result.card.firstName}'s Business Card - HelixCard`,
+    description: `View ${result.card.firstName}'s digital business card`,
+  };
 }
 
 export default async function BusinessCardPage({ params }: BusinessCardProps) {
   const { username } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://www.helixcard.app' : 'http://localhost:3000');
 
-  let res: Response;
+  let result: Awaited<ReturnType<typeof lookupPrimaryCard>>;
   try {
-    res = await fetch(`${baseUrl}/api/c/${username}`, { cache: 'no-store' });
+    result = await lookupPrimaryCard(username);
   } catch (error) {
     console.error('Error fetching card data:', error);
     return <div>Error loading card data. Please try again later.</div>;
@@ -69,36 +51,7 @@ export default async function BusinessCardPage({ params }: BusinessCardProps) {
 
   // Unknown usernames, and accounts whose primary card is gone or switched off,
   // answer 404 so search engines drop the URL. notFound() throws, so it stays out of the try.
-  if (res.status === 404) notFound();
+  if (!result.found) notFound();
 
-  try {
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`Fetch error: ${res.status} ${res.statusText}`, errorText);
-      return <div>Error loading card data. Please try again later.</div>;
-    }
-
-    const data: ApiResponse = await res.json();
-
-    if (data.card) {
-      return <BusinessCardDisplay card={data.card} isPro={data.user.isPro} />;
-    } else if (data.user.primaryCardId === null && data.user.primaryCardPlaceholder) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-          <h1 className="text-2xl font-bold mb-4 text-red-500">This business card is currently unavailable.</h1>
-          <p className="text-lg text-gray-700">Please create a new primary business card to reactivate your primary URL.</p>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-          <h1 className="text-2xl font-bold mb-4 text-red-500">Card not found</h1>
-          <p className="text-lg text-gray-700">The requested business card does not exist.</p>
-        </div>
-      );
-    }
-  } catch (error) {
-    console.error('Error fetching card data:', error);
-    return <div>Error loading card data. Please try again later.</div>;
-  }
+  return <BusinessCardDisplay card={result.card} isPro={result.user.isPro} />;
 }

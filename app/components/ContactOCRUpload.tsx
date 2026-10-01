@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { btnSecondary, sectionIconClass } from './ui/editor';
 
 interface ContactOCRUploadProps {
+  onScanStart?: () => void;
   onScanComplete: (contactData: Partial<Contact> & { imageFile?: File }) => void;
   onError: (error: string) => void;
 }
@@ -16,12 +17,82 @@ interface ErrorResponse {
   suggestions?: string[];
 }
 
-export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadProps) {
+// Vercel refuses request bodies over 4.5 MB, and reading a card needs nowhere
+// near a full-resolution phone photo.
+const MAX_SCAN_DIMENSION = 1600;
+const SCAN_JPEG_QUALITY = 0.85;
+const SMALL_IMAGE_BYTES = 1024 * 1024;
+
+/**
+ * Shrink a photo to MAX_SCAN_DIMENSION on its longest side, as a JPEG. The
+ * original is used when it is already small or the browser cannot decode it
+ * (HEIC outside Safari, for example).
+ */
+async function prepareScanImage(file: File): Promise<File> {
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = document.createElement('img');
+    image.src = objectUrl;
+    await image.decode();
+
+    const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
+    if (longestSide <= MAX_SCAN_DIMENSION && file.size <= SMALL_IMAGE_BYTES) return file;
+
+    const scale = Math.min(1, MAX_SCAN_DIMENSION / longestSide);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(image.naturalWidth * scale);
+    canvas.height = Math.round(image.naturalHeight * scale);
+    const context = canvas.getContext('2d');
+    if (!context) return file;
+
+    // JPEG has no transparency; unfilled areas would come out black.
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise<Blob | null>(resolve => {
+      canvas.toBlob(resolve, 'image/jpeg', SCAN_JPEG_QUALITY);
+    });
+    if (!blob) return file;
+
+    const baseName = file.name.replace(/\.[^.]*$/, '') || 'business-card';
+    return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: file.lastModified });
+  } catch {
+    return file;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+/** Our routes answer with JSON, but a platform error (Vercel's 413) may not. */
+async function readErrorResponse(response: Response): Promise<ErrorResponse> {
+  try {
+    const body = await response.json();
+    if (body && typeof body.error === 'string') return body as ErrorResponse;
+  } catch {
+    // Not JSON; fall through to a readable message.
+  }
+  return {
+    error: response.status === 413
+      ? 'This image is too large to scan. Please try a smaller photo.'
+      : 'Failed to process image',
+  };
+}
+
+export function ContactOCRUpload({ onScanStart, onScanComplete, onError }: ContactOCRUploadProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [scanError, setScanError] = useState<ErrorResponse | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMountedRef = useRef(true);
   const { user } = useAuth();
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Add useEffect to trigger file input on mount
   useEffect(() => {
@@ -39,6 +110,8 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
       return;
     }
 
+    onScanStart?.();
+
     try {
       setIsProcessing(true);
       setScanError(null);
@@ -49,8 +122,10 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
       // Get the current ID token
       const idToken = await user.getIdToken();
 
+      // The smaller image is also the one saved with the contact.
+      const image = await prepareScanImage(file);
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', image);
 
       const response = await fetch('/api/contact-ocr', {
         method: 'POST',
@@ -60,16 +135,19 @@ export function ContactOCRUpload({ onScanComplete, onError }: ContactOCRUploadPr
         body: formData,
       });
 
+      const result = response.ok ? await response.json() : await readErrorResponse(response);
+      // A scan that finishes after the form was closed must not fill in the next contact.
+      if (!isMountedRef.current) return;
+
       if (!response.ok) {
-        const errorData: ErrorResponse = await response.json();
-        setScanError(errorData);
-        onError(errorData.error);
+        setScanError(result);
+        onError(result.error);
         return;
       }
 
-      const contactData = await response.json();
-      onScanComplete({ ...contactData, imageFile: file });
+      onScanComplete({ ...result, imageFile: image });
     } catch (error) {
+      if (!isMountedRef.current) return;
       const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
       setScanError({ error: errorMessage });
       onError(errorMessage);

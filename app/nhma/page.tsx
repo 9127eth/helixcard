@@ -66,7 +66,7 @@ export default function NHMAPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center">
               <a 
-                href="/#auth"
+                href="/?source=nhma#auth"
                 className="px-6 py-3 bg-[#005882] hover:bg-[#004268] text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
               >
                 Get Started
@@ -436,7 +436,7 @@ export default function NHMAPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="/#auth"
+                href="/?source=nhma#auth"
                 className="px-6 py-3 bg-white text-[#005882] hover:bg-gray-100 font-medium rounded-lg flex items-center justify-center transition-colors duration-300 sm:w-auto"
               >
                 Get Started

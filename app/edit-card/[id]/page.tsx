@@ -4,7 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Eye, ExternalLink } from 'react-feather';
-import { useAuth } from '../../hooks/useAuth';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import Layout from '../../components/Layout';
 import { BusinessCardForm } from '../../components/BusinessCardForm';
 import PreviewModal from '../../components/PreviewModal'; // Add this import
@@ -18,7 +18,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 export default function EditCardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useRequireAuth();
   const [cardData, setCardData] = useState<BusinessCardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false); // Add this state

@@ -38,8 +38,9 @@ export async function GET(req: NextRequest) {
     const year = yearParam ? parseInt(yearParam) : currentQuarter.year;
     const quarter = quarterParam ? parseInt(quarterParam) : currentQuarter.quarter;
 
-    // Validate parameters
-    if (isNaN(year) || year < 2020 || year > 2030) {
+    // Validate parameters. The cap follows the calendar so the default
+    // (current) quarter keeps working.
+    if (isNaN(year) || year < 2020 || year > currentQuarter.year + 1) {
       return NextResponse.json({ error: 'Invalid year parameter' }, { status: 400 });
     }
 

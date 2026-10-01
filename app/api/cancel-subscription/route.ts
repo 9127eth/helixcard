@@ -22,6 +22,10 @@ export async function POST(req: Request) {
     const userDoc = await db.collection('users').doc(uid).get();
     const userData = userDoc.data();
 
+    if (userData?.lifetimePurchase === true && !userData.stripeSubscriptionId) {
+      return NextResponse.json({ error: 'Lifetime plans have no subscription to cancel' }, { status: 400 });
+    }
+
     if (!userData || !userData.stripeSubscriptionId) {
       return NextResponse.json({ error: 'No subscription found for user' }, { status: 404 });
     }

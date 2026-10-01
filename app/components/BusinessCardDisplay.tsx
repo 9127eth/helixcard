@@ -216,6 +216,15 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
     .map(link => ({ displayText: link.displayText, url: sanitizeExternalUrl(link.url) }))
     .filter((link): link is { displayText: string; url: string } => Boolean(link.url));
 
+  // RFC 6350 §3.4. Unescaped, a ";" or "," in a name shifts the fields after it,
+  // and a newline in any value starts a property of the owner's choosing.
+  const escapeVCardValue = (value: string): string =>
+    value
+      .replace(/\\/g, '\\\\')
+      .replace(/,/g, '\\,')
+      .replace(/;/g, '\\;')
+      .replace(/\r\n|\r|\n/g, '\\n');
+
   const generateVCard = (card: BusinessCard): string => {
     let vCard = 'BEGIN:VCARD\nVERSION:3.0\n';
     
@@ -225,29 +234,29 @@ const BusinessCardDisplay: React.FC<BusinessCardDisplayProps> = ({ card, isPro, 
     if (card.lastName) fullName += ` ${card.lastName}`;
     
     // Add both FN (formatted name) and N (structured name) fields
-    vCard += `FN:${fullName}\n`;
+    vCard += `FN:${escapeVCardValue(fullName)}\n`;
     
     // N field format: Last;First;Middle;Prefix;Suffix
-    const lastName = card.lastName || '';
-    const firstName = card.firstName || '';
-    const middleName = card.middleName || '';
-    const prefix = card.prefix || '';
-    const suffix = card.credentials || '';
+    const lastName = escapeVCardValue(card.lastName || '');
+    const firstName = escapeVCardValue(card.firstName || '');
+    const middleName = escapeVCardValue(card.middleName || '');
+    const prefix = escapeVCardValue(card.prefix || '');
+    const suffix = escapeVCardValue(card.credentials || '');
     
     vCard += `N:${lastName};${firstName};${middleName};${prefix};${suffix}\n`;
     
     // Company name in the ORG field
-    if (card.company) vCard += `ORG:${card.company}\n`;
+    if (card.company) vCard += `ORG:${escapeVCardValue(card.company)}\n`;
     
     // The rest remains unchanged
-    if (card.jobTitle) vCard += `TITLE:${card.jobTitle}\n`;
-    if (card.phoneNumber) vCard += `TEL;TYPE=WORK,VOICE:${card.phoneNumber}\n`;
-    if (card.email) vCard += `EMAIL;TYPE=PREF,INTERNET:${card.email}\n`;
-    if (card.linkedIn) vCard += `URL;TYPE=LinkedIn:${card.linkedIn}\n`;
-    if (card.twitter) vCard += `URL;TYPE=Twitter:${card.twitter}\n`;
-    if (card.facebookUrl) vCard += `URL;TYPE=Facebook:${card.facebookUrl}\n`;
-    if (card.instagramUrl) vCard += `URL;TYPE=Instagram:${card.instagramUrl}\n`;
-    if (card.blueskyUrl) vCard += `URL;TYPE=Bluesky:${card.blueskyUrl}\n`;
+    if (card.jobTitle) vCard += `TITLE:${escapeVCardValue(card.jobTitle)}\n`;
+    if (card.phoneNumber) vCard += `TEL;TYPE=WORK,VOICE:${escapeVCardValue(card.phoneNumber)}\n`;
+    if (card.email) vCard += `EMAIL;TYPE=PREF,INTERNET:${escapeVCardValue(card.email)}\n`;
+    if (card.linkedIn) vCard += `URL;TYPE=LinkedIn:${escapeVCardValue(card.linkedIn)}\n`;
+    if (card.twitter) vCard += `URL;TYPE=Twitter:${escapeVCardValue(card.twitter)}\n`;
+    if (card.facebookUrl) vCard += `URL;TYPE=Facebook:${escapeVCardValue(card.facebookUrl)}\n`;
+    if (card.instagramUrl) vCard += `URL;TYPE=Instagram:${escapeVCardValue(card.instagramUrl)}\n`;
+    if (card.blueskyUrl) vCard += `URL;TYPE=Bluesky:${escapeVCardValue(card.blueskyUrl)}\n`;
     vCard += 'END:VCARD';
     return vCard;
   };

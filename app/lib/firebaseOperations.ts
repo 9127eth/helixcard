@@ -20,6 +20,7 @@ import { storage } from './firebase'; // Assuming you have a firebase.ts file wi
 import { FREE_USER_CARD_LIMIT, PRO_USER_CARD_LIMIT } from './constants';
 import { DeviceInfo } from '../utils/deviceDetection';
 import { Timestamp } from 'firebase/firestore';
+import type { CollectionReference, DocumentData, DocumentReference } from 'firebase/firestore';
 import { getSourceForRegistration, clearStoredSource } from '../utils/sourceTracking';
 import { getGroupFromSource } from '../utils/groupMapping';
 import type { CardColors, CardEffect } from '../types';
@@ -38,15 +39,6 @@ interface UserData {
   primaryCardPlaceholder: boolean;
 }
 
-interface UserRegistrationData extends UserData {
-  sourceDevice: string;
-  sourceBrowser: string;
-  sourcePlatform: string;
-  registeredAt: FirebaseFirestore.Timestamp;
-  source?: string;
-  group?: string;
-}
-
 function isFile(value: unknown): value is File {
   return typeof File !== 'undefined' && value instanceof File;
 }
@@ -56,8 +48,9 @@ function validateCvFile(file: File) {
     throw new Error('Only PDF files are allowed for CV upload');
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error('CV file size exceeds the 5MB limit');
+  // storage.rules requires strictly less than 5 MiB.
+  if (file.size >= 5 * 1024 * 1024) {
+    throw new Error('CV file must be smaller than 5MB');
   }
 }
 
@@ -146,12 +139,32 @@ interface BusinessCardData {
   isActive: boolean;
 }
 
+/**
+ * The id a new card is stored under: `preferred` unless a card already has it.
+ * Slugs are three random characters and nothing reserves them, so a collision
+ * has to be checked for; retried like the iOS app's generateUniqueSlug.
+ */
+async function findFreeCardSlug(businessCardsRef: CollectionReference, preferred: string): Promise<string> {
+  if (!(await getDoc(doc(businessCardsRef, preferred))).exists()) return preferred;
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const candidate = generateCardSlug();
+    if (!(await getDoc(doc(businessCardsRef, candidate))).exists()) return candidate;
+  }
+
+  throw new Error('Could not create a link for this card. Please try again.');
+}
+
+/** Create a card. Never overwrites: edits go through `updateBusinessCard`. */
 export async function saveBusinessCard(user: User, cardData: BusinessCardData, cvFile?: File) {
   if (!user) throw new Error('User is not authenticated');
   if (!db) throw new Error('Firestore is not initialized');
 
   const userRef = doc(db, 'users', user.uid);
   const userDoc = await getDoc(userRef);
+  if (!userDoc.exists()) {
+    throw new Error('Your account is still being set up. Please sign out and sign back in.');
+  }
   const userData = userDoc.data() as UserData;
 
   cardData = prepareCardAppearance(cardData, userData.isPro === true);
@@ -162,40 +175,36 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
 
   const businessCardsRef = collection(userRef, 'businessCards');
 
-  const isFirstCard = !userData.primaryCardId || userData.primaryCardPlaceholder;
-  let cardSlug = cardData.cardSlug || generateCardSlug();
-
-  if (isFirstCard) {
-    cardSlug = userData.username || user.uid;
-  }
+  // The first card lives at the handle. If a card already holds that id it
+  // takes a fresh slug instead, and is still the primary card. A primaryCardId
+  // naming a card that no longer exists counts as having none: some deletions
+  // (older clients, other devices) removed the card without setting the
+  // placeholder, which left /c/{username} dead until the next card took over.
+  const isFirstCard = !userData.primaryCardId
+    || userData.primaryCardPlaceholder === true
+    || !(await getDoc(doc(businessCardsRef, userData.primaryCardId))).exists();
+  const cardSlug = await findFreeCardSlug(
+    businessCardsRef,
+    isFirstCard ? (userData.username || user.uid) : (cardData.cardSlug || generateCardSlug())
+  );
 
   const newCardRef = doc(businessCardsRef, cardSlug);
 
   // The server owns the entitlement decision and seeds the counter that the
   // Firestore rule compares against.
-  const existingCardDoc = await getDoc(newCardRef);
-  const isNewCard = !existingCardDoc.exists();
-  if (isNewCard) {
-    const usage = await syncUsage();
-    if (usage && !usage.canCreateCard) {
-      throw new Error(
-        usage.isPro
-          ? `You have reached the ${usage.cardLimit} card limit for your plan.`
-          : 'Upgrade to Helix Pro to create additional cards.'
-      );
-    }
+  const usage = await syncUsage();
+  if (usage && !usage.canCreateCard) {
+    throw new Error(
+      usage.isPro
+        ? `You have reached the ${usage.cardLimit} card limit for your plan.`
+        : 'Upgrade to Helix Pro to create additional cards.'
+    );
   }
 
   const batch = writeBatch(db);
 
   let cvUrl: string | undefined;
   const pendingCv = cvFile || (isFile(cardData.cv) ? cardData.cv : undefined);
-  const oldCvUrl = existingCardDoc.exists()
-    ? (existingCardDoc.data() as BusinessCardData).cvUrl
-    : undefined;
-  const oldImageUrl = existingCardDoc.exists()
-    ? (existingCardDoc.data() as BusinessCardData).imageUrl
-    : undefined;
 
   if (pendingCv) {
     validateCvFile(pendingCv);
@@ -242,7 +251,7 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
       primaryCardId: cardSlug,
       primaryCardPlaceholder: false,
     }),
-    ...(isNewCard && { cardCount: increment(1) }),
+    cardCount: increment(1),
     updatedAt: serverTimestamp(),
   });
 
@@ -251,14 +260,6 @@ export async function saveBusinessCard(user: User, cardData: BusinessCardData, c
   } catch (error) {
     await deleteStorageObjectBestEffort(cvUrl, 'failed CV upload');
     throw error;
-  }
-
-  if (cvUrl && oldCvUrl && oldCvUrl !== cvUrl) {
-    await deleteCardStorageIfUnreferenced(user.uid, cardSlug, oldCvUrl, 'replaced CV');
-  }
-
-  if (oldImageUrl && oldImageUrl !== cleanedCardData.imageUrl) {
-    await deleteCardStorageIfUnreferenced(user.uid, cardSlug, oldImageUrl, 'replaced card image');
   }
 
   const cardUrl = await generateCardUrl(user.uid, cardSlug, isFirstCard);
@@ -292,16 +293,23 @@ export async function setPrimaryCard(userId: string, cardSlug: string): Promise<
   const userData = userDoc.data() as UserData;
   const isPro = userData.isPro === true;
 
-  if (userData.primaryCardId && userData.primaryCardId !== cardSlug) {
-    const currentPrimaryCardRef = doc(userRef, 'businessCards', userData.primaryCardId);
-    batch.update(currentPrimaryCardRef, { isPrimary: false, isActive: isPro });
+  // Every card still flagged primary is demoted, not just primaryCardId's:
+  // older clients left stale flags behind. primaryCardId may also name a card
+  // that no longer exists, which a blind update would fail on.
+  const cards = await getDocs(collection(userRef, 'businessCards'));
+  for (const card of cards.docs) {
+    if (card.id === cardSlug) continue;
+    if (card.data().isPrimary === true || card.id === userData.primaryCardId) {
+      batch.update(card.ref, { isPrimary: false, isActive: isPro });
+    }
   }
 
   // Set the new card as primary
   batch.update(cardRef, { isPrimary: true, isActive: true });
 
-  // Update the user's primaryCardId
-  batch.update(userRef, { primaryCardId: cardSlug });
+  // Clearing the placeholder matters: left set, the next new card would still
+  // count as the account's first and quietly take over as primary.
+  batch.update(userRef, { primaryCardId: cardSlug, primaryCardPlaceholder: false });
 
   await batch.commit();
 
@@ -357,6 +365,37 @@ export function validateCustomUsername(username: string): boolean {
   return usernameRegex.test(username);
 }
 
+/**
+ * Fill in what an incomplete account document is missing. A sign-up race left
+ * some accounts with only `{ email, updatedAt }`, and every caller treats an
+ * existing document as finished, so they never healed. Only fields a client
+ * may write are touched; the handle comes from the server.
+ */
+async function repairUserDocument(user: User, userRef: DocumentReference, data: DocumentData) {
+  let username: string | null = typeof data.username === 'string' && data.username ? data.username : null;
+  if (!username) {
+    // The server writes the handle into the existing document as it reserves it.
+    username = await generateUsernameViaApi(user);
+  }
+
+  const repairs: Record<string, unknown> = {};
+
+  if (!data.primaryCardId && data.primaryCardPlaceholder === undefined) {
+    repairs.primaryCardId = username;
+    repairs.primaryCardPlaceholder = true;
+  }
+
+  // The sign-up date, not today: reports count sign-ups by createdAt.
+  const createdAt = new Date(user.metadata?.creationTime ?? '');
+  if (!data.createdAt && !Number.isNaN(createdAt.getTime())) {
+    repairs.createdAt = Timestamp.fromDate(createdAt);
+  }
+
+  if (Object.keys(repairs).length > 0) {
+    await updateDoc(userRef, { ...repairs, updatedAt: serverTimestamp() });
+  }
+}
+
 export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): Promise<void> {
   if (!user || !user.uid) {
     return;
@@ -371,6 +410,7 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
     // Check if the document already exists
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
+      await repairUserDocument(user, userRef, docSnap.data());
       return;
     }
 
@@ -380,11 +420,6 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
     // Get source information for affiliate tracking
     const source = getSourceForRegistration();
     const group = source ? getGroupFromSource(source) : null;
-    
-    // Clear stored source after capturing it
-    if (source) {
-      clearStoredSource();
-    }
 
     const userData = {
       isPro: false,
@@ -407,6 +442,11 @@ export async function createUserDocument(user: User, deviceInfo?: DeviceInfo): P
     };
 
     await setDoc(userRef, userData);
+
+    // Only once it is stored: a failed create keeps the source for the retry.
+    if (source) {
+      clearStoredSource();
+    }
   } catch (error) {
     console.error('Error creating user document:', error);
     throw error;
@@ -601,10 +641,10 @@ export async function canCreateCard(userId: string): Promise<boolean> {
   if (usage) return usage.canCreateCard;
 
   // Offline or transient failure: fall back to the local count so the UI still
-  // renders something sensible. The write itself is still gated by rules.
+  // renders something sensible. The write itself is still gated by rules, which
+  // make no exception for a deleted main card, so neither does this.
   const userDoc = await getDoc(doc(db!, 'users', userId));
   const userData = userDoc.data();
-  if (userData?.primaryCardPlaceholder) return true;
 
   const cardCount = await getUserCardCount(userId);
   return cardCount < (userData?.isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT);
@@ -641,40 +681,4 @@ export async function updateCardDepthColor(userId: string, cardSlug: string, col
   await updateDoc(cardRef, {
     cardDepthColor: color
   });
-}
-
-export async function createNewUser(
-  userId: string, 
-  email: string | null, 
-  deviceInfo: DeviceInfo,
-  username: string
-): Promise<void> {
-  if (!db) throw new Error('Firestore is not initialized');
-
-  // Get source information for affiliate tracking
-  const source = getSourceForRegistration();
-  const group = source ? getGroupFromSource(source) : null;
-  
-  // Clear stored source after capturing it
-  if (source) {
-    clearStoredSource();
-  }
-  
-  const userData: UserRegistrationData = {
-    username: username,
-    isPro: false,
-    primaryCardId: null,
-    primaryCardPlaceholder: true,
-    sourceDevice: deviceInfo.sourceDevice,
-    sourceBrowser: deviceInfo.sourceBrowser,
-    sourcePlatform: deviceInfo.sourcePlatform,
-    registeredAt: Timestamp.fromDate(new Date()),
-    isProType: 'free',
-    email: email || '',
-    // Add source and group if available
-    ...(source && { source }),
-    ...(group && { group })
-  };
-
-  await setDoc(doc(db, 'users', userId), userData);
 }

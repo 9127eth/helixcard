@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db, auth } from '@/app/lib/firebase-admin';
 import { syncCardActiveStatus } from '@/app/lib/adminCards';
-import { planForPriceId } from '@/app/lib/stripePrices';
+import { canonicalCouponCode } from '@/app/lib/coupons';
+import { setProClaim } from '@/app/lib/proClaims';
+import { PRICE_IDS, ProPlan, planForPriceId } from '@/app/lib/stripePrices';
 import { FieldValue } from 'firebase-admin/firestore';
+import type { DocumentData } from 'firebase-admin/firestore';
+import type { UserRecord } from 'firebase-admin/auth';
 import { getGroupFromCoupon } from '@/app/utils/groupMapping';
+import { recordCouponRedemption } from '@/app/utils/lifetimeCoupons';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -12,15 +17,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+/**
+ * Subscriptions that grant nothing yet but may still be paid. The newest one
+ * stays recorded as the account's subscription so it can still be cancelled.
+ */
+const OPEN_SUBSCRIPTION_STATUSES = new Set<string>(['past_due', 'unpaid', 'incomplete', 'trialing']);
+
 // Define interfaces for update data
 interface SubscriptionUpdateData {
   isPro: boolean;
-  isProType?: 'monthly' | 'yearly' | 'lifetime' | FieldValue;
-  subscriptionType?: 'monthly' | 'yearly' | 'lifetime' | FieldValue;
-  stripeSubscriptionId: string;
+  isProType: ProPlan | FieldValue;
+  subscriptionType: ProPlan | FieldValue;
+  stripeSubscriptionId: string | null;
   stripeCustomerId: string;
   subscriptionStatus: string;
+  cancelAtPeriodEnd: boolean | FieldValue;
+  currentPeriodEnd: Date | FieldValue;
   subscriptionUpdatedAt: Date;
+  subscriptionCreatedAt?: Date;
   couponUsed?: string;
   group?: string;
 }
@@ -31,6 +45,7 @@ interface PaymentIntentUpdateData {
   subscriptionType: 'lifetime';
   lifetimePurchase: boolean;
   subscriptionUpdatedAt: Date;
+  subscriptionCreatedAt?: Date;
   couponUsed?: string;
   group?: string;
 }
@@ -60,17 +75,25 @@ export async function POST(req: NextRequest) {
       switch (event.type) {
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
+        case 'customer.subscription.deleted': {
+          // Stripe neither orders nor deduplicates deliveries, so the payload
+          // only says which customer to look at; the entitlement comes from
+          // the customer's subscriptions as they are now.
           const subscription = event.data.object as Stripe.Subscription;
-          await handleSubscriptionChange(subscription);
+          await handleCustomerChange(
+            subscription.customer as string,
+            subscription.metadata?.firebaseUID
+          );
           break;
-        case 'customer.subscription.deleted':
-          const canceledSubscription = event.data.object as Stripe.Subscription;
-          await handleSubscriptionCancellation(canceledSubscription);
-          break;
-        case 'invoice.paid':
+        }
+        case 'invoice.paid': {
           const invoice = event.data.object as Stripe.Invoice;
-          await handleInvoicePaid(invoice);
+          // One-off invoices carry no entitlement.
+          if (invoice.subscription && invoice.customer) {
+            await handleCustomerChange(invoice.customer as string);
+          }
           break;
+        }
         case 'payment_intent.succeeded':
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           await handlePaymentIntentSucceeded(paymentIntent);
@@ -145,179 +168,196 @@ async function resolveFirebaseUID(
   return null;
 }
 
-async function handleSubscriptionChange(subscription: Stripe.Subscription) {
-  const customerId = subscription.customer as string;
-  const status = subscription.status;
+function isMissingStripeResource(error: unknown): boolean {
+  return (error as { code?: string } | null)?.code === 'resource_missing';
+}
 
-  const firebaseUID = await resolveFirebaseUID(
-    customerId,
-    subscription.metadata?.firebaseUID
+/** The customer's subscriptions, newest first. */
+async function listSubscriptions(customerId: string): Promise<Stripe.Subscription[]> {
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: 'all',
+      limit: 100,
+    });
+    return [...subscriptions.data].sort(
+      (a: Stripe.Subscription, b: Stripe.Subscription) => b.created - a.created
+    );
+  } catch (error) {
+    // A deleted customer has no subscriptions left to bill.
+    if (isMissingStripeResource(error)) return [];
+    throw error;
+  }
+}
+
+function planOf(subscription: Stripe.Subscription): ProPlan | null {
+  return planForPriceId(subscription.items?.data[0]?.price?.id);
+}
+
+/** The auth record for an account, or null when the account has been deleted. */
+async function getAuthUser(uid: string): Promise<UserRecord | null> {
+  try {
+    return await auth.getUser(uid);
+  } catch (error) {
+    if ((error as { code?: string } | null)?.code === 'auth/user-not-found') return null;
+    throw error;
+  }
+}
+
+/**
+ * Stop billing an account that no longer exists.
+ *
+ * The iOS app deletes accounts without calling /api/delete-account, so a web
+ * subscription kept renewing after the account was gone. The event is still
+ * acknowledged: Stripe retries a failed delivery for days, and no retry can
+ * bring the account back.
+ */
+async function cancelBillingForDeletedAccount(uid: string, customerId: string | null) {
+  const cancelledSubscriptionIds: string[] = [];
+  if (customerId) {
+    for (const subscription of await listSubscriptions(customerId)) {
+      if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+        continue;
+      }
+      await stripe.subscriptions.cancel(subscription.id);
+      cancelledSubscriptionIds.push(subscription.id);
+    }
+  }
+
+  console.warn(
+    `Stripe event for deleted account ${uid}: cancelled ${cancelledSubscriptionIds.length} ` +
+    `subscription(s) on customer ${customerId}`
   );
 
+  // Later deliveries find nothing left to cancel; writing then would replace
+  // this record (or a completed /api/delete-account one) with an empty list.
+  if (cancelledSubscriptionIds.length > 0) {
+    await db.collection('accountDeletions').doc(uid).set({
+      status: 'billing_cancelled_by_webhook',
+      stripeCustomerId: customerId,
+      cancelledSubscriptionIds,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+}
+
+/**
+ * The code a subscription was bought with, from its own promotion code.
+ *
+ * Looking codes up by coupon credited the newest code sharing that coupon, and
+ * the customer's metadata named whatever was typed on the first checkout
+ * attempt, which may not be the purchase that followed.
+ */
+async function promotionCodeOf(subscription: Stripe.Subscription): Promise<string | null> {
+  const promotionCode = subscription.discount?.promotion_code;
+  if (!promotionCode) return null;
+  if (typeof promotionCode !== 'string') return canonicalCouponCode(promotionCode.code);
+
+  try {
+    return canonicalCouponCode((await stripe.promotionCodes.retrieve(promotionCode)).code);
+  } catch (error) {
+    console.error('Error retrieving promotion code:', error);
+    return null;
+  }
+}
+
+async function handleCustomerChange(customerId: string, metadataUID?: string | null) {
+  const firebaseUID = await resolveFirebaseUID(customerId, metadataUID);
+
   if (!firebaseUID) {
-    throw new Error(
-      `No user found for Stripe customer in handleSubscriptionChange: ${customerId}`
-    );
+    throw new Error(`No user found for Stripe customer: ${customerId}`);
   }
 
-  // Resolve the plan from the price id. Anything that is not one of our own
-  // prices grants nothing — this used to silently fall back to monthly Pro.
-  const priceId = subscription.items.data[0]?.price.id;
-  const subscriptionType = planForPriceId(priceId);
+  await reconcileSubscriptions(firebaseUID, customerId);
+}
 
-  if (status === 'active' && !subscriptionType) {
-    // Log rather than throw: throwing would make Stripe retry this event
-    // forever. The subscription is still recorded, just without an entitlement.
-    console.error(
-      `Not granting Pro for unrecognised Stripe price ${priceId} (customer ${customerId})`
-    );
+/**
+ * Derive the account's entitlement from the customer's current subscriptions.
+ *
+ * Every subscription and invoice event lands here, so a late or repeated
+ * delivery rewrites the same state instead of replaying an old one.
+ */
+async function reconcileSubscriptions(firebaseUID: string, customerId: string) {
+  if (!(await getAuthUser(firebaseUID))) {
+    await cancelBillingForDeletedAccount(firebaseUID, customerId);
+    return;
   }
 
-  const isPro = status === 'active' && subscriptionType !== null;
+  const subscriptions = await listSubscriptions(customerId);
 
-  // Get coupon information for group assignment
-  let group = null;
-  let couponUsed = null;
-  
-  if (subscription.discount?.coupon) {
-    try {
-      const promotionCodes = await stripe.promotionCodes.list({
-        coupon: subscription.discount.coupon.id,
-        active: true,
-      });
-      
-      if (promotionCodes.data.length > 0) {
-        couponUsed = promotionCodes.data[0].code;
-        group = getGroupFromCoupon(couponUsed);
-      }
-    } catch (error) {
-      console.error('Error retrieving promotion code:', error);
-    }
-  } else {
-    try {
-      const customer = await stripe.customers.retrieve(customerId);
-      if (customer.metadata?.couponCode) {
-        couponUsed = customer.metadata.couponCode;
-        group = getGroupFromCoupon(couponUsed);
-      }
-    } catch (error) {
-      console.error('Error retrieving customer metadata:', error);
+  // Only an active subscription on one of our own prices grants Pro; anything
+  // else used to fall back to monthly Pro. Log rather than throw: throwing
+  // would make Stripe retry this event forever.
+  for (const subscription of subscriptions) {
+    if (subscription.status === 'active' && !planOf(subscription)) {
+      console.error(
+        `Not granting Pro for unrecognised Stripe price ${subscription.items?.data[0]?.price?.id} ` +
+        `(customer ${customerId})`
+      );
     }
   }
+  const entitling = subscriptions.find(
+    (subscription: Stripe.Subscription) => subscription.status === 'active' && planOf(subscription) !== null
+  );
+  const tracked = entitling ?? subscriptions.find(
+    (subscription: Stripe.Subscription) => OPEN_SUBSCRIPTION_STATUSES.has(subscription.status)
+  );
+  const couponUsed = entitling ? await promotionCodeOf(entitling) : null;
 
-  // Prepare update data
-  const updateData: SubscriptionUpdateData = {
-    isPro,
-    isProType: isPro && subscriptionType ? subscriptionType : FieldValue.delete(),
-    subscriptionType: isPro && subscriptionType ? subscriptionType : FieldValue.delete(),
-    stripeSubscriptionId: subscription.id,
-    stripeCustomerId: customerId,
-    subscriptionStatus: status,
-    subscriptionUpdatedAt: new Date(),
-  };
+  const userRef = db.collection('users').doc(firebaseUID);
 
-  if (couponUsed) {
-    updateData.couponUsed = couponUsed;
+  // Read and write in one transaction so a lifetime grant landing meanwhile
+  // (payment_intent.succeeded) is seen rather than overwritten.
+  const isPro = await db.runTransaction(async transaction => {
+    const userSnapshot = await transaction.get(userRef);
+    if (!userSnapshot.exists) return null;
+    const userData = userSnapshot.data() ?? {};
+
+    // A lifetime purchase is not a subscription; no subscription change may
+    // lower it. App Store lifetime purchases recorded only isProType.
+    const lifetime = userData.lifetimePurchase === true || userData.isProType === 'lifetime';
+    const plan: ProPlan | null = lifetime ? 'lifetime' : entitling ? planOf(entitling) : null;
+
+    const updateData: SubscriptionUpdateData = {
+      isPro: plan !== null,
+      isProType: plan ?? FieldValue.delete(),
+      subscriptionType: plan ?? FieldValue.delete(),
+      stripeSubscriptionId: tracked?.id ?? null,
+      stripeCustomerId: customerId,
+      subscriptionStatus: tracked?.status ?? subscriptions[0]?.status ?? 'canceled',
+      cancelAtPeriodEnd: entitling ? entitling.cancel_at_period_end === true : FieldValue.delete(),
+      currentPeriodEnd: entitling
+        ? new Date(entitling.current_period_end * 1000)
+        : FieldValue.delete(),
+      subscriptionUpdatedAt: new Date(),
+    };
+
+    if (entitling && !lifetime && !userData.subscriptionCreatedAt) {
+      updateData.subscriptionCreatedAt = new Date(entitling.created * 1000);
+    }
+
+    if (couponUsed) {
+      updateData.couponUsed = couponUsed;
+      const group = getGroupFromCoupon(couponUsed);
+      if (group) {
+        updateData.group = group;
+      }
+    }
+
+    transaction.update(userRef, updateData as unknown as DocumentData);
+    return updateData.isPro;
+  });
+
+  if (isPro === null) {
+    console.error(`Ignoring Stripe event for ${firebaseUID}: the account has no users document`);
+    return;
   }
-  if (group) {
-    updateData.group = group;
-  }
 
-  await db.collection('users').doc(firebaseUID).update(updateData as unknown as { [key: string]: unknown });
-
-  // Update custom claims
-  await auth.setCustomUserClaims(firebaseUID, { isPro });
+  await setProClaim(firebaseUID, isPro);
 
   // Update card active statuses (Admin SDK — the previous helper used the
   // browser SDK, which cannot authenticate here and so never applied).
-  await syncCardActiveStatus(firebaseUID, isPro);
-}
-
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  const customerId = invoice.customer as string;
-  if (!customerId) {
-    console.error('Invoice has no customer; skipping');
-    return;
-  }
-
-  const firebaseUID = await resolveFirebaseUID(customerId);
-  if (!firebaseUID) {
-    throw new Error(
-      `No user found for Stripe customer in handleInvoicePaid: ${customerId}`
-    );
-  }
-
-  if (!invoice.subscription) return;
-
-  // Any line billing one of our prices is enough; proration and credit lines
-  // are not guaranteed to come first.
-  const billsAKnownPlan = invoice.lines.data.some(
-    (line: Stripe.InvoiceLineItem) => planForPriceId(line.price?.id) !== null
-  );
-
-  if (!billsAKnownPlan) {
-    console.error(
-      `Ignoring paid invoice with no recognised Stripe price (customer ${customerId})`
-    );
-    return;
-  }
-
-  await db.collection('users').doc(firebaseUID).update({
-    isPro: true,
-  });
-
-  await auth.setCustomUserClaims(firebaseUID, { isPro: true });
-  await syncCardActiveStatus(firebaseUID, true);
-}
-
-async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
-  const customerId = subscription.customer as string;
-
-  const firebaseUID = await resolveFirebaseUID(
-    customerId,
-    subscription.metadata?.firebaseUID
-  );
-  if (!firebaseUID) {
-    throw new Error(
-      `No user found for Stripe customer in handleSubscriptionCancellation: ${customerId}`
-    );
-  }
-
-  const userRef = db.collection('users').doc(firebaseUID);
-  const userData = (await userRef.get()).data();
-
-  // A lifetime purchase is not a subscription and must survive the
-  // cancellation of any recurring plan.
-  if (userData?.lifetimePurchase === true) {
-    if (userData?.stripeSubscriptionId === subscription.id) {
-      await userRef.update({ stripeSubscriptionId: null, subscriptionStatus: 'canceled' });
-    }
-    return;
-  }
-
-  // Cancellation used to revoke Pro from whatever id happened to be stored last.
-  // Check Stripe for any other live subscription on this customer first.
-  const remaining = await stripe.subscriptions.list({
-    customer: customerId,
-    status: 'active',
-    limit: 100,
-  });
-
-  const stillActive = remaining.data.some(
-    (item: Stripe.Subscription) => item.id !== subscription.id
-  );
-
-  await userRef.update({
-    isPro: stillActive,
-    subscriptionStatus: stillActive ? 'active' : 'canceled',
-    subscriptionUpdatedAt: new Date(),
-    ...(userData?.stripeSubscriptionId === subscription.id && !stillActive
-      ? { stripeSubscriptionId: null }
-      : {}),
-  });
-
-  await auth.setCustomUserClaims(firebaseUID, { isPro: stillActive });
-  await syncCardActiveStatus(firebaseUID, stillActive);
+  await syncCardActiveStatus(firebaseUID);
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
@@ -332,26 +372,30 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     return;
   }
 
-  // Get coupon information for group assignment
-  let group = null;
-  let couponUsed = null;
-
-  if (paymentIntent.metadata?.couponCode) {
-    couponUsed = paymentIntent.metadata.couponCode;
-    group = getGroupFromCoupon(couponUsed);
+  const customerId = typeof paymentIntent.customer === 'string'
+    ? paymentIntent.customer
+    : paymentIntent.customer?.id ?? null;
+  const user = await getAuthUser(firebaseUID);
+  if (!user) {
+    await cancelBillingForDeletedAccount(firebaseUID, customerId);
+    return;
   }
 
-  if (!couponUsed && paymentIntent.customer) {
-    try {
-      const customer = await stripe.customers.retrieve(paymentIntent.customer as string);
-      if (customer.metadata?.couponCode) {
-        couponUsed = customer.metadata.couponCode;
-        group = getGroupFromCoupon(couponUsed);
-      }
-    } catch (error) {
-      console.error('Error retrieving customer for payment intent:', error);
-    }
+  const userRef = db.collection('users').doc(firebaseUID);
+  const userSnapshot = await userRef.get();
+  if (!userSnapshot.exists) {
+    console.error(`Ignoring lifetime payment for ${firebaseUID}: the account has no users document`);
+    return;
   }
+  const userData = userSnapshot.data() ?? {};
+
+  // Attribution comes from this payment alone. The customer's metadata named
+  // the code typed on the first checkout attempt, which this purchase may not
+  // have used.
+  const couponUsed = paymentIntent.metadata?.couponCode
+    ? canonicalCouponCode(paymentIntent.metadata.couponCode)
+    : null;
+  const group = couponUsed ? getGroupFromCoupon(couponUsed) : null;
 
   // Prepare update data
   const updateData: PaymentIntentUpdateData = {
@@ -362,6 +406,9 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     subscriptionUpdatedAt: new Date(),
   };
 
+  if (!userData.subscriptionCreatedAt) {
+    updateData.subscriptionCreatedAt = new Date(paymentIntent.created * 1000);
+  }
   if (couponUsed) {
     updateData.couponUsed = couponUsed;
   }
@@ -369,33 +416,20 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     updateData.group = group;
   }
 
-  try {
-    await db.collection('users').doc(firebaseUID).update(updateData as unknown as { [key: string]: unknown });
-    await auth.setCustomUserClaims(firebaseUID, { isPro: true });
-    await syncCardActiveStatus(firebaseUID, true);
+  await userRef.update(updateData as unknown as { [key: string]: unknown });
+  await setProClaim(firebaseUID, true);
+  await syncCardActiveStatus(firebaseUID);
 
-    // Record coupon redemption if a coupon was used
-    if (couponUsed) {
-      try {
-        const userDoc = await db.collection('users').doc(firebaseUID).get();
-        const userData = userDoc.data();
-        
-        if (userData) {
-          const { recordCouponRedemption } = await import('../../utils/lifetimeCoupons');
-          await recordCouponRedemption(
-            couponUsed,
-            firebaseUID,
-            userData.email || '',
-            userData.name || '',
-            paymentIntent.metadata?.priceId || 'price_1QKWqI2Mf4JwDdD1NaOiqhhg'
-          );
-        }
-      } catch (redemptionError) {
-        console.error('Error recording coupon redemption:', redemptionError);
-      }
-    }
-  } catch (error) {
-    console.error('Error updating user after payment intent succeeded:', error);
-    throw error;
+  // Idempotent: a redelivered event finds the record and writes nothing. The
+  // auth record holds the email even where the users document does not
+  // (accounts created in the iOS app).
+  if (couponUsed) {
+    await recordCouponRedemption(
+      couponUsed,
+      firebaseUID,
+      user.email || userData.email || '',
+      userData.name || user.displayName || '',
+      paymentIntent.metadata?.priceId || PRICE_IDS.lifetime
+    );
   }
 }

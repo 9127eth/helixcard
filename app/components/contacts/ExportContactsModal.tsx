@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { useAuth } from '@/app/hooks/useAuth'
 import { Contact } from '@/app/types'
@@ -7,22 +7,35 @@ interface ExportContactsModalProps {
   isOpen: boolean
   onClose: () => void
   selectedContacts: Contact[]
+  onSuccess?: () => void
 }
 
 export default function ExportContactsModal({
   isOpen,
   onClose,
-  selectedContacts
+  selectedContacts,
+  onSuccess
 }: ExportContactsModalProps) {
   const { user } = useAuth()
   const [email, setEmail] = useState(user?.email || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  // The initial state is read before Firebase has restored the user, so
+  // default to the account email once it is known.
+  const accountEmail = user?.email
+  useEffect(() => {
+    if (!isOpen) return
+    setError('')
+    if (accountEmail) setEmail(current => current || accountEmail)
+  }, [isOpen, accountEmail])
 
   if (!isOpen) return null
 
   const handleExport = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError('')
 
     try {
       // Get the current user's ID token
@@ -39,18 +52,23 @@ export default function ExportContactsModal({
         },
         body: JSON.stringify({
           contactIds: selectedContacts.map(c => c.id),
-          email: email
+          email: email,
+          // Dates in the CSV are written in the exporter's own time zone.
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
         }),
       })
 
       if (!response.ok) {
-        throw new Error('Export failed')
+        const body = await response.json().catch(() => null)
+        setError(typeof body?.error === 'string' ? body.error : 'Export failed. Please try again.')
+        return
       }
 
+      onSuccess?.()
       onClose()
     } catch (error) {
       console.error('Export error:', error)
-      // TODO: Show error toast
+      setError('Export failed. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -87,6 +105,10 @@ export default function ExportContactsModal({
               required
             />
           </div>
+
+          {error && (
+            <p role="alert" className="text-sm text-red-500">{error}</p>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button

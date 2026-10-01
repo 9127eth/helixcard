@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { ArrowLeft } from 'react-feather';
 import Layout from '../components/Layout';
 import ClientCardCreator from '../components/ClientCardCreator';
-import { useAuth } from '../hooks/useAuth';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 
 const CreateCardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useRequireAuth();
 
   return (
     <Layout title="Create Business Card - HelixCard">

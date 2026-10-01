@@ -17,6 +17,11 @@ interface SubscriptionData {
   isPro: boolean;
   isProType: 'monthly' | 'yearly' | 'lifetime' | 'free';
   isYearly: boolean;
+  // Set by the Stripe webhook once a cancellation is scheduled.
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: Date | null;
+  // Plans bought in the iOS app have no Stripe subscription to cancel here.
+  hasStripeSubscription: boolean;
 }
 
 interface AuthProviderInfo {
@@ -27,6 +32,7 @@ interface AuthProviderInfo {
 
 const EmailVerificationWarning: React.FC<{ user: FirebaseUser | null }> = ({ user }) => {
   const [isSending, setIsSending] = useState(false);
+  const [isConfirmedVerified, setIsConfirmedVerified] = useState(false);
 
   const handleResendVerification = async () => {
     if (!user) return;
@@ -46,6 +52,17 @@ const EmailVerificationWarning: React.FC<{ user: FirebaseUser | null }> = ({ use
       if (!response.ok) {
         throw new Error(`Verification email request failed (${response.status})`);
       }
+
+      // The address may have been verified since this session loaded, in
+      // which case nothing was sent.
+      const result = await response.json().catch(() => null);
+      if (result?.alreadyVerified) {
+        await user.reload();
+        setIsConfirmedVerified(true);
+        alert('Your email address is already verified.');
+        return;
+      }
+
       alert('Verification email sent successfully. Please check your inbox.');
     } catch (error: unknown) {
       console.error('Error sending verification email:', error);
@@ -56,7 +73,7 @@ const EmailVerificationWarning: React.FC<{ user: FirebaseUser | null }> = ({ use
   };
 
   const usesPassword = user?.providerData.some(provider => provider.providerId === 'password');
-  if (!user || user.emailVerified || !usesPassword) {
+  if (!user || user.emailVerified || isConfirmedVerified || !usesPassword) {
     return null;
   }
 
@@ -87,7 +104,10 @@ const SettingsPage: React.FC = () => {
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({
     isPro: false,
     isProType: 'free',
-    isYearly: false
+    isYearly: false,
+    cancelAtPeriodEnd: false,
+    currentPeriodEnd: null,
+    hasStripeSubscription: false
   });
   const [authProvider, setAuthProvider] = useState<AuthProviderInfo>({
     providerId: 'password',
@@ -106,7 +126,10 @@ const SettingsPage: React.FC = () => {
         setSubscriptionData({
           isPro: userData?.isPro || false,
           isProType: userData?.isProType || 'free',
-          isYearly: userData?.isYearly || false
+          isYearly: userData?.isYearly || false,
+          cancelAtPeriodEnd: userData?.cancelAtPeriodEnd === true,
+          currentPeriodEnd: userData?.currentPeriodEnd?.toDate?.() ?? null,
+          hasStripeSubscription: Boolean(userData?.stripeSubscriptionId)
         });
 
         const provider = user.providerData[0]?.providerId;
@@ -154,6 +177,10 @@ const SettingsPage: React.FC = () => {
     localStorage.setItem('darkMode', newDarkMode ? 'true' : 'false');
   };
 
+  const isRenewingPlan = subscriptionData.isPro
+    && subscriptionData.hasStripeSubscription
+    && (subscriptionData.isProType === 'monthly' || subscriptionData.isProType === 'yearly');
+
   const getSubscriptionText = () => {
     if (!subscriptionData.isPro) return 'Free Plan';
     return `Helix Pro - ${subscriptionData.isProType?.charAt(0).toUpperCase()}${subscriptionData.isProType?.slice(1)}`;
@@ -180,11 +207,10 @@ const SettingsPage: React.FC = () => {
         throw new Error('Failed to cancel subscription');
       }
 
+      // Pro continues until the period ends; only the renewal is cancelled.
       setSubscriptionData(prev => ({
         ...prev,
-        isPro: false,
-        isProType: 'free',
-        isYearly: false
+        cancelAtPeriodEnd: true
       }));
       
       alert('Subscription cancelled successfully. Your account will remain Pro until the end of the current billing period.');
@@ -298,7 +324,14 @@ const SettingsPage: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-400">{getSubscriptionText()}</p>
             </div>
 
-            {subscriptionData.isPro && (
+            {/* Only monthly and yearly plans renew; lifetime has nothing to cancel. */}
+            {isRenewingPlan && (subscriptionData.cancelAtPeriodEnd ? (
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {subscriptionData.currentPeriodEnd
+                  ? `Your plan will end on ${subscriptionData.currentPeriodEnd.toLocaleDateString()}.`
+                  : 'Your plan will end at the end of the current billing period.'}
+              </p>
+            ) : (
               <button
                 onClick={handleCancelSubscription}
                 disabled={isCancelling}
@@ -306,7 +339,7 @@ const SettingsPage: React.FC = () => {
               >
                 {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
               </button>
-            )}
+            ))}
           </div>
 
           {/* Preferences Section */}

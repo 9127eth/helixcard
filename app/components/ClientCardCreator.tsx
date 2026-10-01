@@ -102,17 +102,17 @@ const ClientCardCreator: React.FC<ClientCardCreatorProps> = ({
       const isPro = userData?.isPro || false;
       const primaryCardPlaceholder = userData?.primaryCardPlaceholder || false;
 
-      if (!primaryCardPlaceholder) {
-        const canCreate = await canCreateCard(user.uid);
-        if (!canCreate) {
-          const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
-          if (isPro) {
-            alert(`You have reached the maximum limit of ${limit} cards. Please contact support to increase your limit.`);
-          } else {
-            alert(`Free users can only create ${limit} card. Upgrade to Pro to create more.`);
-          }
-          return;
+      // A deleted main card is no exception: the rules count every card, so a
+      // downgraded account that still holds other cards is at its limit.
+      const canCreate = await canCreateCard(user.uid);
+      if (!canCreate) {
+        const limit = isPro ? PRO_USER_CARD_LIMIT : FREE_USER_CARD_LIMIT;
+        if (isPro) {
+          alert(`You have reached the maximum limit of ${limit} cards. Please contact support to increase your limit.`);
+        } else {
+          alert(`Free users can only create ${limit} card. Upgrade to Pro to create more.`);
         }
+        return;
       }
 
       let cardSlug = generateCardSlug();

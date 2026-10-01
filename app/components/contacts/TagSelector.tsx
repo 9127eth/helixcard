@@ -11,13 +11,16 @@ interface TagSelectorProps {
   onChange: (tags: string[]) => void
   isFilter?: boolean
   allowCreate?: boolean
+  /** Called with the account's tags whenever they load. */
+  onTagsLoaded?: (tags: Tag[]) => void
 }
 
 export default function TagSelector({
   selectedTags,
   onChange,
   isFilter = false,
-  allowCreate = true
+  allowCreate = true,
+  onTagsLoaded
 }: TagSelectorProps) {
   const { user } = useAuth()
   const [tags, setTags] = useState<Tag[]>([])
@@ -26,6 +29,12 @@ export default function TagSelector({
   const [newTagName, setNewTagName] = useState('')
   const [error, setError] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
+  // Read through a ref so an inline callback does not trigger another load.
+  const onTagsLoadedRef = useRef(onTagsLoaded)
+
+  useEffect(() => {
+    onTagsLoadedRef.current = onTagsLoaded
+  }, [onTagsLoaded])
 
   const loadTags = useCallback(async () => {
     if (!user) return
@@ -33,6 +42,7 @@ export default function TagSelector({
     try {
       const userTags = await getTags(user.uid)
       setTags(userTags)
+      onTagsLoadedRef.current?.(userTags)
     } catch (error) {
       console.error('Error loading tags:', error)
     } finally {

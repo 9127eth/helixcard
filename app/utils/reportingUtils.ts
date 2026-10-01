@@ -56,29 +56,22 @@ export function getCurrentQuarter(): { year: number; quarter: number } {
 }
 
 /**
- * Generate quarterly report for a specific group
+ * Users who registered in the quarter.
+ *
+ * Web and iOS sign-ups both stamp `createdAt`; nothing writes `registeredAt`.
+ * A range on one field needs no composite index, so callers group in memory.
  */
-export async function generateGroupQuarterlyReport(
-  groupName: string,
-  year: number,
-  quarter: number
-): Promise<GroupReport> {
+async function getUsersRegisteredInQuarter(year: number, quarter: number): Promise<UserReportData[]> {
   const { startDate, endDate } = getQuarterDates(year, quarter);
-  
-  // Query users in this group who registered in the quarter
+
   const usersSnapshot = await db.collection('users')
-    .where('group', '==', groupName)
-    .where('registeredAt', '>=', startDate)
-    .where('registeredAt', '<=', endDate)
+    .where('createdAt', '>=', startDate)
+    .where('createdAt', '<=', endDate)
     .get();
-  
-  const users: UserReportData[] = [];
-  let proUsers = 0;
-  let freeUsers = 0;
-  
-  usersSnapshot.forEach(doc => {
+
+  return usersSnapshot.docs.map(doc => {
     const userData = doc.data();
-    const user: UserReportData = {
+    return {
       uid: doc.id,
       email: userData.email,
       username: userData.username,
@@ -87,26 +80,34 @@ export async function generateGroupQuarterlyReport(
       couponUsed: userData.couponUsed,
       isPro: userData.isPro || false,
       isProType: userData.isProType,
-      registeredAt: userData.registeredAt?.toDate(),
+      registeredAt: (userData.createdAt ?? userData.registeredAt)?.toDate(),
       subscriptionCreatedAt: userData.subscriptionCreatedAt?.toDate()
     };
-    
-    users.push(user);
-    
-    if (user.isPro) {
-      proUsers++;
-    } else {
-      freeUsers++;
-    }
   });
-  
+}
+
+function buildGroupReport(groupName: string, users: UserReportData[]): GroupReport {
+  const proUsers = users.filter(user => user.isPro).length;
+
   return {
     groupName,
     totalUsers: users.length,
     proUsers,
-    freeUsers,
+    freeUsers: users.length - proUsers,
     users
   };
+}
+
+/**
+ * Generate quarterly report for a specific group
+ */
+export async function generateGroupQuarterlyReport(
+  groupName: string,
+  year: number,
+  quarter: number
+): Promise<GroupReport> {
+  const users = await getUsersRegisteredInQuarter(year, quarter);
+  return buildGroupReport(groupName, users.filter(user => user.group === groupName));
 }
 
 /**
@@ -118,51 +119,30 @@ export async function generateQuarterlyReport(
 ): Promise<QuarterlyReport> {
   const { startDate, endDate } = getQuarterDates(year, quarter);
   const quarterString = `Q${quarter}`;
-  
-  // Get all available groups
-  const groups = getAllGroups();
-  
-  // Generate reports for each group
-  const groupReports: GroupReport[] = [];
-  for (const group of groups) {
-    const groupReport = await generateGroupQuarterlyReport(group, year, quarter);
-    if (groupReport.totalUsers > 0) {
-      groupReports.push(groupReport);
-    }
-  }
-  
-  // Get ungrouped users (users without a group)
-  const ungroupedSnapshot = await db.collection('users')
-    .where('registeredAt', '>=', startDate)
-    .where('registeredAt', '<=', endDate)
-    .get();
-  
+  const users = await getUsersRegisteredInQuarter(year, quarter);
+
+  // Known groups keep their configured order. A group value missing from the
+  // mapping (a retired partner, say) still gets its own report.
+  const usersByGroup = new Map<string, UserReportData[]>(
+    getAllGroups().map(group => [group, []])
+  );
   const ungroupedUsers: UserReportData[] = [];
-  
-  ungroupedSnapshot.forEach(doc => {
-    const userData = doc.data();
-    
-    // Only include users without a group
-    if (!userData.group) {
-      const user: UserReportData = {
-        uid: doc.id,
-        email: userData.email,
-        username: userData.username,
-        group: userData.group,
-        source: userData.source,
-        couponUsed: userData.couponUsed,
-        isPro: userData.isPro || false,
-        isProType: userData.isProType,
-        registeredAt: userData.registeredAt?.toDate(),
-        subscriptionCreatedAt: userData.subscriptionCreatedAt?.toDate()
-      };
-      
+
+  for (const user of users) {
+    if (!user.group) {
       ungroupedUsers.push(user);
+      continue;
     }
-  });
-  
-  // Calculate total users
-  const totalUsers = groupReports.reduce((sum, report) => sum + report.totalUsers, 0) + ungroupedUsers.length;
+    const groupUsers = usersByGroup.get(user.group) ?? [];
+    groupUsers.push(user);
+    usersByGroup.set(user.group, groupUsers);
+  }
+
+  const groupReports = Array.from(usersByGroup)
+    .filter(([, groupUsers]) => groupUsers.length > 0)
+    .map(([groupName, groupUsers]) => buildGroupReport(groupName, groupUsers));
+
+  const totalUsers = users.length;
   
   return {
     quarter: quarterString,

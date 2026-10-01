@@ -17,6 +17,26 @@ const MAX_AUTH_AGE_SECONDS = 5 * 60;
 const STORAGE_PREFIXES = ['images', 'docs', 'contacts'];
 
 /**
+ * Run a Stripe call, treating "no such object" as already done.
+ *
+ * A retry after a partial failure finds the customer (or subscription) already
+ * deleted. Failing on that kept the account stuck on "billing-cleanup-failed"
+ * forever. Every other Stripe error still fails the teardown.
+ */
+async function unlessAlreadyGone<T>(call: Promise<T>): Promise<T | null> {
+  try {
+    return await call;
+  } catch (error) {
+    if ((error as { code?: string } | null)?.code === 'resource_missing') return null;
+    throw error;
+  }
+}
+
+function isEnded(subscription: Stripe.Subscription): boolean {
+  return subscription.status === 'canceled' || subscription.status === 'incomplete_expired';
+}
+
+/**
  * Tear down billing for an account.
  *
  * This must succeed before anything is deleted: the previous implementation
@@ -29,27 +49,40 @@ async function teardownBilling(uid: string): Promise<{ customerId: string | null
   const customerId: string | null =
     typeof userData?.stripeCustomerId === 'string' ? userData.stripeCustomerId : null;
 
-  // Cancel every subscription on the customer, not just the last id we stored.
   if (customerId) {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: 'all',
-      limit: 100,
-    });
+    // A deleted customer's subscriptions were cancelled along with it.
+    const customer = await unlessAlreadyGone<Stripe.Customer | Stripe.DeletedCustomer>(
+      stripe.customers.retrieve(customerId)
+    );
+    if (!customer || customer.deleted) {
+      return { customerId };
+    }
 
-    for (const subscription of subscriptions.data) {
-      if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+    // Cancel every subscription on the customer, not just the last id we stored.
+    const subscriptions = await unlessAlreadyGone<Stripe.ApiList<Stripe.Subscription>>(
+      stripe.subscriptions.list({
+        customer: customerId,
+        status: 'all',
+        limit: 100,
+      })
+    );
+
+    for (const subscription of subscriptions?.data ?? []) {
+      if (isEnded(subscription)) {
         continue;
       }
-      await stripe.subscriptions.cancel(subscription.id);
+      await unlessAlreadyGone(stripe.subscriptions.cancel(subscription.id));
     }
-  } else if (typeof userData?.stripeSubscriptionId === 'string' && userData.stripeSubscriptionId) {
-    await stripe.subscriptions.cancel(userData.stripeSubscriptionId);
-  }
 
-  // Deleting the customer also detaches the stored payment methods.
-  if (customerId) {
-    await stripe.customers.del(customerId);
+    // Deleting the customer also detaches the stored payment methods.
+    await unlessAlreadyGone(stripe.customers.del(customerId));
+  } else if (typeof userData?.stripeSubscriptionId === 'string' && userData.stripeSubscriptionId) {
+    const subscription = await unlessAlreadyGone<Stripe.Subscription>(
+      stripe.subscriptions.retrieve(userData.stripeSubscriptionId)
+    );
+    if (subscription && !isEnded(subscription)) {
+      await unlessAlreadyGone(stripe.subscriptions.cancel(subscription.id));
+    }
   }
 
   return { customerId };
@@ -57,6 +90,9 @@ async function teardownBilling(uid: string): Promise<{ customerId: string | null
 
 export async function POST(req: Request) {
   let uid: string | undefined;
+  // Where a failure happened, for the deletion record.
+  let step = 'request';
+  let billingCleared = false;
 
   try {
     const { idToken } = await req.json();
@@ -101,6 +137,7 @@ export async function POST(req: Request) {
     try {
       await teardownBilling(uid);
       await deletionRef.update({ status: 'billing_cleared' });
+      billingCleared = true;
     } catch (stripeErr) {
       console.error('Stripe teardown during account deletion failed:', stripeErr);
       await deletionRef.update({
@@ -122,17 +159,21 @@ export async function POST(req: Request) {
 
     // 3. Recursively delete the user's Firestore data (user doc + all subcollections:
     //    businessCards, contacts, tags, etc.).
+    step = 'firestore';
     const userRef = db.collection('users').doc(uid);
     await admin.firestore().recursiveDelete(userRef);
 
     // 4. Release the handle so it can be claimed again, and strip personal data
     //    from the coupon redemption records that outlive the account.
+    step = 'usernames';
     await releaseUsernames(uid);
+    step = 'coupon-redaction';
     await redactCouponRedemptions(uid, email);
 
     // 5. Delete the user's Storage files — card images, documents and the
     //    scanned contact images under contacts/{uid}/, which were previously
     //    left behind.
+    step = 'storage';
     const bucket = storage.bucket();
     await Promise.all(
       STORAGE_PREFIXES.map(prefix =>
@@ -145,8 +186,10 @@ export async function POST(req: Request) {
 
     // 6. Finally, delete the auth user. Admin SDK is not subject to the
     //    requires-recent-login restriction, so this won't fail for stale sessions.
+    step = 'auth';
     await auth.deleteUser(uid);
 
+    step = 'complete';
     await deletionRef.set({
       status: 'completed',
       completedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -160,7 +203,10 @@ export async function POST(req: Request) {
 
     if (uid) {
       await db.collection('accountDeletions').doc(uid).set({
-        status: 'incomplete',
+        // Once billing is cleared the record has to keep saying so: that is
+        // how a retry, or an operator, knows no charge can recur.
+        ...(billingCleared ? {} : { status: 'incomplete' }),
+        failedStep: step,
         lastError: error instanceof Error ? error.message : 'Unknown error',
         failedAt: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true }).catch(recordErr => {

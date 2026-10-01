@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { auth } from '../../lib/firebase-admin';
-import { isTrackingOnlyCoupon } from '../../utils/groupMapping';
+import { canonicalCouponCode, couponAllowsPrice, findTrackingOnlyCoupon } from '../../lib/coupons';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -14,22 +14,9 @@ interface StripeError extends Error {
   statusCode?: number;
 }
 
-// Define restricted coupon code mappings
-const COUPON_RESTRICTIONS: Record<string, string[]> = {
-  'LIPSCOMB25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'UTTYLER25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'VMCRX': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'NHMA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'MCKiS25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'NCPA25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'UCONN25': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-  'EMPRX25': ['price_1QEXRZ2Mf4JwDdD1pdam2mHo', 'price_1QEfJH2Mf4JwDdD1j2ME28Fw'], // Monthly & Yearly
-  'CUCOP@%': ['price_1QKWqI2Mf4JwDdD1NaOiqhhg'], // Lifetime
-}
-
 export async function POST(req: Request) {
   try {
-    const { couponCode, priceId, idToken } = await req.json();
+    const { couponCode: rawCouponCode, priceId, idToken } = await req.json();
 
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
@@ -38,16 +25,21 @@ export async function POST(req: Request) {
     // Verify the Firebase ID token
     await auth.verifyIdToken(idToken);
 
-    try {
-      // Check if coupon has product restrictions
-      if (COUPON_RESTRICTIONS[couponCode] && !COUPON_RESTRICTIONS[couponCode].includes(priceId)) {
-        return NextResponse.json({ 
-          error: 'This coupon code is not valid for the selected product type' 
-        }, { status: 400 });
-      }
+    const typedCode = typeof rawCouponCode === 'string' ? rawCouponCode.trim() : '';
+    if (!typedCode) {
+      return NextResponse.json({ error: 'Invalid promotion code' }, { status: 400 });
+    }
 
+    try {
       // Tracking-only codes attribute the purchase without changing the price
-      if (isTrackingOnlyCoupon(couponCode)) {
+      const trackingOnlyCode = findTrackingOnlyCoupon(typedCode);
+      if (trackingOnlyCode) {
+        if (!couponAllowsPrice(trackingOnlyCode, priceId)) {
+          return NextResponse.json({
+            error: 'This coupon code is not valid for the selected product type'
+          }, { status: 400 });
+        }
+
         const price = await stripe.prices.retrieve(priceId);
         const originalAmount = price.unit_amount || 0;
 
@@ -64,7 +56,7 @@ export async function POST(req: Request) {
 
       // First, retrieve the promotion code
       const promotionCodes = await stripe.promotionCodes.list({
-        code: couponCode,
+        code: typedCode,
         active: true,
       });
 
@@ -73,11 +65,20 @@ export async function POST(req: Request) {
       }
 
       const promoCode = promotionCodes.data[0];
-      const couponId = promoCode.coupon.id;
+      // Stripe matched the code ignoring case; the restriction and partner
+      // tables need its canonical spelling.
+      const couponCode = canonicalCouponCode(promoCode.code);
+
+      // Check if coupon has product restrictions
+      if (!couponAllowsPrice(couponCode, priceId)) {
+        return NextResponse.json({
+          error: 'This coupon code is not valid for the selected product type'
+        }, { status: 400 });
+      }
 
       // Then retrieve the coupon using the coupon ID
-      const coupon = await stripe.coupons.retrieve(couponId);
-      
+      const coupon = await stripe.coupons.retrieve(promoCode.coupon.id);
+
       if (!coupon.valid) {
         return NextResponse.json({ error: 'Coupon has expired' }, { status: 400 });
       }

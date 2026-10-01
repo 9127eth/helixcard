@@ -1,18 +1,29 @@
 import { useState, useEffect } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
 import { createUserDocument } from '../lib/firebaseOperations';
 import { useRouter } from 'next/navigation';
 import { getDeviceInfo } from '../utils/deviceDetection';
 
 async function syncAccountEmail(user: User) {
-  if (!user.email || typeof window === 'undefined') return;
+  if (!user.email || !db || typeof window === 'undefined') return;
 
   const syncKey = `helix-email-sync:${user.uid}:${user.email.toLowerCase()}`;
   if (sessionStorage.getItem(syncKey)) return;
   sessionStorage.setItem(syncKey, 'pending');
 
   try {
+    // Sign-up fires this while createUserDocument is still writing the account
+    // document (with this email). The server sync upserts, so landing first
+    // would leave a bare document the client create can no longer complete.
+    // Leave the key unset so a later auth event can sync.
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (!userDoc.exists() || userDoc.metadata.hasPendingWrites) {
+      sessionStorage.removeItem(syncKey);
+      return;
+    }
+
     const idToken = await user.getIdToken();
     const response = await fetch('/api/auth/email', {
       method: 'POST',
@@ -34,6 +45,19 @@ async function syncAccountEmail(user: User) {
     // Authentication should not be blocked by an ancillary metadata sync. A
     // later auth state or Settings visit can retry it.
     console.error('Unable to synchronize account email:', error);
+  }
+}
+
+/**
+ * Creates the account's users/{uid} document, or repairs one a failed sign-up
+ * left missing or incomplete. Call after every sign-in; a failure here is
+ * logged rather than failing the sign-in.
+ */
+export async function ensureUserDocument(user: User) {
+  try {
+    await createUserDocument(user, getDeviceInfo());
+  } catch (error) {
+    console.error('Unable to set up the account document:', error);
   }
 }
 

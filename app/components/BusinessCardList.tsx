@@ -17,6 +17,8 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
   const [username, setUsername] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<BusinessCard | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  // Bumped to reload every card: changing the main card also changes the others.
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const fetchCardsAndUsername = async () => {
@@ -52,7 +54,7 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
     };
 
     fetchCardsAndUsername();
-  }, [userId]);
+  }, [userId, reloadKey]);
 
   const handleViewCard = (card: BusinessCard) => {
     setSelectedCard(card);
@@ -79,6 +81,8 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
     return <LoadingSpinner fullScreen={false} />;
   }
 
+  const hasMainCard = cards.some(card => card.isPrimary);
+
   return (
     <div className="flex justify-start">
       <div className="grid w-full max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2">
@@ -90,6 +94,8 @@ export const BusinessCardList: React.FC<BusinessCardListProps> = ({ userId }) =>
               username={username}
               onUpdate={handleCardUpdate}
               onDelete={handleCardDelete}
+              hasMainCard={hasMainCard}
+              onMainCardChange={() => setReloadKey(key => key + 1)}
             />
           </div>
         ))}

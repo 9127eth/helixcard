@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test tests/cardAppearance.test.cjs tests/linkSafety.test.cjs tests/coreFeatures.test.cjs tests/authEmail.test.cjs tests/config.test.cjs tests/couponSafety.test.cjs"
+    "test": "node --test tests/cardAppearance.test.cjs tests/linkSafety.test.cjs tests/coreFeatures.test.cjs tests/authEmail.test.cjs tests/config.test.cjs tests/couponSafety.test.cjs tests/cards.test.cjs tests/contacts.test.cjs tests/contactsExport.test.cjs tests/webhook.test.cjs tests/deleteAccount.test.cjs tests/reports.test.cjs tests/authSync.test.cjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",

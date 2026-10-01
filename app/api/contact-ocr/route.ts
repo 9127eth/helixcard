@@ -14,6 +14,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY?.trim(),
 });
 
+// Matches the contact image limit in storage.rules. The client downscales
+// photos first, so a real scan is far smaller.
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
 export async function POST(req: Request) {
   try {
     // Get the authorization header
@@ -30,6 +34,26 @@ export async function POST(req: Request) {
     } catch (error) {
       console.error('Token verification failed:', error);
       return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+    }
+
+    // Check the upload before it costs the caller any quota.
+    let imageFile: FormDataEntryValue | null = null;
+    try {
+      imageFile = (await req.formData()).get('image');
+    } catch {
+      // Not a multipart body; handled as a missing image below.
+    }
+    if (!(imageFile instanceof Blob) || imageFile.size === 0) {
+      return NextResponse.json({ error: 'No valid image provided' }, { status: 400 });
+    }
+    if (!imageFile.type.startsWith('image/')) {
+      return NextResponse.json({ error: 'Please upload an image file' }, { status: 400 });
+    }
+    if (imageFile.size > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: 'This image is too large to scan. Please try a smaller photo.' },
+        { status: 413 }
+      );
     }
 
     // Durable per-user and per-IP quotas, shared across serverless instances.
@@ -50,13 +74,6 @@ export async function POST(req: Request) {
         { error: 'Scan limit reached. Please try again a little later.' },
         { status: 429, headers: { 'Retry-After': String(quota.retryAfterSeconds) } }
       );
-    }
-
-    // Get image data from request
-    const formData = await req.formData();
-    const imageFile = formData.get('image');
-    if (!imageFile || !(imageFile instanceof Blob)) {
-      return NextResponse.json({ error: 'No valid image provided' }, { status: 400 });
     }
 
     // Convert image to buffer

@@ -17,12 +17,9 @@ export const COUPON_GROUPS: Record<string, string> = {
   'CUCOP@%': 'cu-anschutz-skaggs'
 };
 
-// Coupons that attribute a purchase without changing the price
+// Coupons that attribute a purchase without changing the price. Match typed
+// codes against these with findTrackingOnlyCoupon (app/lib/coupons.ts).
 export const TRACKING_ONLY_COUPONS = new Set(['CUCOP@%']);
-
-export function isTrackingOnlyCoupon(couponCode: string): boolean {
-  return TRACKING_ONLY_COUPONS.has(couponCode);
-}
 
 // Map source parameters to their respective groups
 export const SOURCE_GROUPS: Record<string, string> = {
@@ -39,17 +36,27 @@ export const SOURCE_GROUPS: Record<string, string> = {
 };
 
 /**
+ * Codes and ?source= values arrive in whatever case people type them, so an
+ * exact lookup left "?source=Lipscomb" or "vmcrx" without a group.
+ */
+function findGroup(groups: Record<string, string>, key: string): string | null {
+  const wanted = key.toLowerCase();
+  const match = Object.keys(groups).find(candidate => candidate.toLowerCase() === wanted);
+  return match ? groups[match] : null;
+}
+
+/**
  * Get group from coupon code
  */
 export function getGroupFromCoupon(couponCode: string): string | null {
-  return COUPON_GROUPS[couponCode] || null;
+  return findGroup(COUPON_GROUPS, couponCode);
 }
 
 /**
  * Get group from source parameter
  */
 export function getGroupFromSource(source: string): string | null {
-  return SOURCE_GROUPS[source] || null;
+  return findGroup(SOURCE_GROUPS, source);
 }
 
 /**

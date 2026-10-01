@@ -66,7 +66,7 @@ export default function VMCRXPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center">
               <a 
-                href="/#auth"
+                href="/?source=vmcrx#auth"
                 className="px-6 py-3 bg-[#C41E3A] hover:bg-[#A01729] text-white font-medium rounded-lg flex items-center justify-center transition-colors duration-300"
               >
                 Get Started
@@ -446,7 +446,7 @@ export default function VMCRXPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <a 
-                href="/#auth"
+                href="/?source=vmcrx#auth"
                 className="px-6 py-3 bg-white hover:bg-gray-100 text-[#C41E3A] font-medium rounded-lg inline-flex items-center justify-center transition-colors duration-300"
               >
                 Get Started

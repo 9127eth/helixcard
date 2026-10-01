@@ -1,4 +1,5 @@
 import { sanitizeEmailAddress, sanitizeExternalUrl, sanitizePhoneNumber } from './urlSafety';
+import { repairBareHandle } from './cardUrls';
 import { showEffectTour } from './cardEffects';
 import type { BusinessCard } from '@/app/types';
 
@@ -12,7 +13,6 @@ import type { BusinessCard } from '@/app/types';
 
 /** Plain text fields, copied through untouched. */
 const TEXT_FIELDS = [
-  'description',
   'firstName',
   'middleName',
   'lastName',
@@ -52,6 +52,9 @@ const URL_FIELDS = [
   'imageUrl',
   'cvUrl',
 ] as const;
+
+/** The document section, which the card only shows for a Pro owner. */
+const DOCUMENT_FIELDS: ReadonlySet<string> = new Set(['cvUrl', 'cvHeader', 'cvDescription', 'cvDisplayText']);
 
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 const COLOR_KEYS = ['background', 'button', 'buttonText', 'text', 'icon', 'position'] as const;
@@ -99,8 +102,12 @@ export function toPublicCard(
 ): BusinessCard {
   const card: Record<string, unknown> = {
     id: cardId,
+    // The card label is private: the editor promises it never appears on the card.
+    description: '',
     isPrimary: data.isPrimary === true,
-    isActive: data.isActive === true,
+    // Cards saved before the field existed are live (the API routes and the
+    // dashboard agree); only an explicit false switches one off.
+    isActive: data.isActive !== false,
     isPro: ownerIsPro,
     enableTextMessage: data.enableTextMessage !== false,
     webLinks: sanitizeWebLinks(data.webLinks),
@@ -110,6 +117,7 @@ export function toPublicCard(
   };
 
   for (const field of TEXT_FIELDS) {
+    if (!ownerIsPro && DOCUMENT_FIELDS.has(field)) continue;
     const value = data[field];
     if (typeof value !== 'string') continue;
     const trimmed = value.trim();
@@ -117,8 +125,9 @@ export function toPublicCard(
   }
 
   for (const field of URL_FIELDS) {
+    if (!ownerIsPro && DOCUMENT_FIELDS.has(field)) continue;
     const url = sanitizeExternalUrl(data[field]);
-    if (url) card[field] = url;
+    if (url) card[field] = repairBareHandle(field, url, data[field]);
   }
 
   const phone = sanitizePhoneNumber(data.phoneNumber);
@@ -127,8 +136,6 @@ export function toPublicCard(
   const email = sanitizeEmailAddress(data.email);
   if (email) card.email = email;
 
-  // Card-level `description` is required by the type but optional in practice.
-  if (typeof card.description !== 'string') card.description = '';
   if (typeof card.firstName !== 'string') card.firstName = '';
   if (typeof card.cardSlug !== 'string') card.cardSlug = cardId;
 

@@ -374,7 +374,7 @@ test('creating a contact requires a name, splits it, and increments the quota co
   assert.equal(get('users/u1').contactCount, 1);
 });
 
-test('creating a scanned contact preserves its source and rejects unknown tag IDs', async () => {
+test('creating a scanned contact preserves its source and drops unknown tag IDs', async () => {
   reset();
   const tag = await createTag('u1', { name: 'Conference' });
 
@@ -388,10 +388,9 @@ test('creating a scanned contact preserves its source and rejects unknown tag ID
   assert.equal(get(`users/u1/contacts/${scanned.id}`).contactSource, 'scanned');
   assert.deepEqual(scanned.tags, [tag.id]);
 
-  await assert.rejects(
-    () => createContact('u1', { name: 'Unknown Tag', tags: ['missing-tag'] }),
-    /no longer exist/
-  );
+  const unknownTag = await createContact('u1', { name: 'Unknown Tag', tags: ['missing-tag', tag.id] });
+  assert.deepEqual(unknownTag.tags, [tag.id]);
+  assert.deepEqual(get(`users/u1/contacts/${unknownTag.id}`).tags, [tag.id]);
 });
 
 test('a single-word contact name becomes a first name with an empty last name', async () => {
@@ -456,7 +455,10 @@ test('single and bulk contact deletion clean up stored images', async () => {
   seed('users/u1/contacts/c3', { name: 'Three' });
 
   await deleteContact('u1', 'c1');
-  await batchDeleteContacts('u1', ['c2', 'c3']);
+  await batchDeleteContacts('u1', [
+    { id: 'c2', imageUrl: 'contacts/u1/two.jpg' },
+    { id: 'c3' },
+  ]);
 
   assert.deepEqual(deletedStoragePaths, ['contacts/u1/one.jpg', 'contacts/u1/two.jpg']);
   assert.equal(get('users/u1/contacts/c2'), undefined);

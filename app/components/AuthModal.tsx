@@ -3,14 +3,12 @@
 import React, { useState } from 'react';
 import { RegisterForm } from './RegisterForm';
 import { LoginForm } from './LoginForm';
-import { useAuth } from '../hooks/useAuth';
+import { ensureUserDocument, useAuth } from '../hooks/useAuth';
 import { getAdditionalUserInfo, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import dynamic from 'next/dynamic';
-import { createUserDocument } from '../lib/firebaseOperations';
 import { FaApple } from 'react-icons/fa';
-import { getDeviceInfo } from '../utils/deviceDetection';
 
 const ClientCardCreator = dynamic(() => import('./ClientCardCreator'), { ssr: false });
 
@@ -69,12 +67,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ initialMode = 'signup', va
       }
 
       const result = await signInWithPopup(auth, provider);
-
-      // Get device info
-      const deviceInfo = getDeviceInfo();
-
-      // Create user document with device info
-      await createUserDocument(result.user, deviceInfo);
+      await ensureUserDocument(result.user);
 
       if (getAdditionalUserInfo(result)?.isNewUser) {
         await sendWelcomeEmail(result.user);
@@ -90,17 +83,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ initialMode = 'signup', va
   const handleAppleSignIn = async () => {
     try {
       const provider = new OAuthProvider('apple.com');
+      // Apple withholds the email (and name) unless these are requested.
+      provider.addScope('email');
+      provider.addScope('name');
       if (!auth) {
         throw new Error('Auth instance is not initialized');
       }
 
       const result = await signInWithPopup(auth, provider);
-
-      // Get device info
-      const deviceInfo = getDeviceInfo();
-
-      // Create user document with device info
-      await createUserDocument(result.user, deviceInfo);
+      await ensureUserDocument(result.user);
 
       if (getAdditionalUserInfo(result)?.isNewUser) {
         await sendWelcomeEmail(result.user);

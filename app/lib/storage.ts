@@ -1,12 +1,5 @@
-import { ref, deleteObject, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { ref, deleteObject } from 'firebase/storage'
 import { storage } from './firebase'
-import { v4 as uuidv4 } from 'uuid'
-
-function imageExtension(file: File): string {
-  const subtype = file.type.split('/')[1]?.toLowerCase()
-  if (subtype === 'jpeg') return 'jpg'
-  return ['png', 'gif', 'webp', 'jpg'].includes(subtype) ? subtype : 'jpg'
-}
 
 export async function deleteImage(imageUrl: string) {
   if (!storage) throw new Error('Firebase storage is not initialized')
@@ -32,25 +25,4 @@ export async function deleteImage(imageUrl: string) {
     }
     throw error
   }
-}
-
-export async function uploadContactImage(
-  userId: string,
-  contactId: string,
-  file: File
-): Promise<string> {
-  if (!storage) throw new Error('Firebase storage is not initialized')
-
-  const imageId = uuidv4()
-  const imagePath = `contacts/${userId}/${imageId}.${imageExtension(file)}`
-  const imageRef = ref(storage, imagePath)
-
-  await uploadBytes(imageRef, file, {
-    contentType: file.type || 'image/jpeg',
-    customMetadata: {
-      compression: '0.8'
-    }
-  })
-
-  return await getDownloadURL(imageRef)
 }
